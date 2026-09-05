@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>埋伏短线-回流战法股票池 · 2026-09-04</title>
+<title>埋伏短线-涨停回流战法股票池 · 2026-09-04</title>
 <script src="echarts.min.js"></script>
 <style>
 :root{--bg:#f5f6fa;--card:#fff;--border:#e7e8ee;--ink:#1a1d29;--ink2:#5b6072;--ink3:#9097a8;--red:#d6293b;--green:#19a36e;--orange:#e8881a;--blue:#2563eb}
@@ -62,18 +62,18 @@ select{font-size:13px;padding:6px 10px;border:1px solid var(--border);border-rad
 /* 悬浮日K面板 */
 tbody tr[data-code]{cursor:pointer}
 tbody tr[data-code]:hover{background:#fafbff}
-#kpop{display:none;position:fixed;z-index:9999;width:300px;height:236px;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:4px;pointer-events:none}
-#kpopChart{width:292px;height:228px}
+#kpop{display:none;position:fixed;z-index:9999;width:344px;height:304px;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:4px;pointer-events:none}
+#kpopChart{width:336px;height:296px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="header">
-    <h1>埋伏短线 · 回流战法股票池（近 8 个交易日扫描）</h1>
+    <h1>埋伏短线 · 涨停回流战法股票池（近 8 个交易日扫描）</h1>
     <div class="sub">
       <span class="pill">基准交易日 2026-09-04</span>
       <span class="pill">扫描窗口 2026-08-26 ~ 2026-09-04（8 个交易日）</span>
-      <span class="pill">更新 2026/9/5 15:32:03</span>
+      <span class="pill">更新 2026/9/5 19:49:31</span>
     </div>
     <div class="sub" style="margin-top:6px">
       <span class="pill">涨停池 同花顺+东财</span>
@@ -2878,7 +2878,7 @@ tbody tr[data-code]:hover{background:#fafbff}
   </div>
 
   <div class="footer">
-    数据源：同花顺 dataapi + 东财 push2ex + 新浪/腾讯/东财日K · 扫描窗口 2026-08-26 ~ 2026-09-04 · 更新 2026/9/5 15:32:03<br>
+    数据源：同花顺 dataapi + 东财 push2ex + 新浪/腾讯/东财日K · 扫描窗口 2026-08-26 ~ 2026-09-04 · 更新 2026/9/5 19:49:31<br>
     WorkBuddy 自动生成 · 决策独立、盈亏自负
   </div>
 </div>
@@ -2950,7 +2950,12 @@ function renderDate(){
 }
 renderDate();
 
-/* ---- 悬浮展示当前日线（蜡烛+成交量） ---- */
+/* ---- 悬浮展示当前日线（蜡烛 + MA5 + 成交量 + MACD） ---- */
+function emaCalc(arr, n){
+  var k=2/(n+1), out=[], prev;
+  for(var i=0;i<arr.length;i++){ prev=(i===0)?arr[0]:arr[i]*k+prev*(1-k); out.push(prev); }
+  return out;
+}
 var kpopChart=null, curKCode=null;
 function showK(code, e){
   var k=KL[code];
@@ -2962,23 +2967,44 @@ function showK(code, e){
   var dates=k.map(function(x){return x.date.slice(5)});
   var candle=k.map(function(x){return [+x.open,+x.close,+x.low,+x.high]});
   var vols=k.map(function(x){return {value:x.vol,itemStyle:{color:x.close>=x.open?'#d6293b':'#19a36e'}}});
+  // MA5（收盘价 5 日简单移动平均）
+  var ma5=k.map(function(x,i){ if(i<4) return '-'; var s=0; for(var j=i-4;j<=i;j++) s+=+k[j].close; return +(s/5).toFixed(2); });
+  // MACD：EMA12 / EMA26 / DIF / DEA / 柱
+  var closes=k.map(function(x){return +x.close});
+  var ema12=emaCalc(closes,12), ema26=emaCalc(closes,26);
+  var dif=closes.map(function(c,i){return +(ema12[i]-ema26[i]).toFixed(3)});
+  var dea=emaCalc(dif,9);
+  var macd=dif.map(function(d,i){return +((d-dea[i])*2).toFixed(3)});
+  var macdBar=macd.map(function(v){return {value:v,itemStyle:{color:v>=0?'#d6293b':'#19a36e'}}});
   kpopChart.setOption({
     animation:false,backgroundColor:'#fff',
-    title:{text:code+' · 近'+k.length+'日K线',left:'center',top:3,textStyle:{fontSize:12,fontWeight:600,color:'#1a1d29'}},
+    title:{text:code+' · 近'+k.length+'日K线 (MA5·MACD)',left:'center',top:2,textStyle:{fontSize:11.5,fontWeight:600,color:'#1a1d29'}},
     tooltip:{trigger:'axis',axisPointer:{type:'cross'},confine:true},
-    grid:[{left:48,right:12,top:26,height:'58%'},{left:48,right:12,top:'72%',height:'20%'}],
-    xAxis:[{type:'category',data:dates,axisLabel:{show:false},gridIndex:0},{type:'category',data:dates,axisLabel:{fontSize:9,color:'#9097a8'},gridIndex:1}],
-    yAxis:[{scale:true,axisLabel:{fontSize:9},gridIndex:0,splitLine:{lineStyle:{color:'#eee'}}},{scale:true,gridIndex:1,splitNumber:2,axisLabel:{fontSize:9}}],
+    grid:[{left:46,right:12,top:24,height:'46%'},{left:46,right:12,top:'64%',height:'17%'},{left:46,right:12,top:'83%',height:'15%'}],
+    xAxis:[
+      {type:'category',data:dates,axisLabel:{show:false},gridIndex:0},
+      {type:'category',data:dates,axisLabel:{show:false},gridIndex:1},
+      {type:'category',data:dates,axisLabel:{fontSize:8,color:'#9097a8'},gridIndex:2}
+    ],
+    yAxis:[
+      {scale:true,axisLabel:{fontSize:8},gridIndex:0,splitLine:{lineStyle:{color:'#eee'}}},
+      {scale:true,gridIndex:1,splitNumber:2,axisLabel:{fontSize:8}},
+      {scale:true,gridIndex:2,splitNumber:2,axisLabel:{fontSize:8}}
+    ],
     series:[
-      {type:'candlestick',data:candle,xAxisIndex:0,yAxisIndex:0,itemStyle:{color:'#d6293b',color0:'#19a36e',borderColor:'#d6293b',borderColor0:'#19a36e'}},
-      {type:'bar',data:vols,xAxisIndex:1,yAxisIndex:1}
+      {type:'candlestick',name:'K',data:candle,xAxisIndex:0,yAxisIndex:0,itemStyle:{color:'#d6293b',color0:'#19a36e',borderColor:'#d6293b',borderColor0:'#19a36e'}},
+      {type:'line',name:'MA5',data:ma5,xAxisIndex:0,yAxisIndex:0,smooth:false,symbol:'none',lineStyle:{width:1,color:'#e8881a'}},
+      {type:'bar',name:'VOL',data:vols,xAxisIndex:1,yAxisIndex:1},
+      {type:'bar',name:'MACD',data:macdBar,xAxisIndex:2,yAxisIndex:2},
+      {type:'line',name:'DIF',data:dif,xAxisIndex:2,yAxisIndex:2,symbol:'none',lineStyle:{width:1,color:'#2563eb'}},
+      {type:'line',name:'DEA',data:dea,xAxisIndex:2,yAxisIndex:2,symbol:'none',lineStyle:{width:1,color:'#d6293b'}}
     ]
   },true);
   kpopChart.resize();
 }
 function positionK(e){
   var pop=document.getElementById('kpop');
-  var w=300,h=236;
+  var w=344,h=304;
   var x=e.clientX+18, y=e.clientY+18;
   if(x+w>window.innerWidth) x=e.clientX-w-18;
   if(y+h>window.innerHeight) y=window.innerHeight-h-12;
