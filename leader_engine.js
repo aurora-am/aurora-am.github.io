@@ -124,12 +124,13 @@ function renderHTML(data) {
     const p = t.plan;
     const open = p.actionable === 'buy' ? ' open' : '';
     const decCls = p.actionable === 'buy' ? 'tb-buy' : p.actionable === 'hold' ? 'tb-hold' : 'tb-watch';
-    const decTxt = p.actionable === 'buy' ? '可参与' : p.actionable === 'hold' ? '持强不接力' : '观望';
+    const decTxt = p.actionable === 'buy' ? (p.star >= 5 ? '可参与·无脑买' : '可参与') : p.actionable === 'hold' ? '持强不接力' : '观望';
+    const starMark = '★'.repeat(p.star) + '☆'.repeat(5 - p.star);
     const volRows = p.vol.table.map(r => `<tr><td>${r[0]}</td><td class="${/出货/.test(r[1]) ? 'neg' : /洗盘|一致/.test(r[1]) ? 'pos' : 'neu'}">${r[1]}</td><td>${r[2]}</td></tr>`).join('');
     const backList = t.stocks.slice(1).map(s => {
       const sb = s.secBoard;
-      const star = sb && sb.isCandidate ? '<span class="sb-star">⭐2板候选</span>' : '';
-      return `<span class="tb-back" data-code="${s.code}">${s.name}${s.lbc > 1 ? `(${s.lbc})` : ''}${star}</span>`;
+      const sbStar = sb && sb.isCandidate ? '<span class="sb-star">⭐2板候选</span>' : '';
+      return `<span class="tb-back" data-code="${s.code}">${s.name}${s.lbc > 1 ? `(${s.lbc})` : ''}${sbStar}</span>`;
     }).join('') || '<span class="tb-back dim">无</span>';
     const leaderBars = klines[t.stocks[0].code];
     const leaderKline = leaderBars
@@ -138,6 +139,7 @@ function renderHTML(data) {
     return `
   <details class="tb${open}">
     <summary><span class="tb-name">${t.name}</span>
+      <span class="tb-stars" title="题材强度 ${p.star}/5 星">${starMark}</span>
       <span class="tb-badge ${decCls}">${decTxt}</span>
       <span class="tb-stat">${t.count}家 · ${yi(t.amount)}亿 · 最高${t.maxLbc}板 · 龙:${t.leader}</span></summary>
     <div class="tb-body">
@@ -287,7 +289,7 @@ h1 small{color:var(--muted);font-weight:400;font-size:12px;margin-left:6px}
 .tb-buy{background:rgba(63,185,80,.2);color:var(--green)}
 .tb-hold{background:rgba(139,148,158,.2);color:var(--muted)}
 .tb-watch{background:rgba(210,153,34,.2);color:var(--yellow)}
-.tb-stat{font-size:11px;color:var(--muted);margin-left:auto;text-align:right}
+.tb-stars{flex:none;font-size:13px;color:#f5c542;letter-spacing:1px}.tb-stat{font-size:11px;color:var(--muted);margin-left:auto;text-align:right}
 .tb-body{padding:10px 12px}
 .tb-cell{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px;align-items:baseline}
 .tb-cell label{flex:none;width:68px;color:var(--muted);font-size:11px}
@@ -353,7 +355,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;margin:16px 0 6px}
   <div class="mood-badge"><span class="mb ${moodCls[emotion.mood] || 'm-flat'}">${emotion.mood}</span><span class="md">${emotion.moodDesc} ｜ 盘中炸板占比 ${emotion.diverge}% ｜ ${emotion.note}</span></div>
 </div>
 
-<div class="sec-t">题材主线决策榜 <em>按涨停家数排序 · 可参与自动展开</em></div>
+<div class="sec-t">题材主线决策榜 <em>可参与优先 · 按星级/强度排序 · 五星无脑买</em></div>
 ${themeCards || '<div class="note">无有效题材聚类</div>'}
 
 ${sbSection}
