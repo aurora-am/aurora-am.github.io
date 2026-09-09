@@ -1,6 +1,22 @@
 // 龙头战法面板 · 客户端渲染引擎（自动生成，勿手改）
 var f2 = v => (Number(v) || 0).toFixed(2);
 var yi = v => Math.round((Number(v) || 0) / 1e8 * 100) / 100;
+var strategyText = function strategyText(emo) {
+  if (!emo) return '—';
+  const risk = emo.risk || 0;
+  const pos = risk >= 60 ? '控仓≤3成 / 防守' : risk >= 45 ? '半仓 / 严选前排' : '7成+ / 积极试错';
+  const focus = emo.oneRatio >= 0.4
+    ? '回避一字加速（无换手介入点），只做前排换手龙分歧低吸'
+    : '聚焦前排换手龙 + 题材确认期 2 板';
+  const avoid = '回避中位股(3-4板)缩量加速、后排跟风、炸板回封无力';
+  const jz = emo.jiezhi
+    ? ('昨日连板晋级率 ' + (emo.jiezhi.jinjiRate != null ? emo.jiezhi.jinjiRate + '%' : 'MISS') + '，昨日涨停今日溢价 ' + (emo.jiezhi.premium != null ? emo.jiezhi.premium + '%' : 'MISS'))
+    : '接力效应样本不足［MISSING］';
+  const idx = emo.index
+    ? ('上证 ' + (emo.index.sh > 0 ? '+' : '') + emo.index.sh + '% / 创业板 ' + (emo.index.cyb > 0 ? '+' : '') + emo.index.cyb + '%')
+    : '大盘［MISSING］';
+  return '仓位：' + pos + ' ｜ 聚焦：' + focus + ' ｜ 回避：' + avoid + '<br/>接力：' + jz + ' ｜ 大盘：' + idx + (emo.cycle && emo.cycle.warn ? ' ｜ ' + emo.cycle.warn : '');
+};
 function candleSVG(bars) {
   if (!bars || !bars.length) return '';
   const n = bars.length;
@@ -50,7 +66,7 @@ function renderHTML(data) {
   const { tradeDate, rows, themes, ladder, emotion, downNote, phase, genTime, klines = {}, secBoardList = [], sbMap = {} } = data;
   const top = rows.slice(0, 25);
   const lvCls = { buy: 'lv-buy', hold: 'lv-hold', reduce: 'lv-reduce', watch: 'lv-watch' };
-  const moodCls = { 高潮: 'm-hot', 活跃: 'm-warm', 回暖: 'm-up', 平稳: 'm-flat', 低迷: 'm-down', 冰点: 'm-cold' };
+  const moodCls = { 高潮: 'm-hot', 活跃: 'm-warm', 回暖: 'm-up', 平稳: 'm-flat', 低迷: 'm-down', 冰点: 'm-cold', '分歧退潮': 'm-down', '低迷/退潮': 'm-down' };
 
   // 龙头分评分规则说明
   const scoreRuleRows = [
@@ -350,9 +366,18 @@ footer{text-align:center;color:var(--muted);font-size:11px;margin:16px 0 6px}
 <div class="mood">
   <div class="mc"><b>${emotion.zt}</b><span>涨停家数</span></div>
   <div class="mc"><b>${emotion.lb}</b><span>连板家数</span></div>
-  <div class="mc"><b style="color:var(--red)">${emotion.maxLbc}</b><span>最高连板</span></div>
-  <div class="mc"><b>${emotion.down == null ? 'MISS' : emotion.down}</b><span>跌停家数</span></div>
-  <div class="mood-badge"><span class="mb ${moodCls[emotion.mood] || 'm-flat'}">${emotion.mood}</span><span class="md">${emotion.moodDesc} ｜ 盘中炸板占比 ${emotion.diverge}% ｜ ${emotion.note}</span></div>
+  <div class="mc"><b style="color:#f85149">${emotion.maxLbc}</b><span>最高连板</span></div>
+  <div class="mc"><b style="color:${emotion.down == null ? '#8b949e' : (emotion.down > emotion.zt * 0.5 ? '#f85149' : '#c9d1d9')}">${emotion.down == null ? 'MISS' : emotion.down}</b><span>跌停家数</span></div>
+  <div class="mc"><b style="color:${emotion.sealRate < 50 ? '#f85149' : '#3fb950'}">${emotion.sealRate}%</b><span>封板率</span></div>
+  <div class="mc"><b style="color:${emotion.oneRatio >= 0.4 ? '#f85149' : '#c9d1d9'}">${emotion.oneRatio != null ? (emotion.oneRatio * 100).toFixed(0) + '%' : '—'}</b><span>一字占比</span></div>
+  <div class="mc"><b style="color:${emotion.risk >= 55 ? '#f85149' : (emotion.risk >= 40 ? '#d29922' : '#3fb950')}">${emotion.risk}</b><span>退潮风险</span></div>
+  <div class="mc"><b style="color:${emotion.zddb != null ? (emotion.zddb < 1.5 ? '#f85149' : '#c9d1d9') : '#8b949e'}">${emotion.zddb != null ? emotion.zddb : 'MISS'}</b><span>涨跌停比</span></div>
+  <div class="mood-badge"><span class="mb ${moodCls[emotion.mood] || 'm-flat'}">${emotion.mood}</span><span class="md">${emotion.moodDesc} ｜ 周期：${emotion.cycle ? emotion.cycle.phase : '—'} ｜ ${emotion.note}</span></div>
+</div>
+
+<div style="margin:14px 0;padding:14px 16px;border:1px solid #30363d;border-left:4px solid #58a6ff;border-radius:10px;background:#0d1117">
+  <div style="font-size:14px;font-weight:500;color:#e6edf3;margin-bottom:8px">今日总策略 <span style="font-size:12px;color:#58a6ff;font-weight:400">${emotion.mood} · 退潮风险 ${emotion.risk}/100</span></div>
+  <div style="font-size:13px;line-height:1.9;color:#c9d1d9">${strategyText(emotion)}</div>
 </div>
 
 <div class="sec-t">题材主线决策榜 <em>可参与优先 · 按星级/强度排序 · 五星无脑买</em></div>
