@@ -178,16 +178,16 @@ function renderHTML(data) {
   }).join('');
 
   const sbSection = secBoardList.length ? `
-  <div class="sec-t">二板潜力榜 <em>首板→2板晋级候选 · 按评分降序 · 共 ${secBoardList.length} 只 · 展示 Top15 · 名称悬浮看K线+评分</em></div>
+  <div class="sec-t">二板潜力榜 <em>首板→2板晋级候选 · 按评分降序 · 共 ${secBoardList.length} 只 · 展示 Top10 · 名称悬浮看K线+评分</em></div>
   <div class="sb-wrap">
-    ${secBoardList.slice(0, 15).map(x => `
+    ${secBoardList.slice(0, 10).map(x => `
     <div class="sb-row">
       <span><span class="sb-name" data-code="${x.code}">${x.name}</span><span class="sb-theme">${x.theme}</span><span class="sb-score ${x.score >= 70 ? 'sg-s' : x.score >= 55 ? 'sg-b' : x.score >= 45 ? 'sg-w' : 'sg-g'}">${x.score}分</span></span>
       <span class="sb-meta">涨停价 ${x.ztPrice ? f2(x.ztPrice) : '—'} 元 ｜ 上板 ${x.firstTime || '—'} ｜ 换手 ${x.turnoverRate ? x.turnoverRate.toFixed(1) + '%' : '—'} ｜ 封单 ${x.fund ? (x.fund / 1e8).toFixed(2) + '亿' : '—'}</span>
       <span class="sb-warn">次日竞价预警：弱转强≥ <b class="pos">${x.warnPrice || '—'}</b> 元 ｜ 打板 <b>${x.boardPrice || '—'}</b> 元 ｜ 跌破 <b class="neg">${x.breakPrice || '—'}</b> 元即放弃</span>
       <div class="sb-reason"><b>晋级2板理由：</b>${x.reason}</div>
     </div>`).join('')}
-    ${secBoardList.length > 15 ? `<div class="sb-more">… 其余 ${secBoardList.length - 15} 只已纳入 data/leader_trade.csv（全部候选），可按需查看</div>` : ''}
+    ${secBoardList.length > 10 ? `<div class="sb-more">… 其余 ${secBoardList.length - 10} 只已纳入 data/leader_trade.csv（全部候选），可按需查看</div>` : ''}
   </div>` : '';
 
   const ladderBlocks = ladder.map(g => `
