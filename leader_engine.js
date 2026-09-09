@@ -487,16 +487,24 @@ function renderKline(bars){
 (function(){
   var btn = document.getElementById("refreshBtn");
   if(!btn) return;
+  function setGen(){ var info=document.getElementById("refreshInfo"); if(info){ var m=/生成于 ([0-9:\- ]+)/.exec(info.textContent); window.__ltGen = m?m[1]:""; } }
+  setGen();
   btn.addEventListener("click", function(){
     btn.disabled = true; var old = btn.textContent; btn.textContent = "刷新中…";
-    fetch("./leader_data.json?t=" + Date.now()).then(function(r){ return r.json(); }).then(function(d){
+    fetch("./leader_data.json?t=" + Date.now()).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }).then(function(d){
       btn.disabled = false; btn.textContent = old;
-      var info = document.getElementById("refreshInfo");
-      if(info) info.textContent = "已刷新 · 数据口径：" + (d.phase||"") + " · 生成于 " + (d.genTime||"");
-      document.open(); document.write(renderHTML(d)); document.close();
+      if(d.genTime && d.genTime !== window.__ltGen){
+        document.open(); document.write(renderHTML(d)); document.close();
+        window.__ltGen = d.genTime;
+        var i2 = document.getElementById("refreshInfo");
+        if(i2) i2.textContent = "已更新到最新发布快照（生成于 " + d.genTime + "）· 盘中实时数据需每日 09:35 自动构建后推送";
+      } else {
+        var i3 = document.getElementById("refreshInfo");
+        if(i3) i3.textContent = "已是最新发布版本（生成于 " + (d.genTime||"") + "）· 数据更新见每日 09:35 自动构建";
+      }
     }).catch(function(e){
       btn.disabled = false; btn.textContent = old;
-      alert("刷新失败：" + ((e && e.message) || e) + "\n\n本地 file:// 双击打开受浏览器同源限制无法联网；请访问公网URL，或在本地运行 node scripts/build_leader.cjs 后重试。");
+      alert("刷新失败：" + ((e && e.message) || e) + "\n\n若以本地 file:// 双击打开，浏览器会禁止联网读取数据；请访问公网 https://aurora-am.github.io/leader.html ，或本地运行 node scripts/build_leader.cjs 后重试。");
     });
   });
 })();
