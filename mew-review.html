@@ -107,11 +107,7 @@ body {
 }
 .topbar-left { display:flex; align-items:center; gap:12px; }
 .topbar-title { font-size:16px; font-weight:700; letter-spacing:1px; white-space:nowrap; }
-.topbar-date-wrap { display:flex; align-items:center; gap:8px; }
-.topbar-date-display {
-  background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:6px;
-  color:#fff; padding:4px 10px; font-size:13px; font-family:inherit; user-select:none;
-}
+.topbar-date-display { color:#fff; font-size:13px; font-family:inherit; user-select:none; opacity:0.9; margin-left:12px; }
 .topbar-right { display:flex; align-items:center; gap:8px; }
 .topbar-btn {
   display:flex; align-items:center; gap:4px; padding:6px 10px;
@@ -338,19 +334,6 @@ body {
 .scenario-card { padding:12px; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid var(--card-border); background:var(--input-bg); }
 .scenario-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
 .scenario-prob { font-size:18px; font-weight:800; }
-/* ===== Source Badge ===== */
-.src-badge {
-  font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; margin-left:6px;
-  background:rgba(20,35,60,0.06); color:var(--text-secondary); border:1px solid var(--card-border);
-  white-space:nowrap; letter-spacing:0.3px;
-}
-.src-badge.src-tdx { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
-.src-badge.src-em { background:rgba(245,158,11,0.12); color:#b45309; border-color:#f59e0b; }
-.src-badge.src-mixed { background:rgba(139,92,246,0.12); color:#7c3aed; border-color:#a855f7; }
-.src-badge.src-manual { background:var(--green-light); color:var(--green); border-color:var(--green); }
-.src-badge.src-none { background:var(--red-light); color:var(--red); border-color:var(--red); }
-body.dark .src-badge.src-em { color:#fbbf24; }
-body.dark .src-badge.src-mixed { color:#c4b5fd; }
 /* ===== Modal ===== */
 .miao-modal-mask {
   position:fixed; inset:0; z-index:2000; background:rgba(10,18,32,0.45);
@@ -401,8 +384,7 @@ body.dark .src-badge.src-mixed { color:#c4b5fd; }
   .topbar-btn { padding:6px 8px; font-size:11px; flex-shrink:0; }
   .topbar-title { font-size:14px; }
   .topbar-btn .btn-text { display:none; }
-  .topbar-date-display { font-size:12px; padding:3px 8px; }
-  .src-badge { font-size:9px; padding:2px 5px; }
+  .topbar-date-display { font-size:12px; }
   .main-content { padding:10px; padding-top:8px; }
   .app-layout, .main-content { min-width:0; }
   .card-body { padding:10px; }
@@ -519,10 +501,7 @@ body.dark .src-badge.src-mixed { color:#c4b5fd; }
   <div class="topbar-left">
     <div class="mobile-menu-btn" onclick="toggleSidebar()" style="margin-right:4px;">☰</div>
     <div class="topbar-title">🐱 喵喵盘研社</div>
-    <div class="topbar-date-wrap">
-      <span class="topbar-date-display" id="currentDateDisplay">2026-09-09</span>
-      <span class="src-badge" id="srcBadge" title="当前数据来源">加载中</span>
-    </div>
+    <span class="topbar-date-display" id="currentDateDisplay">2026-09-09</span>
   </div>
   <div class="topbar-right">
     <div class="topbar-btn" style="cursor:pointer;" onclick="toggleAutoRefresh()" id="autoBtn" title="盘中5秒自动刷新，休市建议关闭以节省额度">
