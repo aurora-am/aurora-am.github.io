@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期货实时雷达 · 缠论多级别</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 13px; }
+  .top { padding: 10px 14px; border-bottom: 1px solid #21262d; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .top h1 { font-size: 16px; color: #e6edf3; font-weight: 600; }
+  .top .meta { font-size: 12px; color: #7d8590; }
+  .top .meta b { color: #58a6ff; }
+  .grid { display: grid; grid-template-columns: 240px 1fr; gap: 10px; padding: 10px 14px; align-items: start; }
+  .col-side { display: flex; flex-direction: column; gap: 10px; }
+  .panel { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 10px; }
+  .panel h2 { font-size: 13px; color: #e6edf3; margin-bottom: 8px; font-weight: 600; border-left: 3px solid #58a6ff; padding-left: 6px; }
+  .mv { display: flex; justify-content: space-between; padding: 4px 2px; border-bottom: 1px dashed #21262d; font-size: 12px; }
+  .mv .nm { color: #c9d1d9; width: 56px; }
+  .mv .px { color: #8b949e; flex: 1; text-align: center; }
+  .mv .up, .up { color: #ef232a; } .mv .dn, .dn { color: #14b143; }
+  .nv { padding: 5px 2px; border-bottom: 1px dashed #21262d; font-size: 12px; line-height: 1.4; color: #adbac7; }
+  .nv .nt { color: #58a6ff; margin-right: 6px; font-size: 11px; }
+  .cards { display: flex; flex-direction: column; gap: 8px; }
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; overflow: hidden; }
+  .card.open { border-color: #388bfd; }
+  .chead { display: flex; align-items: center; gap: 8px; padding: 9px 12px; cursor: pointer; }
+  .chead:hover { background: #1c2128; }
+  .rank { width: 18px; height: 18px; line-height: 18px; text-align: center; background: #21262d; border-radius: 4px; font-size: 11px; color: #8b949e; }
+  .cname { flex: 1; color: #e6edf3; font-weight: 600; } .cname small { color: #6e7681; font-weight: 400; margin-left: 4px; font-size: 11px; }
+  .cprice { color: #e6edf3; font-weight: 600; min-width: 64px; text-align: right; }
+  .cchg { min-width: 64px; text-align: right; font-weight: 600; }
+  .ctrend { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #21262d; color: #8b949e; }
+  .ctrend.up { color: #ef232a; } .ctrend.dn { color: #14b143; }
+  .csig { font-size: 11px; color: #ff9500; min-width: 48px; text-align: center; }
+  .cmacd { font-size: 11px; color: #58a6ff; min-width: 40px; }
+  .cbody { padding: 8px 12px 12px; border-top: 1px solid #21262d; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .tab { padding: 4px 12px; border-radius: 5px; background: #21262d; color: #8b949e; cursor: pointer; font-size: 12px; }
+  .tab.on { background: #388bfd; color: #fff; }
+  .kcanvas { width: 100%; height: 300px; display: block; background: #0d1117; border-radius: 6px; }
+  .kstate { margin-top: 6px; font-size: 12px; color: #8b949e; }
+  .kstate b { color: #e6edf3; }
+  #alerts { position: fixed; top: 14px; right: 14px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
+  .alert { background: #161b22; border: 2px solid #ff9500; border-radius: 10px; padding: 12px 16px; min-width: 200px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.5); animation: pop .3s; }
+  .alert.buy { border-color: #ef232a; } .alert.sell { border-color: #14b143; }
+  .alert .at { font-size: 11px; color: #ff9500; margin-bottom: 4px; }
+  .alert .am { font-size: 15px; color: #e6edf3; font-weight: 600; }
+  .alert.buy .am b { color: #ef232a; } .alert.sell .am b { color: #14b143; }
+  .alert .ap { font-size: 13px; color: #8b949e; margin-top: 2px; }
+  .alert .ac { font-size: 10px; color: #6e7681; margin-top: 4px; text-align: right; }
+  @keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .col-side { flex-direction: row; } }
+</style>
+</head>
+<body>
+  <div class="top">
+    <h1>期货实时雷达 · 缠论多级别</h1>
+    <span class="meta">数据时间 <b id="ts">—</b></span>
+    <span class="meta">品种池 <b id="univ">—</b></span>
+    <span class="meta">数据源：本地抓取新浪(主连) → 同域 data.json</span>
+    <span class="meta">每 30s 刷新快照 · 出现买卖点弹窗提示</span>
+  </div>
+  <div class="grid">
+    <div class="col-side">
+      <div class="panel">
+        <h2>涨幅榜 TOP5</h2>
+        <div id="upList"></div>
+      </div>
+      <div class="panel">
+        <h2>跌幅榜 TOP5</h2>
+        <div id="dnList"></div>
+      </div>
+      <div class="panel">
+        <h2>实时快讯</h2>
+        <div id="newsList"></div>
+      </div>
+    </div>
+    <div class="cards" id="topCards"></div>
+  </div>
+  <div id="alerts"></div>
+
+  <script src="js/chan.js"></script>
+  <script src="js/kline.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
