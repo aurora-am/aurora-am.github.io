@@ -280,11 +280,11 @@ h1 small{color:var(--muted);font-weight:400;font-size:12px;margin-left:6px}
 .st-g b{color:var(--muted)} .st-g span{background:rgba(139,148,158,.2);color:var(--muted)}
 /* 折叠 */
 .blk{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:7px;overflow:hidden}
-.blk summary{list-style:none;cursor:pointer;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.blk summary{list-style:none;cursor:pointer;padding:10px 12px;display:flex;justify-content:flex-start;align-items:center;gap:8px;text-align:left}
 .blk summary::-webkit-details-marker{display:none}
 .blk summary::before{content:"▸";color:var(--muted);margin-right:6px}
 .blk[open] summary::before{content:"▾"}
-.th-name{font-weight:700;font-size:14px} .th-stat{font-size:11px;color:var(--muted);text-align:right}
+.th-name{font-weight:700;font-size:14px;text-align:left} .th-stat{font-size:11px;color:var(--muted);text-align:right;margin-left:auto}
 .th-body{padding:0 12px 8px;border-top:1px solid var(--line)}
 .th-row{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
 .th-row:last-child{border-bottom:none}
