@@ -107,18 +107,11 @@ body {
 }
 .topbar-left { display:flex; align-items:center; gap:12px; }
 .topbar-title { font-size:16px; font-weight:700; letter-spacing:1px; white-space:nowrap; }
-.topbar-date-wrap { display:flex; align-items:center; gap:6px; }
-.date-nav-btn {
-  width:28px; height:28px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.1);
-  border-radius:6px; color:#fff; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;
-  transition: background 0.2s;
-}
-.date-nav-btn:hover { background:rgba(255,255,255,0.25); }
-.topbar-date-input {
+.topbar-date-wrap { display:flex; align-items:center; gap:8px; }
+.topbar-date-display {
   background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:6px;
-  color:#fff; padding:4px 8px; font-size:13px; font-family:inherit; cursor:pointer;
+  color:#fff; padding:4px 10px; font-size:13px; font-family:inherit; user-select:none;
 }
-.topbar-date-input::-webkit-calendar-picker-indicator { filter: invert(1); }
 .topbar-right { display:flex; align-items:center; gap:8px; }
 .topbar-btn {
   display:flex; align-items:center; gap:4px; padding:6px 10px;
@@ -384,7 +377,12 @@ body.dark .src-badge.src-mixed { color:#c4b5fd; }
 .miao-field textarea { min-height:110px; font-family:'Consolas','Monaco',monospace; line-height:1.6; resize:vertical; }
 .miao-grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
 /* ===== Mobile ===== */
-.mobile-menu-btn { display:none; }
+.mobile-menu-btn {
+  display:none; width:28px; height:28px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.1);
+  border-radius:6px; color:#fff; cursor:pointer; font-size:14px; align-items:center; justify-content:center;
+  transition: background 0.2s;
+}
+.mobile-menu-btn:hover { background:rgba(255,255,255,0.25); }
 @media (max-width:768px) {
   /* 所有多栏网格强制单列纵向堆叠（含 JS 生成的内联网格） */
   .grid-2, .grid-3, .grid-4, .grid-21, .grid-12 { grid-template-columns:1fr !important; gap:10px !important; }
@@ -403,7 +401,7 @@ body.dark .src-badge.src-mixed { color:#c4b5fd; }
   .topbar-btn { padding:6px 8px; font-size:11px; flex-shrink:0; }
   .topbar-title { font-size:14px; }
   .topbar-btn .btn-text { display:none; }
-  .topbar-date-input { width:118px; font-size:11px; }
+  .topbar-date-display { font-size:12px; padding:3px 8px; }
   .src-badge { font-size:9px; padding:2px 5px; }
   .main-content { padding:10px; padding-top:8px; }
   .app-layout, .main-content { min-width:0; }
@@ -519,12 +517,10 @@ body.dark .src-badge.src-mixed { color:#c4b5fd; }
 <!-- ===== Top Bar ===== -->
 <div class="topbar">
   <div class="topbar-left">
-    <div class="mobile-menu-btn date-nav-btn" onclick="toggleSidebar()" style="margin-right:4px;">☰</div>
+    <div class="mobile-menu-btn" onclick="toggleSidebar()" style="margin-right:4px;">☰</div>
     <div class="topbar-title">🐱 喵喵盘研社</div>
     <div class="topbar-date-wrap">
-      <button class="date-nav-btn" onclick="changeDate(-1)" id="datePrevBtn" title="上一交易日">◀</button>
-      <input type="date" class="topbar-date-input" id="datePicker" onchange="onDateChange()">
-      <button class="date-nav-btn" onclick="changeDate(1)" id="dateNextBtn" title="下一交易日">▶</button>
+      <span class="topbar-date-display" id="currentDateDisplay">2026-09-09</span>
       <span class="src-badge" id="srcBadge" title="当前数据来源">加载中</span>
     </div>
   </div>
@@ -4931,7 +4927,7 @@ function exportMarkdown() {
   var tomorrow = document.getElementById('notesTomorrow').value;
   var auction = document.getElementById('notesAuction').value;
   var reflection = document.getElementById('notesReflection').value;
-  var date = document.getElementById('datePicker').value;
+  var date = (document.getElementById('currentDateDisplay') && document.getElementById('currentDateDisplay').textContent) || DATA.date;
   var md = '# 喵喵盘研社 · 复盘笔记 ' + date + '\n\n';
   md += '## 📅 今日交易\n\n' + today + '\n\n';
   md += '## 📅 明日计划\n\n' + tomorrow + '\n\n';
@@ -5530,8 +5526,8 @@ function loadCalendar() {
       if (TRADE_DAYS[_ti] <= _todayStr) { LATEST_TRADE_DAY = TRADE_DAYS[_ti]; break; }
     }
     CALENDAR_READY = true;
-    var picker = document.getElementById('datePicker');
-    if (picker) { picker.min = TRADE_DAYS[0]; picker.max = LATEST_TRADE_DAY; }
+    var disp = document.getElementById('currentDateDisplay');
+    if (disp && DATA.date) disp.textContent = DATA.date;
     return Promise.resolve(TRADE_DAYS);
   } catch (err) {
     CALENDAR_READY = false;
@@ -5542,13 +5538,14 @@ function loadCalendar() {
 
 /* ===== 日期联动 ===== */
 function syncPicker(date) {
-  var picker = document.getElementById('datePicker');
-  if (picker) picker.value = date;
+  var disp = document.getElementById('currentDateDisplay');
+  if (disp) disp.textContent = date;
   DATA.date = date;
 }
 
 function onDateChange() {
   var picker = document.getElementById('datePicker');
+  if (!picker) return;
   var raw = picker.value;
   if (!raw) { picker.value = DATA.date; return; }
   var target = raw;
@@ -5566,7 +5563,8 @@ function onDateChange() {
 }
 
 function changeDate(delta) {
-  var cur = document.getElementById('datePicker').value || DATA.date;
+  var picker = document.getElementById('datePicker');
+  var cur = (picker && picker.value) || DATA.date;
   var target;
   if (CALENDAR_READY) {
     var idx = tradeDayIndex(cur) + delta;
@@ -5771,7 +5769,8 @@ function loadDay(date, force) {
 var LAST_LIVE_AT = null;
 function forceRefresh() {
   if (_isFetching) { showNotify('⏳ 正在加载中，请稍候…', 2000); return; }
-  var date = document.getElementById('datePicker').value || DATA.date;
+  var picker = document.getElementById('datePicker');
+  var date = (picker && picker.value) || DATA.date;
   delete _dayCache[date];
   _isFetching = true; setBusy(true);
   showLoading('🔄 强制刷新 ' + date + '（' + weekdayCN(date) + '）：正在向数据源拉取最新数据…');
