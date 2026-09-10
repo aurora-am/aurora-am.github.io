@@ -4574,8 +4574,10 @@ function renderShKline(mode) {
   if (charts.shKline) charts.shKline.dispose();
   charts.shKline = echarts.init(el);
   var klRaw = DATA.kline.sh60d; if (!klRaw) return;
-  // 固定展示最近 60 个交易日 K 线
-  var kl = { dates: klRaw.dates.slice(-60), ohlc: klRaw.ohlc.slice(-60) };
+  // 默认展示最近 60 个交易日，但保留全部数据以便缩放/左右平移查看
+  var kl = { dates: klRaw.dates.slice(), ohlc: klRaw.ohlc.slice() };
+  var total = kl.dates.length;
+  var defaultStart = Math.max(0, total - 60);
   var closes = kl.ohlc.map(function (d) { return d[1]; });
   function sma(arr, p) { var s = 0; for (var i = arr.length - p; i < arr.length; i++) s += arr[i]; return s / p; }
   function ema(arr, p) { var k = 2 / (p + 1), prev = arr[0], r = [prev]; for (var i = 1; i < arr.length; i++) { prev = arr[i] * k + prev * (1 - k); r.push(prev); } return r; }
@@ -4595,6 +4597,10 @@ function renderShKline(mode) {
              { type: 'category', gridIndex: 1, data: kl.dates, axisLabel: { show: false }, axisLine: { lineStyle: { color: TC.border } } } ],
     yAxis: [ { scale: true, axisLabel: { color: TC.textSecondary, fontSize: 9 }, gridIndex: 0 },
              { scale: true, axisLabel: { color: TC.textSecondary, fontSize: 9 }, gridIndex: 1 } ],
+    dataZoom: [
+      { type: 'inside', xAxisIndex: [0, 1], startValue: defaultStart, endValue: total - 1, zoomOnMouseWheel: true, moveOnMouseWheel: true, moveOnMouseMove: true, preventDefaultMouseWheel: false },
+      { type: 'slider', xAxisIndex: [0, 1], startValue: defaultStart, endValue: total - 1, height: 16, bottom: 6, showDataShadow: false, borderColor: 'transparent', backgroundColor: 'rgba(128,128,128,0.1)', fillerColor: 'rgba(59,130,246,0.25)', handleStyle: { color: 'rgba(59,130,246,0.6)' }, textStyle: { color: TC.textSecondary, fontSize: 9 } }
+    ],
     series: [
       { name: 'K线', type: 'candlestick', data: kl.ohlc, xAxisIndex: 0, yAxisIndex: 0, itemStyle: { color: TC.red, color0: TC.green, borderColor: TC.red, borderColor0: TC.green } },
       { name: 'MA5', type: 'line', data: ma5, xAxisIndex: 0, yAxisIndex: 0, smooth: true, symbol: 'none', lineStyle: { width: 1, color: '#f59e0b' } },
