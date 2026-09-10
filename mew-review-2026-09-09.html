@@ -4205,6 +4205,66 @@ function updateLastUpdateLabel() {
     el.textContent = '';
   }
 }
+/* ===== 实时题材：1分钟涨速（确定性计算，不依赖字段猜测） ===== */
+var ZS_MAP = {};            // code -> 涨速(%)，仅盘中实时刷新时填充
+var _zsRunning = false;
+var _lastZS = 0;
+var ZS_WINDOW_MS = 60000;   // 涨速窗口：1分钟
+
+// 从东财分时(trends2)计算 1分钟涨速 = (最新价 - 1分钟前价)/1分钟前价×100
+function calcZS(trends) {
+  if (!trends || trends.length < 2) return null;
+  var last = String(trends[trends.length - 1]).split(',');
+  var lastP = parseFloat(last[2]); // f53 = 收/最新价
+  if (!isFinite(lastP) || lastP === 0) return null;
+  var lt = Date.parse(String(last[0]).replace(/-/g, '/'));
+  if (isNaN(lt)) return null;
+  var target = lt - ZS_WINDOW_MS, best = null, bestDiff = Infinity;
+  for (var i = 0; i < trends.length - 1; i++) {
+    var p = String(trends[i]).split(',');
+    var t = Date.parse(String(p[0]).replace(/-/g, '/'));
+    if (isNaN(t)) continue;
+    var d = Math.abs(t - target);
+    if (d < bestDiff) { bestDiff = d; best = parseFloat(p[2]); }
+  }
+  if (best == null || !isFinite(best) || best === 0) return null;
+  return (lastP - best) / best * 100;
+}
+
+// 对主题雷达后排补涨候选批量拉分时、算涨速（串行队列，失败跳过不阻断）
+function fetchZSForTheme() {
+  if (_zsRunning) return;
+  if (!DATA.themeRadar || !DATA.themeRadar.themes || !DATA.themeRadar.themes.length) return;
+  var codes = [];
+  DATA.themeRadar.themes.forEach(function (t) {
+    (t.backRows || []).forEach(function (b) { if (b.code && codes.indexOf(b.code) < 0) codes.push(b.code); });
+  });
+  if (!codes.length) return;
+  _zsRunning = true; _lastZS = Date.now();
+  var total = codes.length, done = 0;
+  showNotify('📊 正在计算各板块涨速（1分钟） ' + done + '/' + total + '…', 1500);
+  var chain = Promise.resolve();
+  codes.forEach(function (code) {
+    chain = chain.then(function () {
+      var mkt = /^60/.test(code) ? '1' : '0';
+      var secid = mkt + '.' + code;
+      var u = 'https://push2his.eastmoney.com/api/qt/stock/trends2/get?secid=' + secid
+            + '&fields1=f1,f2,f3,f7&fields2=f51,f52,f53,f54,f55,f56,f57,f58&iscr=0&ndays=1';
+      return LiveFeed.jsonp(u, 9000).then(function (j) {
+        var tr = j && j.data && j.data.trends;
+        ZS_MAP[code] = calcZS(tr);
+      }).catch(function () { ZS_MAP[code] = null; }).then(function () {
+        done++;
+        if (done % 12 === 0 || done === total) showNotify('📊 正在计算各板块涨速 ' + done + '/' + total + '…', 1200);
+      });
+    });
+  });
+  chain.then(function () {
+    _zsRunning = false; renderThemeRadar();
+    showNotify('✅ 涨速已更新（' + total + ' 只后排候选 · 按涨速降序）', 3000);
+  }).catch(function () { _zsRunning = false; renderThemeRadar(); });
+}
+
 function renderThemeRadar() {
   var wrap = document.getElementById('themeRadarWrap');
   var noteEl = document.getElementById('themeRadarNote');
@@ -4243,29 +4303,53 @@ function renderThemeRadar() {
         + '<td>' + (s.code || '') + '</td>'
         + '<td>' + (s.name || '') + '</td>'
         + '<td style="color:var(--red);font-weight:700;">' + (s.streak || 1) + '板</td>'
+        + '<td style="opacity:.55;">封板</td>'
         + '<td>' + (s.time || '-') + '</td>'
         + '<td>' + (s.sealAmount != null ? s.sealAmount + '亿' : '-') + '</td>'
         + '<td>' + (s.mainNetFlowYi != null ? (s.mainNetFlowYi > 0 ? '+' : '') + s.mainNetFlowYi + '亿' : '-') + '</td>'
         + '<td style="opacity:.7;">' + (s.reason || '') + '</td>'
         + '</tr>';
     }).join('');
-    var backRows = (t.backRows || []).map(function (b) {
+    // 后排补涨候选：盘中按涨速降序动态排序；收盘/快照态回退按涨跌幅降序
+    var hasZS = (t.backRows || []).some(function (b) { return ZS_MAP[b.code] != null; });
+    var backArr = (t.backRows || []).slice();
+    if (hasZS) {
+      backArr.sort(function (a, b) {
+        var za = ZS_MAP[a.code], zb = ZS_MAP[b.code];
+        if (za == null && zb == null) return (b.chgPct || 0) - (a.chgPct || 0);
+        if (za == null) return 1;
+        if (zb == null) return -1;
+        return zb - za;
+      });
+    } else {
+      backArr.sort(function (a, b) { return (b.chgPct || 0) - (a.chgPct || 0); });
+    }
+    var backRows = backArr.map(function (b) {
+      var zs = ZS_MAP[b.code];
+      var zsTxt, zsColor, zsBold = '';
+      if (zs == null) { zsTxt = hasZS ? '—' : '收盘'; zsColor = 'opacity:.55;'; }
+      else {
+        zsTxt = (zs > 0 ? '+' : '') + zs.toFixed(2) + '%';
+        zsColor = zs > 0 ? 'var(--red)' : (zs < 0 ? 'var(--green)' : 'opacity:.6;');
+        if (zs > 0) zsBold = 'font-weight:700;';
+      }
       return '<tr>'
         + '<td>' + (b.code || '') + '</td>'
         + '<td>' + (b.name || '') + '</td>'
         + '<td style="color:' + (b.chgPct >= 0 ? 'var(--red)' : 'var(--green)') + ';">' + (b.chgPct > 0 ? '+' : '') + (b.chgPct || 0) + '%</td>'
+        + '<td style="color:' + zsColor + zsBold + '">' + zsTxt + '</td>'
         + '<td>' + (b.volRatio != null ? b.volRatio : '-') + '</td>'
         + '<td>' + (b.mainNetFlowYi != null ? (b.mainNetFlowYi > 0 ? '+' : '') + b.mainNetFlowYi + '亿' : '-') + '</td>'
         + '<td style="color:var(--primary);font-weight:700;">' + (b.strength != null ? b.strength : '-') + '</td>'
         + '</tr>';
-    }).join('') || '<tr><td colspan="6" style="opacity:.6;">同板块未筛到符合条件（主板·涨幅0.5%~8%·非ST）的后排补涨候选，属正常</td></tr>';
+    }).join('') || '<tr><td colspan="7" style="opacity:.6;">同板块未筛到符合条件（主板·涨幅0.5%~8%·非ST）的后排补涨候选，属正常</td></tr>';
     html += '<div class="theme-block">'
       + '<div class="theme-head"><span class="theme-name">🀄 ' + t.name + '</span>'
       + '<span class="theme-meta">涨停 ' + (t.count || 0) + ' 只 · 最高 ' + (t.lbcMax || 1) + ' 板</span></div>'
       + '<div class="theme-sub">前排涨停梯队</div>'
-      + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>连板</th><th>涨停时间</th><th>封单</th><th>主力净流入</th><th>题材</th></tr></thead><tbody>' + frontRows + '</tbody></table></div>'
-      + '<div class="theme-sub">同板块后排补涨候选（主板·涨幅0.5%~8%·非ST）</div>'
-      + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>量比</th><th>主力净流入</th><th>补涨强度</th></tr></thead><tbody>' + backRows + '</tbody></table></div>'
+      + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>连板</th><th>涨速</th><th>涨停时间</th><th>封单</th><th>主力净流入</th><th>题材</th></tr></thead><tbody>' + frontRows + '</tbody></table></div>'
+      + '<div class="theme-sub">同板块后排补涨候选（主板·涨幅0.5%~8%·非ST · 按涨速降序）</div>'
+      + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>涨速</th><th>量比</th><th>主力净流入</th><th>补涨强度</th></tr></thead><tbody>' + backRows + '</tbody></table></div>'
       + '</div>';
   });
   wrap.innerHTML = html;
@@ -5871,6 +5955,7 @@ function forceRefresh() {
   waitBridge(date, 1200).then(function (bridged) {
     if (bridged) {
       commit(bridged);
+      fetchZSForTheme();
       settle();
       var lu0 = DATA.limitUp || {};
       showNotify('✅ ' + date + ' 已由智能体连接器刷新：涨停 ' + (lu0.count || 0)
@@ -5882,6 +5967,7 @@ function forceRefresh() {
       if (!r || !r.okCount) throw new Error('live-unavailable');
       var payload = mergeLivePayload(date, r);
       commit(payload);
+      fetchZSForTheme();
       LAST_LIVE_AT = new Date();
       updateLastUpdateLabel();
       settle();
@@ -5922,6 +6008,7 @@ function autoLiveRefreshOnce() {
     _dayCache[date] = { res: payload, ts: Date.now() };
     EMBEDDED_SNAPSHOT[date] = payload;
     applyPayload(payload); renderAll();
+    fetchZSForTheme();
     LAST_LIVE_AT = new Date();
     updateLastUpdateLabel();
     var lu = DATA.limitUp || {};
@@ -5944,6 +6031,10 @@ function autoLiveRefreshOnce() {
 var _quoteLiveFail = 0;
 function fetchQuotes() {
   if (!CURRENT_IS_LATEST) return;
+  // 涨速动态重算：盘中每 90 秒重排一次后排补涨候选（非交易时段跳过）
+  if (isMarketOpen() && !_zsRunning && Date.now() - _lastZS > 90000) {
+    try { fetchZSForTheme(); } catch (e) {}
+  }
   if (_quoteLiveFail < 3) {
     LiveFeed.quotes().then(function (q) {
       _quoteLiveFail = 0;
