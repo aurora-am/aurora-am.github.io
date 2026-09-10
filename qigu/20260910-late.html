@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期股联动推送 · 2026-09-10 深夜（夜盘）</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --line:#e6e8eb; --text:#1a1d21; --sub:#5c6470;
+  --up:#d92b2b; --down:#0f9d58; --flat:#8a8f98;
+  --accent:#1f5eff; --warn:#b8860b; --warnbg:#fff8e6; --warnline:#f0d9a0;
+  --danger:#c0392b; --dangerbg:#fdecea; --dangerline:#f5c6c2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:15px;line-height:1.6;padding:12px;max-width:900px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:4px}
+h2{font-size:15.5px;font-weight:700;margin:0}
+.sub{color:var(--sub);font-size:12.5px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none;gap:8px}
+.hd:active{background:#fafbfc}
+.hd .left{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.tag{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:600;flex-shrink:0;white-space:nowrap}
+.t-fire{background:#fdeaea;color:var(--up)}
+.t-warn{background:var(--warnbg);color:var(--warn)}
+.t-danger{background:var(--dangerbg);color:var(--danger)}
+.t-off{background:#eef0f2;color:var(--flat)}
+.t-info{background:#eaf1ff;color:var(--accent)}
+.bd{padding:0 14px 14px;border-top:1px solid var(--line)}
+.bd[hidden]{display:none}
+.arrow{color:var(--sub);font-size:12px;transition:transform .18s;flex-shrink:0}
+.hd.open .arrow{transform:rotate(90deg)}
+.kv{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--sub);margin:10px 0 4px}
+.kv b{color:var(--text);font-weight:600}
+.reason{background:#f8f9fb;border-left:3px solid var(--accent);padding:9px 11px;border-radius:0 6px 6px 0;font-size:13.5px;margin:10px 0}
+.dur{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;margin:6px 6px 0 0}
+.d2{background:#fff4e0;color:#c47f00}
+.d3{background:#e6f4ea;color:#0b7a3b}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+th{background:#f0f2f5;color:var(--sub);font-weight:600;text-align:left;padding:7px 8px;font-size:12px;white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.up{color:var(--up);font-weight:600}
+.down{color:var(--down);font-weight:600}
+.flat{color:var(--flat)}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:var(--sub)}
+.nm{font-weight:600}
+.logic{color:var(--sub);font-size:12.5px;display:block;margin-top:2px}
+.warnbox{background:var(--warnbg);border:1px solid var(--warnline);border-radius:8px;padding:11px 13px;font-size:13.5px;margin:10px 0}
+.warnbox b{color:var(--warn)}
+.dangerbox{background:var(--dangerbg);border:1px solid var(--dangerline);border-radius:8px;padding:11px 13px;font-size:13.5px;margin:10px 0}
+.dangerbox b{color:var(--danger)}
+ul{margin:6px 0 0 18px;font-size:13.5px}
+li{margin-bottom:5px}
+.note{background:#f0f2f5;border-radius:8px;padding:11px 13px;font-size:12.5px;color:var(--sub);line-height:1.7}
+.badge{display:inline-block;font-size:11px;background:#fdeaea;color:var(--up);padding:1px 6px;border-radius:3px;margin-left:5px;font-weight:600}
+.sect-title{font-size:14px;font-weight:700;margin:18px 0 8px;color:var(--text);display:flex;align-items:center;gap:7px}
+.sect-title::before{content:"";width:3px;height:14px;background:var(--accent);border-radius:2px}
+.hero{background:linear-gradient(135deg,#fff5f5,#fff);border:1px solid #f5c6c2;border-radius:10px;padding:13px 15px;margin-bottom:12px}
+.hero .t{font-size:15px;font-weight:700;color:var(--danger);margin-bottom:6px}
+.hero .c{font-size:13.5px;line-height:1.75}
+</style>
+</head>
+<body>
+
+<h1>期股联动推送 · 深夜版</h1>
+<div class="sub">2026-09-10（周四）23:57 · A股已收盘 / 期货夜盘进行中　|　标的已按「仅主板 60xxxx·00xxxx」过滤，创业板 300xxx 与科创板 688xxx 已排除</div>
+
+<div class="hero">
+  <div class="t">今夜核心变化：原油破百 vs 贵金属有色崩塌，商品剧烈分化</div>
+  <div class="c">
+  <b class="up">涨：WTI原油 101.13（+5.29%，破100关口）、布伦特 106.87（+5.59%）、国内 SC原油日盘 +6.44%</b><br>
+  <b class="down">跌：COMEX白银 -5.51%、COMEX铜 -5.01%、COMEX黄金 -1.25%</b><br>
+  驱动：沙特产量创36年新低（供给硬缺口）+ 欧洲央行今晚加息、美联储下周决议（加息预期压制贵金属）。<br>
+  <b>本期最重要提示：国内日盘金银铜还在涨，外盘此刻已暴跌 —— 明日 A股相关板块大概率补跌。</b>
+  </div>
+</div>
+
+<div class="sect-title">一、触发推送：原油 / 能化链（期货端确实在暴涨）</div>
+
+<div class="card">
+  <div class="hd"><div class="left"><span class="tag t-fire">触发</span><h2>原油链　SC +6.44%　WTI 破 100 美元</h2></div><span class="arrow">▶</span></div>
+  <div class="bd">
+    <div class="kv">
+      <span>国内 SC原油 <b class="up">769.0 (+6.44%)</b></span>
+      <span>WTI <b class="up">101.13 (+5.29%)</b></span>
+      <span>布伦特 <b class="up">106.87 (+5.59%)</b></span>
+      <span>更新时间 <b>09-10 23:59</b></span>
+    </div>
+    <div class="reason"><b>上涨原因（硬供给缺口，非情绪）：</b>沙特向 OPEC 证实，8 月原油日产量<b>骤降 190 万桶至 623.8 万桶/日</b>，跌破今年 4 月战时低点，<b>创 1990 年海湾战争以来最低纪录</b>。叠加美伊冲突加剧、波斯湾出口通道受阻、油轮频繁遭袭。OPEC 内部同时失和（阿联酋退出、委内瑞拉评估去留）。</div>
+    <div>
+      <span class="dur d3">持续性：数周</span>
+      <div class="kv" style="margin-top:6px">依据：产量削减是<b>已发生的物理事实</b>，不是预期。沙特靠动用库存才勉强维持市场供应量 712.2 万桶/日，供给缺口客观存在。只要波斯湾航道不通、美伊局势不缓和，油价难回 90 美元下方。</div>
+    </div>
+    <div style="margin-top:12px;font-weight:600;font-size:13.5px">能化链期货全线跟涨（9/10 国内日盘主力合约）</div>
+    <table>
+      <tr><th>品种</th><th class="num">收盘</th><th class="num">涨幅</th><th>说明</th></tr>
+      <tr><td class="nm">SC 原油</td><td class="num">769.0</td><td class="num up">+6.44%</td><td>龙头，供给缺口直接标的</td></tr>
+      <tr><td class="nm">BZ 纯苯</td><td class="num">9227</td><td class="num up">+6.00%</td><td>芳烃链，成本推动</td></tr>
+      <tr><td class="nm">EB 苯乙烯</td><td class="num">10307</td><td class="num up">+5.32%</td><td>纯苯下游，涨幅第三</td></tr>
+      <tr><td class="nm">PX 对二甲苯</td><td class="num">9274</td><td class="num up">+2.48%</td><td>聚酯原料</td></tr>
+      <tr><td class="nm">FU 燃油</td><td class="num">4044</td><td class="num up">+2.80%</td><td>你常做品种</td></tr>
+      <tr><td class="nm">BU 沥青</td><td class="num">5084</td><td class="num up">+2.77%</td><td>你常做品种</td></tr>
+      <tr><td class="nm">PP 聚丙烯</td><td class="num">8939</td><td class="num up">+2.29%</td><td>成本推动</td></tr>
+      <tr><td class="nm">EG 乙二醇</td><td class="num">5917</td><td class="num up">+1.95%</td><td>你常做品种</td></tr>
+      <tr><td class="nm">MA 甲醇</td><td class="num">3430</td><td class="num up">+0.82%</td><td>你常做品种，涨幅最小</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="sect-title">二、⚠️ 重大背离：期货能化暴涨，A股能化股全线下跌</div>
+
+<div class="card">
+  <div class="hd"><div class="left"><span class="tag t-danger">背离</span><h2>不能简单"期货涨就买对应股票"</h2></div><span class="arrow">▶</span></div>
+  <div class="bd">
+    <div class="dangerbox"><b>背离事实：</b>9/10 国内能化期货全线暴涨（SC +6.44%、EB +5.32%、FU +2.80%），但 A股 9/10 收盘能化相关板块<b>几乎全线下跌</b>：<br>
+    炼化及贸易 <b class="down">-1.98%</b>、化学原料 <b class="down">-1.89%</b>、化学制品 <b class="down">-1.97%</b>、化学纤维 <b class="down">-2.34%</b>、油服工程 <b class="down">-1.70%</b>、塑料 <b class="down">-0.19%</b>。</div>
+    <table>
+      <tr><th>代码</th><th>名称</th><th class="num">9/10</th><th>状态</th></tr>
+      <tr><td class="code">600938</td><td class="nm">中国海油</td><td class="num up">+0.70%</td><td><b class="up">唯一上涨</b>——纯上游开采，油价涨=收入涨，34.42元。PE 11.82、股息率 3.33%</td></tr>
+      <tr><td class="code">601857</td><td class="nm">中国石油</td><td class="num down">-0.44%</td><td>上游占比高但炼化拖累，11.27元。股息率 4.17%</td></tr>
+      <tr><td class="code">600028</td><td class="nm">中国石化</td><td class="num down">-0.89%</td><td>炼化为主，成本端直接受损，5.56元</td></tr>
+      <tr><td class="code">601808</td><td class="nm">中海油服</td><td class="num down">-1.24%</td><td>油服，12.72元。逻辑上应受益但被情绪压制</td></tr>
+      <tr><td class="code">600583</td><td class="nm">海油工程</td><td class="num down">-0.97%</td><td>油服，6.15元。PB 0.94、股息率 3.19%</td></tr>
+      <tr><td class="code">603619</td><td class="nm">中曼石油</td><td class="num down">-2.46%</td><td>9/8 曾涨停推荐，现 24.14元，换手仍达 10.09%</td></tr>
+      <tr><td class="code">000059</td><td class="nm">华锦股份</td><td class="num down">-2.85%</td><td>9/8 曾涨停推荐，现 5.79元</td></tr>
+      <tr><td class="code">600346</td><td class="nm">恒力石化</td><td class="num down">-3.56%</td><td>大炼化，18.42元，成本端受损最明显</td></tr>
+      <tr><td class="code">002493</td><td class="nm">荣盛石化</td><td class="num down">-5.09%</td><td>大炼化，14.37元，跌破 15 元</td></tr>
+    </table>
+    <div class="warnbox"><b>为什么会背离（两个原因叠加）：</b><br>
+    ① <b>成本冲击</b>：油价急涨对中下游（炼化、化工、航空、物流）是成本上升，不是收入上升。原油 100 美元时，炼化加工价差被压缩。<br>
+    ② <b>加息压制</b>：油价破百 → 美国 PPI 超预期反弹 → 通胀二次反弹风险 → <b>欧洲央行今晚已宣布加息，美联储下周决议</b> → 全球风险资产承压，A股 9/10 普跌，只有银行等防御板块涨（城商行 +2.39%、国有大行 +1.59%）。<br><br>
+    <b>结论：这条线只有"上游油气开采"逻辑成立（中国海油、中国石油）；油服与炼化在油价急涨阶段反而是受损方。</b></div>
+    <div class="reason" style="border-left-color:var(--up);background:#fdeaea"><b>例外：</b>国创高新（002377）逆势 <b class="up">+10.16% 涨停</b>，5日已 +26.18%。这是沥青/炼化小市值题材票，属资金炒作而非基本面，PB 7.95、PE 110，<b>不建议参与</b>。</div>
+  </div>
+</div>
+
+<div class="sect-title">三、明日（9/11）A股风险预警 —— 本期最关键</div>
+
+<div class="card">
+  <div class="hd"><div class="left"><span class="tag t-danger">预警</span><h2>国内日盘还在涨，外盘此刻已暴跌</h2></div><span class="arrow">▶</span></div>
+  <div class="bd">
+    <div class="dangerbox"><b>内外盘时差形成的风险敞口：</b>A股 9/10 收盘时，国内日盘金银铜是<b>上涨</b>的；但此刻（23:57）外盘已经<b>暴跌</b>。这个差价会在明日 A股开盘补跌。</div>
+    <table>
+      <tr><th>品种</th><th class="num">国内日盘 9/10</th><th class="num">外盘此刻</th><th class="num">缺口</th></tr>
+      <tr><td class="nm">黄金 AU</td><td class="num up">+0.74%（957.18）</td><td class="num down">-1.25%（4404.8）</td><td class="num down">-1.99pct</td></tr>
+      <tr><td class="nm">白银 AG</td><td class="num up">+1.72%（16418）</td><td class="num down">-5.51%（64.865）</td><td class="num down">-7.23pct</td></tr>
+      <tr><td class="nm">铜 CU</td><td class="num up">+0.97%（112200）</td><td class="num down">-5.01%（6.544）</td><td class="num down">-5.98pct</td></tr>
+    </table>
+    <div class="warnbox"><b>传导逻辑：</b>油价破百 → 通胀反弹 → <b>欧洲央行今晚加息</b> → 市场定价美联储下周跟进 → <b>实际利率上行预期</b> → 无息资产（黄金白银）与工业金属（铜）同步杀估值。这是标准的"通胀见顶前先杀估值"路径。</div>
+    <div style="margin-top:12px;font-weight:600;font-size:13.5px">明日需警惕补跌的主板标的（9/10 收盘价）</div>
+    <table>
+      <tr><th>代码</th><th>名称</th><th class="num">9/10</th><th>风险点</th></tr>
+      <tr><td class="code">600988</td><td class="nm">赤峰黄金</td><td class="num up">+0.96%</td><td>44.30元。贵金属板块今日唯一较强，但外盘金已跌，明日大概率低开</td></tr>
+      <tr><td class="code">002155</td><td class="nm">湖南黄金</td><td class="num up">+0.32%</td><td>28.54元。换手 7.07%、量比 1.27，20日已 +15.41%，获利盘厚</td></tr>
+      <tr><td class="code">600547</td><td class="nm">山东黄金</td><td class="num down">-1.82%</td><td>35.59元。5日 -5.09%，已在下跌通道</td></tr>
+      <tr><td class="code">600489</td><td class="nm">中金黄金</td><td class="num down">-1.97%</td><td>25.38元。10日 -4.91%</td></tr>
+      <tr><td class="code">000603</td><td class="nm">盛达资源</td><td class="num down">-0.23%</td><td>35.22元。<b>白银标的，外盘银 -5.51%，风险最大</b></td></tr>
+      <tr><td class="code">000426</td><td class="nm">兴业银锡</td><td class="num up">+0.05%</td><td>38.68元。白银+锡双敞口，双重压力</td></tr>
+      <tr><td class="code">601168</td><td class="nm">西部矿业</td><td class="num down">-1.65%</td><td>40.47元。60日 +28.56%，涨幅大回撤风险高</td></tr>
+      <tr><td class="code">601899</td><td class="nm">紫金矿业</td><td class="num down">-0.84%</td><td>34.11元。铜金双主业</td></tr>
+      <tr><td class="code">600362</td><td class="nm">江西铜业</td><td class="num up">+0.14%</td><td>49.64元。5日 +5.89%，相对抗跌但铜价已崩</td></tr>
+      <tr><td class="code">000878</td><td class="nm">云南铜业</td><td class="num up">+0.43%</td><td>18.71元。5日 +5.71%</td></tr>
+      <tr><td class="code">000960</td><td class="nm">锡业股份</td><td class="num up">+0.52%</td><td>35.10元。国内锡日盘 +1.87%，但有色整体承压</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="sect-title">四、上期（9/8）判断回顾验证</div>
+
+<div class="card">
+  <div class="hd"><div class="left"><span class="tag t-info">复盘</span><h2>对的和错的都摆出来</h2></div><span class="arrow">▶</span></div>
+  <div class="bd">
+    <table>
+      <tr><th>上期判断</th><th>结果</th><th>验证</th></tr>
+      <tr><td>黄金 -0.68%，<b>不触发推送</b>，设阈值 4500 美元</td><td>赤峰黄金 44.20 → 44.30，两日基本没动；今夜外盘金 -1.25%</td><td class="up">✓ 正确，避开了一波</td></tr>
+      <tr><td>亚盛集团四连板，<b>提示"警惕回落拖累种植板块"</b></td><td>亚盛 9/10 <b class="down">-8.06%</b>（换手 31.9%、振幅 15.06%）；种植业板块 <b class="down">-5.09%</b>、农产品加工 -4.65%</td><td class="up">✓ 应验</td></tr>
+      <tr><td>焦煤焦炭<b>股期背离</b>，提示追高风险高于铜和原油链</td><td>焦炭Ⅱ 9/10 仅 +0.27%，期货 J -1.27%、JM -0.78%，判断成立</td><td class="up">✓ 正确</td></tr>
+      <tr><td>推荐中曼石油、华锦股份（原油链）</td><td>中曼 -2.46%、华锦 -2.85%</td><td class="down">✗ 失效</td></tr>
+      <tr><td>推荐铜链（江西铜业、云南铜业）</td><td>江西铜业 48.53 → 49.64（+2.3%）、云南铜业 18.32 → 18.71（+2.1%）</td><td class="up">✓ 相对抗跌</td></tr>
+    </table>
+    <div class="warnbox"><b>本期修正（重要）：</b>上期把"原油涨 → 油服/炼化受益"作为主要推荐，<b>这个逻辑在油价"急涨"阶段是错的</b>。正确分层：<br>
+    · 油价<b>温和上行</b> → 全链条受益，油服弹性最大<br>
+    · 油价<b>急涨破位</b>（如现在破 100）→ <b>只有上游开采受益</b>，中下游全部成本受损，且触发加息预期压制整体估值<br>
+    以后油价单日涨超 3%，默认只推上游，不推中下游。</div>
+  </div>
+</div>
+
+<div class="sect-title">五、同期重要消息</div>
+<div class="card">
+  <div class="hd"><div class="left"><span class="tag t-info">消息</span><h2>7 条影响明日盘面的关键信息</h2></div><span class="arrow">▶</span></div>
+  <div class="bd">
+    <ul>
+      <li><b>沙特产量创 36 年新低</b>：8 月日产量削减 190 万桶至 623.8 万桶/日，跌破 4 月战时低点，为 1990 年海湾战争以来最低。靠动用库存才维持市场供应量 712.2 万桶/日。（智通财经）</li>
+      <li><b>美伊冲突加剧</b>：波斯湾出口通道受阻，油轮频繁遭袭，供给瞬间紧缩。</li>
+      <li><b>油价破百</b>：WTI 突破 100 美元报 101.13，布伦特 106.87（+5.59%），均刷新近期高点。</li>
+      <li><b>通胀二次反弹</b>：美国 PPI 超预期反弹，生产端成本压力显性化，消费端通胀面临二次上行风险。</li>
+      <li><b>欧洲央行今晚宣布加息</b>：正式拉开全球货币政策收紧序幕，尽管欧元区经济本已疲软。</li>
+      <li><b>"央行超级周"下周来临</b>：美联储与日本央行相继公布利率决定。美联储陷入"通胀再抬头 vs 经济放缓"两难；日本面临贸易逆差扩大与日元贬值双重压力。</li>
+      <li><b>OPEC 内部失和</b>：阿联酋因不满配额宣布退出，委内瑞拉评估去留，伊拉克对生产评估不满——OPEC 作为原油"稳定器"作用显著削弱，意味着<b>供给端更难形成对冲</b>。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sect-title">六、明日（9/11）开盘指引</div>
+<div class="card">
+  <div class="hd"><div class="left"><span class="tag t-fire">指引</span><h2>可关注 / 需观察 / 不宜追</h2></div><span class="arrow">▶</span></div>
+  <div class="bd">
+    <table>
+      <tr><th>分类</th><th>标的与理由</th></tr>
+      <tr><td><b class="up">可关注</b></td><td><b>上游油气开采</b>：中国海油 600938（34.42元，PE 11.82、股息 3.33%，唯一在油价破百时还涨的）、中国石油 601857（11.27元，股息 4.17%）。逻辑：油价涨=售价涨，成本刚性，且高股息在加息环境中是防御属性。<b>注意：这是低弹性防御型，不要期待涨停。</b></td></tr>
+      <tr><td><b style="color:var(--warn)">需观察</b></td><td><b>油服</b>：中海油服 601808、海油工程 600583。理论上油价高位会推动资本开支，但需看到<b>油价站稳 100 美元一周以上</b>才会传导到订单，且当前受加息情绪压制。若明日随期货补涨且放量，可短打；若继续跌则观望。</td></tr>
+      <tr><td><b class="down">不宜追</b></td><td><b>贵金属与工业金属全链条</b>：外盘金 -1.25%、银 -5.51%、铜 -5.01%，明日低开概率高，尤其白银标的（盛达资源 000603、兴业银锡 000426）。<br><b>种植业链</b>：9/10 板块 -5.09%，亚盛 -8.06%，情绪未稳，即便有反弹也不接第一波。<br><b>炼化</b>：成本端直接受损，逻辑最差。</td></tr>
+      <tr><td><b class="down">规避</b></td><td>国创高新 002377（+10.16% 涨停但 PB 7.95、PE 110、5日已 +26.18%，纯题材炒作）；亚盛集团 600108（PE 189.81，换手 31.9%，公司已发风险提示公告）。</td></tr>
+    </table>
+    <div class="warnbox"><b>期货端提醒（你常做品种）：</b>MA +0.82%、EG +1.95%、FU +2.80%、BU +2.77%、EB +5.32% 均在涨，而 JM -0.78%、J -1.27%、RU -0.84% 在跌。能化强、黑色弱、橡胶弱的格局在夜盘延续的概率大。但注意 <b>23:00 前清仓</b>纪律，且外盘金属正在崩，若做多能化要多一分谨慎——加息预期对所有风险资产都是压制。</div>
+  </div>
+</div>
+
+<div class="sect-title">七、数据口径与本期改进</div>
+<div class="card">
+  <div class="hd"><div class="left"><span class="tag t-info">口径</span><h2>数据来源与本期新增能力</h2></div><span class="arrow">▶</span></div>
+  <div class="bd">
+    <div class="note">
+    · <b>【本期新增·重大改进】国内期货主力合约已打通</b>：接入 PandaData 数据源，首次拿到国内 90 个主力合约真实行情（沪金、沪银、沪铜、螺纹、铁矿、焦煤焦炭、甲醇、乙二醇、燃油、沥青、橡胶、原油 SC、苯乙烯 EB 等），<b>补齐了此前只能看外盘的缺口</b>。数据为 2026-09-10 日盘收盘，涨幅按 (收盘 - 昨结算)/昨结算 计算。<br>
+    · <b>外盘行情</b>：COMEX / LME / ICE，为<b>延迟行情</b>，更新时间 2026-09-10 23:49–23:59（即此刻美盘盘中）。<br>
+    · <b>A股行情</b>：2026-09-10 收盘数据。板块为申万行业分类。<br>
+    · <b>时差说明</b>：国内期货日线为 9/10 日盘（含 9/9 夜盘）收盘；外盘为 9/10 深夜实时，两者不同步，这正是第三节能预警补跌的原因。<br>
+    · <b>保留不确定项</b>：CZC 的 PL 品种中文全称未在接口中返回，保留代码未做推测；BZ 为大商所纯苯。<br>
+    · <b>本期未使用任何推测或填充数据</b>，所有价格与涨跌幅均来自接口返回或明确引述的新闻。
+    </div>
+  </div>
+</div>
+
+<div class="sub" style="margin-top:18px;text-align:center">生成时间 2026-09-10 23:57 · 仅供研究参考，不构成投资建议</div>
+
+<script>
+document.querySelectorAll('.hd').forEach(function(h){
+  h.addEventListener('click',function(){
+    var bd=this.nextElementSibling;
+    if(bd && bd.classList.contains('bd')){
+      var open=this.classList.toggle('open');
+      bd.hidden=!open;
+    }
+  });
+});
+var first=document.querySelector('.card .hd');
+if(first){first.classList.add('open');first.nextElementSibling.hidden=false;}
+</script>
+</body>
+</html>
