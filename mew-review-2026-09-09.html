@@ -107,7 +107,7 @@ body {
 }
 .topbar-left { display:flex; align-items:center; gap:12px; }
 .topbar-title { font-size:16px; font-weight:700; letter-spacing:1px; white-space:nowrap; }
-.topbar-date-display { color:#fff; font-size:13px; font-family:inherit; user-select:none; opacity:0.9; margin-left:12px; }
+.topbar-date-display { color:#fff; font-size:13px; font-family:inherit; user-select:none; opacity:0.9; margin-left:12px; white-space:nowrap; flex-shrink:0; }
 .topbar-update { color:rgba(255,255,255,0.82); font-size:11px; font-family:inherit; user-select:none; margin-left:10px; white-space:nowrap; }
 .topbar-update.live { color:#7CFFB2; }
 @media (max-width:768px) { .topbar-update { font-size:10px; margin-left:6px; } }
@@ -396,10 +396,10 @@ body {
   .sidebar.open { transform:none !important; box-shadow:0 -2px 14px rgba(0,0,0,0.28); }
   .sidebar::-webkit-scrollbar { height:0; width:0; }
   .nav-item {
-    flex:0 0 auto; min-width:62px;
+    flex:0 0 20%; min-width:0;   /* 每屏恰好 5 个，其余左右滑动 */
     flex-direction:column; gap:2px; justify-content:center; text-align:center;
-    padding:8px 12px; border-left:none; border-top:3px solid transparent;
-    font-size:11px; line-height:1.2;
+    padding:8px 2px; border-left:none; border-top:3px solid transparent;
+    font-size:11px; line-height:1.2; overflow:hidden;
   }
   .nav-item.active { border-left-color:transparent; border-top-color:var(--sidebar-active); }
   .nav-item .nav-icon { font-size:18px; width:auto; }
@@ -4216,7 +4216,7 @@ function updateLastUpdateLabel() {
   var el = document.getElementById('lastUpdateDisplay');
   if (!el) return;
   if (LAST_LIVE_AT) {
-    el.textContent = '🟢 最后更新 ' + fmtDateTime(LAST_LIVE_AT) + '（实时）';
+    el.textContent = '🟢 最后更新 ' + fmtDateTime(LAST_LIVE_AT);
     el.className = 'topbar-update live';
   } else if (CURRENT_SNAP_AT) {
     el.textContent = '📦 最后更新 ' + CURRENT_SNAP_AT;
