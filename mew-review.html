@@ -5964,6 +5964,7 @@ function forceRefresh() {
     if (bridged) {
       commit(bridged);
       fetchZSForTheme();
+      try { fetchCapitalFlow(); } catch (e) {}
       settle();
       var lu0 = DATA.limitUp || {};
       showNotify('✅ ' + date + ' 已由智能体连接器刷新：涨停 ' + (lu0.count || 0)
@@ -5976,6 +5977,7 @@ function forceRefresh() {
       var payload = mergeLivePayload(date, r);
       commit(payload);
       fetchZSForTheme();
+      try { fetchCapitalFlow(); } catch (e) {}
       LAST_LIVE_AT = new Date();
       updateLastUpdateLabel();
       settle();
@@ -6056,6 +6058,8 @@ function fetchQuotes() {
       applyOverrides(DATA.date);
       try { renderAISummary(); } catch (e) {}
       try { renderPageCharts(getCurrentPage()); } catch (e) {}
+      try { fetchCapitalFlow(); } catch (e) {}
+      updateLastUpdateLabel();
     }).catch(function () { _quoteLiveFail++; fetchQuotesFromSnapshot(); });
     return;
   }
@@ -6075,6 +6079,96 @@ function fetchQuotesFromSnapshot() {
     try { renderAISummary(); } catch (e) {}
     try { renderPageCharts(getCurrentPage()); } catch (e) {}
   }
+}
+
+/* ===== 资金流向柱图实时刷新（指数主力净流入 + 板块主力净流入 Top/Bottom）=====
+   说明：数据全部来自东财真实接口，失败则回落快照，绝不编造任何数值。
+   节流：指数主力净流入每 5 秒；板块主力净流入 Top5/Bottom5 每 15 秒（减轻接口限流）。 */
+var _lastSectorFlow = 0;
+var CF_INDEX_SECID = { '000001': 'sh', '399001': 'sz', '399006': 'cyb' };
+var CF_INDEX_NAME = { '000001': '上证指数', '399001': '深证成指', '399006': '创业板指' };
+function fetchCapitalFlow() {
+  if (!CURRENT_IS_LATEST) return;
+  if (!DATA.capitalFlow) DATA.capitalFlow = {};
+  var yi = function (v) { return Math.round((Number(v) || 0) / 1e8 * 100) / 100; };
+  var now = Date.now();
+  var doSector = (now - _lastSectorFlow) > 15000;
+
+  // 1) 三大指数主力净流入（fflow daykline，最新一根即当日实时累计）
+  var idxSecids = ['000001', '399001', '399006'];
+  var idxUrls = idxSecids.map(function (code6) {
+    var sec = (code6 === '000001' ? '1.' : '0.') + code6;
+    return 'https://push2delay.eastmoney.com/api/qt/stock/fflow/daykline/get?lmt=1&klt=101&secid='
+      + sec + '&fields1=f1,f2,f3,f7&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61,f62,f63,f64,f65';
+  });
+  var idxP = Promise.all(idxUrls.map(function (u, i) {
+    return LiveFeed.jsonp(u, 9000).then(function (j) {
+      var k = (j && j.data && j.data.klines && j.data.klines[0]) || '';
+      var p = String(k).split(',');
+      if (p.length < 6) return null;
+      var code6 = idxSecids[i];
+      // f52=主力净流入 f56=超大单 f55=大单 f54=中单 f53=小单（单位：元）
+      return { code: code6, netInflow: yi(p[1]), xdd: yi(p[5]), dd: yi(p[4]), zd: yi(p[3]), xd: yi(p[2]) };
+    }).catch(function () { return null; });
+  }));
+
+  // 2) 板块主力净流入（行业 m:90+t:2 + 概念 m:90+t:3）
+  var secP = doSector ? Promise.all([
+    LiveFeed.jsonp('https://push2delay.eastmoney.com/api/qt/clist/get?pn=1&pz=400&po=1&np=1&fltt=2&invt=2&fid=f62&fs=m:90+t:2&fields=f12,f14,f62,f3', 9000),
+    LiveFeed.jsonp('https://push2delay.eastmoney.com/api/qt/clist/get?pn=1&pz=400&po=1&np=1&fltt=2&invt=2&fid=f62&fs=m:90+t:3&fields=f12,f14,f62,f3', 9000)
+  ]).then(function (rs) {
+    var all = [], seen = {};
+    rs.forEach(function (j) {
+      var diff = (j && j.data && j.data.diff) || [];
+      diff.forEach(function (x) {
+        if (!x || x.f12 == null || seen[x.f12]) return;
+        seen[x.f12] = 1;
+        all.push({ code: x.f12, name: x.f14, netInflow: yi(x.f62), chgPct: +x.f3 });
+      });
+    });
+    return all;
+  }).catch(function () { return null; }) : Promise.resolve(null);
+
+  Promise.all([idxP, secP]).then(function (res) {
+    var idxArr = res[0] || [], secAll = res[1];
+    // 更新三大指数主力净流入（按 code 匹配快照 indices）
+    var byCode = {};
+    idxArr.forEach(function (r) { if (r && CF_INDEX_SECID[r.code]) byCode[r.code] = r; });
+    var idxList = DATA.capitalFlow.indices || [];
+    if (idxList.length) {
+      idxList.forEach(function (it) {
+        var code = (it.code || '').replace(/\D/g, '');
+        // it.code 可能是 'sh' 简写，用名称映射补回
+        var secid = null;
+        Object.keys(CF_INDEX_NAME).forEach(function (c) { if (CF_INDEX_NAME[c] === it.name) secid = c; });
+        var r = byCode[secid];
+        if (r) { it.netInflow = r.netInflow; it.xdd = r.xdd; it.dd = r.dd; it.zd = r.zd; it.xd = r.xd; }
+      });
+    } else if (Object.keys(byCode).length) {
+      DATA.capitalFlow.indices = Object.keys(CF_INDEX_SECID).map(function (c) {
+        var k = CF_INDEX_SECID[c], r = byCode[c];
+        return { name: CF_INDEX_NAME[c], code: c, netInflow: r ? r.netInflow : 0, xdd: r ? r.xdd : 0, dd: r ? r.dd : 0, zd: r ? r.zd : 0, xd: r ? r.xd : 0 };
+      });
+    }
+    // 更新板块 Top5 / Bottom5 + sectorFlow
+    if (secAll && secAll.length) {
+      _lastSectorFlow = Date.now();
+      var sorted = secAll.slice().sort(function (a, b) { return b.netInflow - a.netInflow; });
+      var top5 = sorted.slice(0, 5);
+      var bottom5 = sorted.slice(-5).reverse(); // 净流出最多在前
+      DATA.capitalFlow.topInflow = top5.map(function (d) { return { name: d.name, code: d.code, netInflow: d.netInflow, chgPct: d.chgPct }; });
+      DATA.capitalFlow.topOutflow = bottom5.map(function (d) { return { name: d.name, code: d.code, netInflow: d.netInflow, chgPct: d.chgPct }; });
+      DATA.sectorFlow = secAll;
+    }
+    refreshCapitalCharts();
+  }).catch(function () { /* 静默失败，保持快照 */ });
+}
+
+// 重绘当前存在的资金流柱图（按 DOM 元素存在守卫，避免无关页面报错）
+function refreshCapitalCharts() {
+  try { if (document.getElementById('capitalIndexChart')) renderCapitalPage(); } catch (e) {}
+  try { if (document.getElementById('capitalFlowIndex')) renderCapitalFlowIndex(); } catch (e) {}
+  try { if (document.getElementById('capitalFlowBar')) renderCapitalFlowBar(); } catch (e) {}
 }
 
 /* ===== 自动刷新开关 ===== */
