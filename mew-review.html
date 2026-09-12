@@ -116,6 +116,15 @@ body {
 .theme-name { font-size:14px; font-weight:700; color:var(--primary); }
 .theme-meta { font-size:12px; color:var(--text-secondary); }
 .theme-sub { font-size:12px; font-weight:600; color:var(--text); margin:10px 0 6px; padding-left:8px; border-left:3px solid var(--primary); }
+/* 推送到飞书 */
+.push-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+.push-input { flex:1 1 260px; min-width:0; background:var(--input-bg); border:1px solid var(--input-border); border-radius:6px; padding:7px 10px; font-size:12px; color:var(--text); font-family:inherit; outline:none; }
+.push-input:focus { border-color:var(--primary); }
+.push-btn { padding:7px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-family:inherit; border:1px solid var(--card-border); background:var(--input-bg); color:var(--text); white-space:nowrap; }
+.push-btn:hover { border-color:var(--primary); color:var(--primary); }
+.push-btn.primary { background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600; }
+.push-btn.primary:hover { opacity:.9; color:#fff; }
+.push-btn.ghost { background:transparent; }
 .topbar-right { display:flex; align-items:center; gap:8px; }
 .topbar-btn {
   display:flex; align-items:center; gap:4px; padding:6px 10px;
@@ -687,6 +696,27 @@ body {
     <div class="card-body">
       <div class="section-text mb-8" id="themeRadarNote"></div>
       <div id="themeRadarWrap"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📤 推送到飞书群</span><span class="card-toggle">▼</span></div>
+    <div class="card-body">
+      <div class="section-text mb-8" style="opacity:.75;">把当前「实时题材雷达」（涨停梯队 + 后排补涨）推送到你的飞书群。<strong>webhook 只保存在你本机浏览器</strong>（localStorage），不写进页面代码、不上传，他人查看源码无法获取。</div>
+      <div class="push-row">
+        <input id="fsWebhook" class="push-input" type="password" placeholder="粘贴飞书群机器人 webhook（https://open.feishu.cn/open-apis/bot/v2/hook/…）" autocomplete="off">
+        <button class="push-btn" onclick="saveFsWebhook()">保存</button>
+        <button class="push-btn ghost" onclick="clearFsWebhook()">清除</button>
+      </div>
+      <div class="push-row">
+        <input id="fsKeyword" class="push-input" type="text" placeholder="（可选）机器人安全关键词，如设置过请填写，消息会带上" autocomplete="off">
+        <button class="push-btn" onclick="saveFsKeyword()">保存关键词</button>
+      </div>
+      <div class="section-text mb-8" id="fsWebhookState" style="opacity:.7;"></div>
+      <div class="push-row">
+        <button class="push-btn primary" onclick="pushThemeToFeishu()">📤 推送当前题材</button>
+        <button class="push-btn ghost" onclick="copyThemePushText()">📋 复制推送内容</button>
+      </div>
+      <div class="section-text mb-8" style="opacity:.6;font-size:11px;">提示：浏览器直连飞书可能被跨域(CORS)拦截；若提示失败，请用「复制推送内容」手动发到群里。<strong>定时自动推送由后台任务完成</strong>，不受此限制。</div>
     </div>
   </div>
 </div>
@@ -4286,6 +4316,41 @@ function fetchZSForTheme() {
   }).catch(function () { _zsRunning = false; renderThemeRadar(); });
 }
 
+/* ===== 实时题材：成分股实时报价（涨幅/量比/主力净流入，单次批量请求）=====
+   说明：题材雷达成分股（前排涨停梯队 + 后排补涨候选）统一批量拉实时行情，
+   用于同步刷新后排补涨候选的「涨幅 / 量比 / 主力净流入 / 补涨强度」。
+   失败静默跳过（保持快照原值），绝不编造。 */
+var THEME_QUOTE_MAP = {};   // code -> {price, chgPct, amount, volRatio, mainNetFlowYi}
+var _themeQuoteRunning = false;
+var _lastThemeQuote = 0;
+var UT_THEME = 'b2884a393a59ad64002292a3e90d46a5';
+function fetchThemeQuotes() {
+  if (_themeQuoteRunning) return;
+  if (!DATA.themeRadar || !DATA.themeRadar.themes || !DATA.themeRadar.themes.length) return;
+  var codes = [];
+  DATA.themeRadar.themes.forEach(function (t) {
+    (t.front || []).forEach(function (s) { if (s.code && codes.indexOf(s.code) < 0) codes.push(s.code); });
+    (t.backRows || []).forEach(function (b) { if (b.code && codes.indexOf(b.code) < 0) codes.push(b.code); });
+  });
+  if (!codes.length) return;
+  _themeQuoteRunning = true; _lastThemeQuote = Date.now();
+  var secids = codes.map(function (c) { return (/^(60|68|9)/.test(c) ? '1.' : '0.') + c; }).join(',');
+  var u = 'https://push2delay.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&ut=' + UT_THEME
+        + '&secids=' + secids + '&fields=f2,f3,f6,f8,f10,f12,f14,f62';
+  LiveFeed.jsonp(u, 10000).then(function (j) {
+    var arr = (j && j.data && j.data.diff) || [];
+    arr.forEach(function (it) {
+      if (!it || it.f12 == null) return;
+      THEME_QUOTE_MAP[it.f12] = {
+        price: +it.f2, chgPct: +it.f3, amount: +it.f6, turnover: +it.f8, volRatio: +it.f10,
+        mainNetFlowYi: (it.f62 == null || it.f62 === '-') ? null : Math.round(it.f62 / 1e8 * 100) / 100
+      };
+    });
+    _themeQuoteRunning = false;
+    if (arr.length) renderThemeRadar();
+  }).catch(function () { _themeQuoteRunning = false; });
+}
+
 function renderThemeRadar() {
   var wrap = document.getElementById('themeRadarWrap');
   var noteEl = document.getElementById('themeRadarNote');
@@ -4320,6 +4385,8 @@ function renderThemeRadar() {
   var html = '';
   themes.forEach(function (t) {
     var frontRows = (t.front || []).map(function (s) {
+      var qf = THEME_QUOTE_MAP[s.code];
+      var fnet = (qf && qf.mainNetFlowYi != null) ? qf.mainNetFlowYi : s.mainNetFlowYi;
       return '<tr>'
         + '<td>' + (s.code || '') + '</td>'
         + '<td>' + (s.name || '') + '</td>'
@@ -4327,26 +4394,36 @@ function renderThemeRadar() {
         + '<td style="opacity:.55;">封板</td>'
         + '<td>' + (s.time || '-') + '</td>'
         + '<td>' + (s.sealAmount != null ? s.sealAmount + '亿' : '-') + '</td>'
-        + '<td>' + (s.mainNetFlowYi != null ? (s.mainNetFlowYi > 0 ? '+' : '') + s.mainNetFlowYi + '亿' : '-') + '</td>'
+        + '<td>' + (fnet != null ? (fnet > 0 ? '+' : '') + fnet + '亿' : '-') + '</td>'
         + '<td style="opacity:.7;">' + (s.reason || '') + '</td>'
         + '</tr>';
     }).join('');
-    // 后排补涨候选：盘中按涨速降序动态排序；收盘/快照态回退按涨跌幅降序
-    var hasZS = (t.backRows || []).some(function (b) { return ZS_MAP[b.code] != null; });
-    var backArr = (t.backRows || []).slice();
+    // 后排补涨候选：优先用实时报价覆盖快照值（涨幅/量比/主力净流入，并重算补涨强度）；
+    // 盘中按涨速降序动态排序，无涨速时按（实时）涨跌幅降序。实时值缺失时回落快照，绝不编造。
+    var backArr = (t.backRows || []).map(function (b) {
+      var q = THEME_QUOTE_MAP[b.code];
+      var chg = (q && isFinite(q.chgPct)) ? q.chgPct : (b.chgPct != null ? b.chgPct : 0);
+      var vr = (q && isFinite(q.volRatio) && q.volRatio > 0) ? q.volRatio : b.volRatio;
+      var net = (q && q.mainNetFlowYi != null) ? q.mainNetFlowYi : b.mainNetFlowYi;
+      var strength = b.strength;
+      if (q && isFinite(q.amount) && q.amount > 0 && net != null) {
+        strength = Math.round((chg * 0.4 + Math.min(vr || 0, 3) * 2 + (net * 1e8) / q.amount * 15) * 100) / 100;
+      }
+      return { code: b.code, name: b.name, chgPct: chg, volRatio: vr, mainNetFlowYi: net, strength: strength, zs: ZS_MAP[b.code] };
+    });
+    var hasZS = backArr.some(function (b) { return b.zs != null; });
     if (hasZS) {
       backArr.sort(function (a, b) {
-        var za = ZS_MAP[a.code], zb = ZS_MAP[b.code];
-        if (za == null && zb == null) return (b.chgPct || 0) - (a.chgPct || 0);
-        if (za == null) return 1;
-        if (zb == null) return -1;
-        return zb - za;
+        if (a.zs == null && b.zs == null) return (b.chgPct || 0) - (a.chgPct || 0);
+        if (a.zs == null) return 1;
+        if (b.zs == null) return -1;
+        return b.zs - a.zs;
       });
     } else {
       backArr.sort(function (a, b) { return (b.chgPct || 0) - (a.chgPct || 0); });
     }
     var backRows = backArr.map(function (b) {
-      var zs = ZS_MAP[b.code];
+      var zs = b.zs;
       var zsTxt, zsColor, zsBold = '';
       if (zs == null) { zsTxt = hasZS ? '—' : '收盘'; zsColor = 'opacity:.55;'; }
       else {
@@ -4369,7 +4446,7 @@ function renderThemeRadar() {
       + '<span class="theme-meta">涨停 ' + (t.count || 0) + ' 只 · 最高 ' + (t.lbcMax || 1) + ' 板</span></div>'
       + '<div class="theme-sub">前排涨停梯队</div>'
       + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>连板</th><th>涨速</th><th>涨停时间</th><th>封单</th><th>主力净流入</th><th>题材</th></tr></thead><tbody>' + frontRows + '</tbody></table></div>'
-      + '<div class="theme-sub">同板块后排补涨候选（主板·涨幅0.5%~8%·非ST · 按涨速降序）</div>'
+      + '<div class="theme-sub">同板块后排补涨候选（主板·涨幅0.5%~8%·非ST · 涨幅实时更新 · 按涨速降序）</div>'
       + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>涨速</th><th>量比</th><th>主力净流入</th><th>补涨强度</th></tr></thead><tbody>' + backRows + '</tbody></table></div>'
       + '</div>';
   });
@@ -4436,6 +4513,138 @@ function renderPreMarket() {
     if (wnTitle) wnTitle.textContent = '📰 昨夜-今早重要资讯公告';
     if (wnEl) { wnEl.innerHTML = ''; wnEl.style.display = 'none'; }
   }
+}
+
+/* ===== 实时题材 → 飞书群推送 =====
+   webhook 与关键词只存本机 localStorage，不进代码、不上传；发送失败如实提示，不谎报成功。 */
+var FS_WEBHOOK_KEY = 'mew_fs_webhook';
+var FS_KEYWORD_KEY = 'mew_fs_kw';
+function _lsGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+function _lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function saveFsWebhook() {
+  var el = document.getElementById('fsWebhook');
+  var v = (el && el.value || '').trim();
+  if (!v) { showNotify('⚠️ 请先粘贴 webhook 地址', 3000); return; }
+  if (v.indexOf('https://open.feishu.cn/open-apis/bot/v2/hook/') !== 0) {
+    showNotify('⚠️ webhook 格式不对，应为 https://open.feishu.cn/open-apis/bot/v2/hook/…', 5000); return;
+  }
+  _lsSet(FS_WEBHOOK_KEY, v); renderFsPushState(); showNotify('✅ webhook 已保存到本机', 3000);
+}
+function clearFsWebhook() {
+  _lsSet(FS_WEBHOOK_KEY, '');
+  var el = document.getElementById('fsWebhook'); if (el) el.value = '';
+  renderFsPushState(); showNotify('已清除本机保存的 webhook', 3000);
+}
+function saveFsKeyword() {
+  var el = document.getElementById('fsKeyword');
+  _lsSet(FS_KEYWORD_KEY, (el && el.value || '').trim());
+  renderFsPushState(); showNotify('✅ 关键词已保存（消息末尾会带上）', 3000);
+}
+function renderFsPushState() {
+  var st = document.getElementById('fsWebhookState'); if (!st) return;
+  var h = _lsGet(FS_WEBHOOK_KEY), kw = _lsGet(FS_KEYWORD_KEY);
+  st.innerHTML = h ? ('已保存 webhook：…' + h.slice(-10) + '　关键词：' + (kw || '（未设置）'))
+                   : '尚未保存 webhook（推送前请先粘贴并保存）';
+}
+function buildThemePushPayload() {
+  var tr = DATA.themeRadar || {}, themes = tr.themes || [];
+  if (!themes.length) return null;
+  var lu = DATA.limitUp || {}, idx = DATA.indices || {}, kw = _lsGet(FS_KEYWORD_KEY);
+  var stamp = LAST_LIVE_AT ? fmtDateTime(LAST_LIVE_AT) : (CURRENT_SNAP_AT || DATA.date);
+  var els = [];
+  var head = '**涨停** ' + (lu.count || 0) + ' 只 · **跌停** ' + (lu.limitDown || 0) + ' 只 · **最高** ' + (lu.maxStreak || 0) + ' 板';
+  if (idx.sh && idx.sh.chgPct != null) head += '　**上证** ' + (idx.sh.chgPct > 0 ? '+' : '') + idx.sh.chgPct + '%';
+  els.push({ tag: 'div', text: { tag: 'lark_md', content: head } });
+  els.push({ tag: 'hr' });
+  themes.slice(0, 5).forEach(function (t, i) {
+    var lines = ['**' + (i + 1) + '. ' + (t.name || '') + '**（涨停 ' + (t.count || 0) + ' · 最高 ' + (t.lbcMax || 1) + ' 板）'];
+    var fr = (t.front || []).slice(0, 3).map(function (s) { return (s.name || '') + '(' + (s.streak || 1) + '板)'; });
+    if (fr.length) lines.push('前排：' + fr.join('、'));
+    var bk = (t.backRows || []).slice(0, 3).map(function (b) {
+      var q = THEME_QUOTE_MAP[b.code];
+      var chg = (q && isFinite(q.chgPct)) ? q.chgPct : b.chgPct;
+      var zs = ZS_MAP[b.code];
+      return (b.name || '') + ' ' + (chg > 0 ? '+' : '') + (chg || 0) + '%'
+        + (zs != null ? ' 涨速' + (zs > 0 ? '+' : '') + (+zs).toFixed(2) + '%' : '')
+        + ' 强度' + (b.strength != null ? b.strength : '-');
+    });
+    if (bk.length) lines.push('后排补涨：' + bk.join('；'));
+    els.push({ tag: 'div', text: { tag: 'lark_md', content: lines.join('\n') } });
+  });
+  els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: (kw ? kw + ' · ' : '') + '喵喵盘研社 · ' + stamp + ' · 东方财富真实数据' }] });
+  return { msg_type: 'interactive',
+    card: { config: { wide_screen_mode: true },
+      header: { title: { tag: 'plain_text', content: '📡 实时题材雷达 · ' + DATA.date }, template: 'red' },
+      elements: els } };
+}
+function buildThemePushText() {
+  var tr = DATA.themeRadar || {}, themes = tr.themes || [];
+  if (!themes.length) return '';
+  var lu = DATA.limitUp || {}, kw = _lsGet(FS_KEYWORD_KEY);
+  var stamp = LAST_LIVE_AT ? fmtDateTime(LAST_LIVE_AT) : (CURRENT_SNAP_AT || DATA.date);
+  var out = ['📡 实时题材雷达 · ' + DATA.date,
+    '涨停 ' + (lu.count || 0) + ' / 跌停 ' + (lu.limitDown || 0) + ' / 最高 ' + (lu.maxStreak || 0) + ' 板', ''];
+  themes.slice(0, 5).forEach(function (t, i) {
+    out.push((i + 1) + '. ' + (t.name || '') + '（涨停 ' + (t.count || 0) + ' · 最高 ' + (t.lbcMax || 1) + ' 板）');
+    var fr = (t.front || []).slice(0, 3).map(function (s) { return (s.name || '') + '(' + (s.streak || 1) + '板)'; });
+    if (fr.length) out.push('   前排：' + fr.join('、'));
+    (t.backRows || []).slice(0, 3).forEach(function (b) {
+      var q = THEME_QUOTE_MAP[b.code];
+      var chg = (q && isFinite(q.chgPct)) ? q.chgPct : b.chgPct;
+      var zs = ZS_MAP[b.code];
+      out.push('   后排：' + (b.name || '') + ' ' + (chg > 0 ? '+' : '') + (chg || 0) + '%'
+        + (zs != null ? ' 涨速' + (zs > 0 ? '+' : '') + (+zs).toFixed(2) + '%' : '')
+        + ' 强度' + (b.strength != null ? b.strength : '-'));
+    });
+    out.push('');
+  });
+  out.push((kw ? kw + ' · ' : '') + '喵喵盘研社 · ' + stamp + ' · 东方财富真实数据');
+  return out.join('\n');
+}
+function copyThemePushText() {
+  var txt = buildThemePushText();
+  if (!txt) { showNotify('⚠️ 当前无题材数据可复制', 3000); return; }
+  var done = function () { showNotify('✅ 推送内容已复制，可直接粘贴到飞书群', 3500); };
+  var fail = function () {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta); done();
+    } catch (e) { showNotify('复制失败，请手动选择文本复制', 3000); }
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(done).catch(fail);
+  } else fail();
+}
+function pushThemeToFeishu() {
+  var hook = _lsGet(FS_WEBHOOK_KEY);
+  if (!hook) { showNotify('⚠️ 请先粘贴飞书群机器人 webhook 并点「保存」', 4500); return; }
+  var payload = buildThemePushPayload();
+  if (!payload) { showNotify('⚠️ 当前无题材数据可推送', 3000); return; }
+  var body = JSON.stringify(payload);
+  try { setBusy(true); } catch (e) {}
+  var finish = function () { try { setBusy(false); } catch (e) {} };
+  var attempt = function (mode, ct) {
+    var opt = { method: 'POST', headers: { 'Content-Type': ct }, body: body };
+    if (mode) opt.mode = mode;
+    return fetch(hook, opt);
+  };
+  attempt(null, 'application/json').then(function (r) {
+    return r.text().then(function (t) {
+      var j = null; try { j = JSON.parse(t); } catch (e) {}
+      if (j && j.code != null && j.code !== 0) throw new Error(j.msg || ('飞书返回 code=' + j.code));
+      finish(); showNotify('✅ 已推送到飞书群，请查收', 4000);
+    });
+  }).catch(function (e) {
+    return attempt('no-cors', 'text/plain').then(function () {
+      finish();
+      showNotify('📤 已尝试发送：飞书未返回确认（不透明响应）。请到群里查收；<br/>若未收到说明被浏览器跨域拦截，请用「复制推送内容」手动发。', 7000);
+    }).catch(function () {
+      finish();
+      showNotify('❌ 推送失败：' + (e && e.message ? e.message : '浏览器跨域被拦')
+        + '。<br/>可点「复制推送内容」手动发到群里。', 8000);
+    });
+  });
 }
 
 /* ===== Render Market Breadth ===== */
@@ -5161,6 +5370,7 @@ function renderPageCharts(page) {
     try { renderCapitalPage(); } catch(e) { console.error('capitalPage:', e.message); }
   } else if (page === 'theme') {
     try { renderThemeRadar(); } catch(e) { console.error('themeRadar:', e.message); }
+    try { renderFsPushState(); } catch(e) {}
   } else if (page === 'premarket') {
     try { renderPreMarket(); } catch(e) { console.error('preMarket:', e.message); }
   }
@@ -5984,6 +6194,7 @@ function forceRefresh() {
     if (bridged) {
       commit(bridged);
       fetchZSForTheme();
+      try { fetchThemeQuotes(); } catch (e) {}
       try { fetchCapitalFlow(); } catch (e) {}
       settle();
       var lu0 = DATA.limitUp || {};
@@ -5997,6 +6208,7 @@ function forceRefresh() {
       var payload = mergeLivePayload(date, r);
       commit(payload);
       fetchZSForTheme();
+      try { fetchThemeQuotes(); } catch (e) {}
       try { fetchCapitalFlow(); } catch (e) {}
       LAST_LIVE_AT = new Date();
       updateLastUpdateLabel();
@@ -6039,6 +6251,7 @@ function autoLiveRefreshOnce() {
     EMBEDDED_SNAPSHOT[date] = payload;
     applyPayload(payload); renderAll();
     fetchZSForTheme();
+    try { fetchThemeQuotes(); } catch (e) {}
     LAST_LIVE_AT = new Date();
     updateLastUpdateLabel();
     var lu = DATA.limitUp || {};
@@ -6064,6 +6277,10 @@ function fetchQuotes() {
   // 涨速动态重算：盘中每 90 秒重排一次后排补涨候选（非交易时段跳过）
   if (isMarketOpen() && !_zsRunning && Date.now() - _lastZS > 90000) {
     try { fetchZSForTheme(); } catch (e) {}
+  }
+  // 题材成分股实时报价：盘中每 10 秒刷新后排补涨的涨幅/量比/主力净流入（非交易时段跳过）
+  if (isMarketOpen() && !_themeQuoteRunning && Date.now() - _lastThemeQuote > 10000) {
+    try { fetchThemeQuotes(); } catch (e) {}
   }
   if (_quoteLiveFail < 3) {
     LiveFeed.quotes().then(function (q) {
