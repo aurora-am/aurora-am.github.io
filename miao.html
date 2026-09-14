@@ -928,7 +928,6 @@ body {
       <div id="ldMetrics" class="ld-metrics"></div>
       <div id="ldStrategy"></div>
       <div id="ldBoard"></div>
-      <div id="ldLadder"></div>
       <div id="ldNotes"></div>
       <div id="ldFoot" class="wr-foot"></div>
     </div>
@@ -6664,24 +6663,6 @@ function ldBoardHtml(D) {
   return h + '</tbody></table></div>';
 }
 
-function ldLadderHtml(D) {
-  var L = D.ladder || [];
-  if (!L.length) return '';
-  var h = '<div class="ld-sec-h">🪜 连板梯队</div><div class="ld-ladder">' +
-    L.map(function (l) { return '<div class="ld-lv"><div class="ld-lv-n">' + l.level + '</div><div class="ld-lv-t">' + l.count + ' 只</div></div>'; }).join('') +
-    '</div>';
-  L.forEach(function (l) {
-    h += '<div style="margin-bottom:9px"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:5px">' +
-      l.level + ' 板（' + l.count + ' 只）</div>' +
-      l.stocks.map(function (s) {
-        return '<span class="ld-stock" onclick="ldDetail(\'' + s.code + '\')">' + s.name +
-          '<span style="font-size:10.5px;color:var(--text-secondary)">' + s.sealTime + ' · ' + s.boardType + '</span>' +
-          '<span class="ld-tag">' + s.theme + '</span><b style="font-size:11.5px">' + s.score + '</b></span>';
-      }).join('') + '</div>';
-  });
-  return h;
-}
-
 function ldNotesHtml() {
   var table = [
     ['缩量封板（换手<5% 且不开板）', '持筹锁仓 · 强', '不卖；未上车继续等分歧，不追缩量加速'],
@@ -6708,14 +6689,14 @@ function ldNotesHtml() {
 }
 
 function renderLeader() {
-  var ids = ['ldBar', 'ldMetrics', 'ldStrategy', 'ldBoard', 'ldLadder', 'ldNotes', 'ldFoot'];
+  var ids = ['ldBar', 'ldMetrics', 'ldStrategy', 'ldBoard', 'ldNotes', 'ldFoot'];
   var el = {};
   ids.forEach(function (i) { el[i] = document.getElementById(i); });
   if (!el.ldBoard) return;
   var D = ldData();
   if (!D || !(D.rows || []).length) {
     el.ldBar.innerHTML = '暂无龙头战法数据（由 _build_leader.cjs 生成后注入）';
-    ['ldMetrics', 'ldStrategy', 'ldBoard', 'ldLadder', 'ldNotes'].forEach(function (i) { if (el[i]) el[i].innerHTML = ''; });
+    ['ldMetrics', 'ldStrategy', 'ldBoard', 'ldNotes'].forEach(function (i) { if (el[i]) el[i].innerHTML = ''; });
     return;
   }
   el.ldBar.innerHTML = '📅 数据日期 <b>' + (D.dataDate || WR_DASH) + '</b> · 生成于 ' + (D.generatedAt || WR_DASH) +
@@ -6724,7 +6705,6 @@ function renderLeader() {
   el.ldMetrics.innerHTML = ldMetricsHtml(D);
   el.ldStrategy.innerHTML = ldStrategyHtml(D);
   el.ldBoard.innerHTML = ldBoardHtml(D);
-  el.ldLadder.innerHTML = ldLadderHtml(D);
   el.ldNotes.innerHTML = ldNotesHtml();
   el.ldFoot.innerHTML =
     '🔎 筛选：仅主板（60/00）、已剔除 ST<br>' +
