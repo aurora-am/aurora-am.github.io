@@ -702,7 +702,7 @@ body {
     <div class="nav-item" data-page="theme" onclick="navigateTo('theme')"><span class="nav-icon">📡</span> 实时题材</div>
     <div class="nav-item" data-page="premarket" onclick="navigateTo('premarket')"><span class="nav-icon">🌅</span> 盘前分析</div>
     <div class="nav-item" data-page="mainline" onclick="navigateTo('mainline')"><span class="nav-icon">🎯</span> 主线板块</div>
-    <div class="nav-item" data-page="echelon" onclick="navigateTo('echelon')"><span class="nav-icon">🔥</span> 连板高度</div>
+    <div class="nav-item" data-page="echelon" onclick="navigateTo('echelon')"><span class="nav-icon">🔥</span> 战法阁</div>
     <div class="nav-item" data-page="stockpool" onclick="navigateTo('stockpool')"><span class="nav-icon">🏊</span> 股票池</div>
     <div class="nav-item" data-page="overnight" onclick="navigateTo('overnight')"><span class="nav-icon">⚡</span> 隔夜判断</div>
     <div class="nav-item" data-page="notes" onclick="navigateTo('notes')"><span class="nav-icon">📝</span> 复盘笔记</div>
@@ -751,6 +751,10 @@ body {
     <div class="card">
       <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🔥 连板梯队</span><span class="card-toggle">▼</span></div>
       <div class="card-body" id="echelonOverview"></div>
+    </div>
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📝 梯队总结</span><span class="card-toggle">▼</span></div>
+      <div class="card-body" id="echelonSummaryOverview"></div>
     </div>
     <div class="card" style="margin-bottom:14px;">
       <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📋 涨停明细</span><span class="card-toggle">▼</span></div>
@@ -889,11 +893,11 @@ body {
   </div>
 </div>
 
-<!-- ==================== PAGE 6: 连板高度 ==================== -->
+<!-- ==================== PAGE 6: 战法阁 ==================== -->
 <div class="page" id="page-echelon">
   <div class="card">
-    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🔥 连板梯队</span><span class="card-toggle">▼</span></div>
-    <div class="card-body" id="echelonFull"></div>
+    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🔥 昨日新增连板</span><span class="card-toggle">▼</span></div>
+    <div class="card-body" id="echelonNewOnly"></div>
   </div>
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📋 涨停板明细表</span><span class="card-toggle">▼</span></div>
@@ -905,10 +909,6 @@ body {
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🐉 龙虎榜动向</span><span class="card-toggle">▼</span></div>
     <div class="card-body" id="lhbDetail"></div>
-  </div>
-  <div class="card">
-    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📝 梯队总结</span><span class="card-toggle">▼</span></div>
-    <div class="card-body" id="echelonSummary"></div>
   </div>
   <!-- ===== 妖股观察 · 横向 Tab（连板妖股 / 二板潜力股 / 高胜率战法） ===== -->
   <div class="card">
@@ -3510,6 +3510,121 @@ function renderEchelon(containerId, isFull) {
     html = '<div style="text-align:center; color:var(--text-secondary,#5a6a7e); padding:26px 0; font-size:13px;">当前无涨停个股，连板梯队暂空缺（盘前、早盘集合竞价阶段或弱势行情下属正常现象，涨停出现后会自动生成梯队）。</div>';
   }
   el.innerHTML = html;
+  // 把今日连板梯队名称持久化到 localStorage，供次日「昨日新增」对比
+  try { saveEchelonState(); } catch (e) {}
+}
+
+/* ===== 昨日新增连板：用 localStorage 跨日对比今日 vs 昨日梯队 ===== */
+function echelonStateKey(dateStr) {
+  return 'chartlab_echelon_' + dateStr;
+}
+function yesterdayDateStr() {
+  var d = new Date();
+  var parts = (DATA.date || d.toISOString().split('T')[0]).split('-');
+  var today = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  var yest = new Date(today.getTime() - 86400000);
+  return yest.toISOString().split('T')[0];
+}
+function saveEchelonState() {
+  var dateStr = DATA.date || new Date().toISOString().split('T')[0];
+  var names = {};
+  (DATA.limitUp.streaks || []).forEach(function (s) {
+    (s.stocks || []).forEach(function (st) {
+      var nm = (st && typeof st === 'object') ? st.name : st;
+      if (nm) names[nm] = true;
+    });
+  });
+  localStorage.setItem(echelonStateKey(dateStr), JSON.stringify({ date: dateStr, names: Object.keys(names) }));
+  // 只保留最近 7 天，避免膨胀
+  try {
+    for (var i = 7; i < 30; i++) {
+      var d = new Date(new Date(dateStr).getTime() - i * 86400000);
+      localStorage.removeItem(echelonStateKey(d.toISOString().split('T')[0]));
+    }
+  } catch (e) {}
+}
+function loadEchelonState(dateStr) {
+  try {
+    var raw = localStorage.getItem(echelonStateKey(dateStr));
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function renderEchelonNewOnly() {
+  var el = document.getElementById('echelonNewOnly');
+  if (!el) return;
+  var streaks = DATA.limitUp.streaks || [];
+  var luList = (DATA.limitUp && DATA.limitUp.list) || [];
+  var byName = {};
+  luList.forEach(function (o) { if (o && o.name) byName[o.name] = o; });
+  function normStock(x) { return (x && typeof x === 'object') ? x : (byName[x] || { name: x }); }
+
+  var prev = loadEchelonState(yesterdayDateStr());
+  var prevNames = prev && Array.isArray(prev.names) ? prev.names : [];
+  var prevSet = {};
+  prevNames.forEach(function (n) { prevSet[n] = true; });
+
+  var hasPrev = prevNames.length > 0;
+  var newStocksByLevel = {};
+  streaks.forEach(function (s) {
+    var lv = parseInt(s.level, 10) || 0;
+    (s.stocks || []).forEach(function (st) {
+      var so = normStock(st);
+      if (!so.name) return;
+      if (!prevSet[so.name]) {
+        if (!newStocksByLevel[lv]) newStocksByLevel[lv] = [];
+        newStocksByLevel[lv].push(so);
+      }
+    });
+  });
+
+  function levelColor(level) {
+    var map = {
+      7: { bg:'#7c1d1d', color:'#fff' }, 6: { bg:'#a82433', color:'#fff' },
+      5: { bg:'#c9344a', color:'#fff' }, 4: { bg:'#e34d59', color:'#fff' },
+      3: { bg:'#f08542', color:'#fff' }, 2: { bg:'#1a73e8', color:'#fff' },
+      1: { bg:'#5a6a7e', color:'#fff' }
+    };
+    return map[level] || { bg:'#5a6a7e', color:'#fff' };
+  }
+
+  var html = '';
+  if (!hasPrev) {
+    html += '<div style="background:rgba(245,158,11,0.08); border:1px dashed #f59e0b; border-radius:8px; padding:10px 12px; margin-bottom:14px; color:#b45309; font-size:12px;">'
+      + '⚠ 暂无昨日连板数据（首次使用或浏览器缓存已清空），下方显示今日全部连板标的；明日刷新后将仅展示相对昨日的「新增」标的。'
+      + '</div>';
+  } else {
+    html += '<div style="background:rgba(33,166,117,0.08); border:1px solid rgba(33,166,117,0.25); border-radius:8px; padding:10px 12px; margin-bottom:14px; color:#15803d; font-size:12px;">'
+      + '✅ 对比昨日共 <b>' + prevNames.length + '</b> 只连板，今日新增 <b>' +
+      Object.keys(newStocksByLevel).reduce(function (a, k) { return a + newStocksByLevel[k].length; }, 0) +
+      '</b> 只。'
+      + '</div>';
+  }
+
+  var levels = Object.keys(newStocksByLevel).map(function (x) { return +x; }).sort(function (a, b) { return b - a; });
+  if (!levels.length) {
+    html += '<div style="text-align:center; color:var(--text-secondary,#5a6a7e); padding:26px 0; font-size:13px;">今日无新增连板标的（相对昨日全部已连板）。</div>';
+  } else {
+    levels.forEach(function (lv) {
+      var c = levelColor(lv);
+      var list = newStocksByLevel[lv];
+      html += '<div class="echelon-row" style="display:flex; align-items:flex-start; gap:14px; margin-bottom:18px;">';
+      html += '<div style="flex-shrink:0; min-width:64px; text-align:center;">';
+      html += '<div style="background:' + c.bg + '; color:' + c.color + '; font-weight:700; font-size:18px; padding:8px 6px; border-radius:10px; line-height:1.2; box-shadow:0 2px 6px rgba(0,0,0,0.15);">' + lv + '连板</div>';
+      html += '<div style="font-size:11px; color:var(--text-secondary, #5a6a7e); margin-top:4px;">' + list.length + '只</div>';
+      html += '</div>';
+      html += '<div style="flex:1; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start;">';
+      list.forEach(function (st) {
+        var tagBadge = boardBadges(st, false);
+        var pctColor = st.chgPct >= 20 ? '#f59e0b' : '#e34d59';
+        html += '<div style="background:var(--input-bg, #f0f4fa); border:1px solid var(--card-border, #d8e2ee); border-radius:6px; padding:5px 9px; font-size:12px; line-height:1.5; color:var(--text, #1a1a2e);">';
+        html += tagBadge + '<span style="font-weight:600;">' + st.name + '</span> <span style="color:' + pctColor + '; font-weight:600;">+' + (st.chgPct != null ? st.chgPct : '') + '%</span>';
+        if (st.reason) html += ' <span style="color:var(--text-secondary, #5a6a7e); font-size:11px;">' + st.reason + '</span>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+  }
+  el.innerHTML = html;
 }
 
 /* ===== Render Echelon Summary（自动生成，无输入文本框） ===== */
@@ -3518,8 +3633,9 @@ function statChip(label, val, color) {
     + '<div style="font-size:11px; color:var(--text-secondary,#5a6a7e);">' + label + '</div>'
     + '<div style="font-size:18px; font-weight:700; color:' + color + '; margin-top:2px;">' + val + '</div></div>';
 }
-function renderEchelonSummary() {
-  var el = document.getElementById('echelonSummary');
+function renderEchelonSummary(containerId) {
+  containerId = containerId || 'echelonSummary';
+  var el = document.getElementById(containerId);
   if (!el) return;
   var lu = DATA.limitUp || { streaks: [], list: [], maxStreak: 0, count: 0, limitDown: 0, sealed: 0, attempted: 0, gaps: [] };
   var streaks = lu.streaks || [];
@@ -5693,7 +5809,8 @@ function redrawAllCharts() {
   setTimeout(function() {
     try { renderPageCharts(getCurrentPage()); } catch (e) { console.error('[Redraw]', e.message); }
     try { renderEchelon('echelonOverview', false); } catch (e) {}
-    try { renderEchelon('echelonFull', true); } catch (e) {}
+    try { renderEchelonSummary('echelonSummaryOverview'); } catch (e) {}
+    try { renderEchelonNewOnly(); } catch (e) {}
     try { renderWinrate(); } catch (e) {}
     try { renderLeader(); } catch (e) {}
     try { renderLimitUpSummary(); } catch (e) {}
@@ -6783,8 +6900,8 @@ function renderAll() {
   var fns = [
     ['renderAISummary', renderAISummary],
     ['renderEchelon-overview', function() { renderEchelon('echelonOverview', false); }],
-    ['renderEchelon-full', function() { renderEchelon('echelonFull', true); }],
-    ['renderEchelonSummary', renderEchelonSummary],
+    ['renderEchelonSummary-overview', function() { renderEchelonSummary('echelonSummaryOverview'); }],
+    ['renderEchelon-newonly', renderEchelonNewOnly],
     ['renderWinrate', renderWinrate],
     ['renderLeader', renderLeader],
     ['renderLimitUpSummary', renderLimitUpSummary],
@@ -7369,8 +7486,8 @@ function init() {
   var fns = [
     ['renderAISummary', renderAISummary],
     ['renderEchelon-overview', function() { renderEchelon('echelonOverview', false); }],
-    ['renderEchelon-full', function() { renderEchelon('echelonFull', true); }],
-    ['renderEchelonSummary', renderEchelonSummary],
+    ['renderEchelonSummary-overview', function() { renderEchelonSummary('echelonSummaryOverview'); }],
+    ['renderEchelon-newonly', renderEchelonNewOnly],
     ['renderWinrate', renderWinrate],
     ['renderLeader', renderLeader],
     ['renderLimitUpSummary', renderLimitUpSummary],
