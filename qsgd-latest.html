@@ -3,351 +3,482 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>期股联动 · 午后开盘推送 2026-09-11 13:35</title>
+<title>期股联动 · 2026-09-14 10:45 盘中</title>
 <style>
 :root{
-  --bg:#f5f6f8; --card:#ffffff; --line:#e6e8eb; --txt:#1a1d21; --sub:#6b7280;
-  --up:#d32029; --dn:#0a9b53; --warn:#b45309; --warnbg:#fff7ed; --info:#1d4ed8;
-  --infobg:#eff6ff; --gray:#8b93a1;
+  --bg:#f5f6f8; --card:#ffffff; --line:#e6e8eb; --txt:#1f2328; --sub:#6b7280;
+  --up:#d92b2b; --upbg:#fdecec; --dn:#0f9d58; --dnbg:#e9f7ef; --warn:#b26a00; --warnbg:#fff6e5;
+  --flat:#8a8f98;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--txt);
-  font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-  padding:10px 10px 60px}
-h1{font-size:19px;margin:6px 0 2px}
-.sub{color:var(--sub);font-size:12px;margin-bottom:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:12px 14px;margin-bottom:10px}
-.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:5px;
-  margin:0 4px 4px 0;vertical-align:middle}
-.t-up{background:#fdecec;color:var(--up);border:1px solid #f6c9c9}
-.t-dn{background:#e8f7ee;color:var(--dn);border:1px solid #bfe6ce}
-.t-n{background:#eef0f3;color:var(--sub);border:1px solid #dde1e6}
-.t-w{background:var(--warnbg);color:var(--warn);border:1px solid #fcd9a8}
-.t-i{background:var(--infobg);color:var(--info);border:1px solid #c3d7fb}
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Helvetica,Arial,sans-serif;
+  font-size:14px;line-height:1.6;padding:10px 10px 40px}
+h1{font-size:19px;margin:6px 0 2px;letter-spacing:.3px}
+.hdr{background:linear-gradient(135deg,#fff,#f0f4ff);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.meta{color:var(--sub);font-size:12px;margin-top:4px}
+.badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;font-weight:600;margin-right:5px}
+.b-up{background:var(--upbg);color:var(--up)}
+.b-dn{background:var(--dnbg);color:var(--dn)}
+.b-w{background:var(--warnbg);color:var(--warn)}
+.b-n{background:#eef0f3;color:var(--sub)}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+summary{padding:12px 14px;font-weight:700;font-size:15px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--sub);transition:.2s;display:inline-block}
+details[open] summary::before{transform:rotate(90deg)}
+.sum-note{margin-left:auto;font-size:11px;font-weight:500;color:var(--sub)}
+.body{padding:0 12px 12px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0}
+th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{color:var(--sub);font-weight:600;font-size:11.5px;background:#fafbfc}
+th:first-child,td:first-child{text-align:left}
+tr:last-child td{border-bottom:none}
 .up{color:var(--up);font-weight:600}
 .dn{color:var(--dn);font-weight:600}
-.flat{color:var(--gray)}
-details{background:var(--card);border:1px solid var(--line);border-radius:12px;
-  margin-bottom:10px;overflow:hidden}
-summary{padding:13px 14px;font-weight:600;font-size:15px;cursor:pointer;
-  list-style:none;display:flex;justify-content:space-between;align-items:center}
-summary::-webkit-details-marker{display:none}
-summary::after{content:"＋";color:var(--gray);font-weight:400;font-size:17px}
-details[open] summary::after{content:"－"}
-details[open] summary{border-bottom:1px solid var(--line)}
-.body{padding:10px 12px 14px;overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
-th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-th{background:#fafbfc;color:var(--sub);font-weight:600;font-size:11.5px}
-td.num{text-align:right;font-variant-numeric:tabular-nums}
-.note{background:#fafbfc;border-left:3px solid var(--line);padding:8px 10px;
-  border-radius:0 6px 6px 0;font-size:12.5px;color:#3f4652;margin:8px 0}
-.box{border-radius:8px;padding:10px 12px;margin:8px 0;font-size:13px}
-.box-w{background:var(--warnbg);border:1px solid #fcd9a8}
-.box-i{background:var(--infobg);border:1px solid #c3d7fb}
-.box b{color:#000}
-ul{margin:6px 0 6px 18px;padding:0}
-li{margin:5px 0}
-.lead{font-size:14px;line-height:1.75}
-.kv{display:flex;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px dashed #eef0f3}
-.kv:last-child{border:none}
-.kv .k{color:var(--sub);min-width:78px;flex-shrink:0}
-.chain{color:var(--sub);font-size:11.5px;white-space:normal;min-width:230px}
-code{background:#f1f3f5;padding:1px 5px;border-radius:4px;font-size:11.5px}
-@media(max-width:420px){h1{font-size:17px} .body{padding:8px}}
+.fl{color:var(--flat)}
+.card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:#fcfcfd}
+.card.hot{border-color:#f3c6c6;background:#fffafa}
+.card h4{margin:0 0 6px;font-size:14px}
+.kv{font-size:12.5px;color:#374151;margin:3px 0}
+.kv b{color:var(--txt)}
+.chain{font-size:12.5px;color:#374151;background:#f7f9fc;border-left:3px solid #6b8fd4;padding:6px 9px;border-radius:0 6px 6px 0;margin:6px 0}
+.warnbox{border:1px solid #f0d9a8;background:var(--warnbg);border-radius:10px;padding:9px 11px;margin:8px 0;font-size:12.5px}
+.warnbox b{color:var(--warn)}
+.okbox{border:1px solid #cfe6d8;background:var(--dnbg);border-radius:10px;padding:9px 11px;margin:8px 0;font-size:12.5px}
+.pill{display:inline-block;background:#eef2f7;border:1px solid #dde3ea;border-radius:6px;padding:1px 6px;font-size:11px;color:#4b5563;margin:2px 3px 2px 0;font-family:ui-monospace,Menlo,Consolas,monospace}
+.note{font-size:11.5px;color:var(--sub);margin-top:8px;line-height:1.55}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.lv{font-size:11px;padding:1px 6px;border-radius:4px;font-weight:700}
+.lv1{background:#fde8e8;color:#c0392b}
+.lv2{background:#fff3dd;color:#a06800}
+.lv3{background:#eaf1fb;color:#3560a0}
+ul{margin:5px 0 5px 18px;padding:0}
+li{margin:3px 0;font-size:12.5px}
+.foot{text-align:center;color:var(--sub);font-size:11.5px;margin-top:18px}
 </style>
 </head>
 <body>
 
-<h1>期股联动 · 午后开盘推送</h1>
-<div class="sub">2026-09-11（周五）13:35 生成 ｜ 数据源：腾讯自选股期货接口 + 新浪商品期货连续合约 + 申万行业实时排名</div>
-
-<div class="card">
-<div class="lead">
-<b>一句话结论：</b>今日唯一真实主线是<span class="up">中东地缘驱动的原油链暴涨</span>（SC +5.43%、LU +4.42%、FU +4.22%、EC +2.44%），
-但<span class="dn">A股完全没跟</span>——石油石化链全线下跌，5 组期股背离。压制项是<b>美国 8 月 PPI 强劲 → 美联储 9/16 加息概率升至近 70%</b>，
-叠加白宫铜关税计划停滞，导致有色（工业金属 -5.37%、贵金属 -3.34%）崩塌。<br>
-<b>可操作方向只有一条正反馈：玻璃（FG +1.35% ↔ 玻璃玻纤 +0.96%，两只主板涨停）。</b>
-</div>
+<div class="hdr">
+  <h1>期股联动 · 商品上涨 → A股主板受益</h1>
+  <div class="meta">
+    数据时间：<b>2026-09-14 10:45–10:48（北京时间）</b>　A股为<b>盘中实时</b><br>
+    国际盘：CME/CBOT/NYMEX 为 <span class="badge b-n">美盘收盘快照</span>（延迟标识 true）；LME/伦敦金银铂 为 <span class="badge b-n">近实时</span><br>
+    国内商品：新浪连续合约 <span class="badge b-n">盘中实时</span>　A股：腾讯自选股 <span class="badge b-n">盘中实时</span>
+  </div>
 </div>
 
+<!-- ============ 结论 ============ -->
 <details open>
-<summary>① 上涨品种清单（涨幅 &gt; 0.5% 为重点）</summary>
-<div class="body">
-<div class="note">口径：国内商品期货为新浪 <code>nf_</code> 连续合约快照 <b>13:37:30</b>；外盘 <code>hf_</code> 系（LME/伦敦金银/布伦特）实时更新至 <b>13:35–13:37</b>；CME/CBOT/NYMEX 系（<code>fu</code>）返回 <code>isDelayed=true</code>，快照停在 <b>01:26–01:27（9/10 美盘尾盘）</b>，非实时。</div>
-
-<h4>▍国内商品期货（涨幅榜）</h4>
-<table>
-<tr><th>品种</th><th class="num">现价</th><th class="num">昨结</th><th class="num">涨跌幅</th><th class="num">日内高</th><th>定性</th></tr>
-<tr><td>原油 SC</td><td class="num">810.1</td><td class="num">768.4</td><td class="num up">+5.43%</td><td class="num">838.3</td><td><span class="tag t-up">重点</span>数周</td></tr>
-<tr><td>低硫燃油 LU</td><td class="num">5481</td><td class="num">5249</td><td class="num up">+4.42%</td><td class="num">5666</td><td><span class="tag t-up">重点</span>数周</td></tr>
-<tr><td>燃油 FU</td><td class="num">4274</td><td class="num">4101</td><td class="num up">+4.22%</td><td class="num">4417</td><td><span class="tag t-up">重点</span>数周</td></tr>
-<tr><td>集运欧线 EC</td><td class="num">2010</td><td class="num">1962</td><td class="num up">+2.44%</td><td class="num">2108</td><td><span class="tag t-up">重点</span>数周</td></tr>
-<tr><td>玻璃 FG</td><td class="num">975</td><td class="num">962</td><td class="num up">+1.35%</td><td class="num">—</td><td><span class="tag t-up">重点</span>日内（推断）</td></tr>
-<tr><td>沥青 BU</td><td class="num">5142</td><td class="num">5089</td><td class="num up">+1.04%</td><td class="num">—</td><td><span class="tag t-up">重点</span>数日</td></tr>
-<tr><td>线材 WR</td><td class="num">3451</td><td class="num">3434</td><td class="num up">+0.50%</td><td class="num">—</td><td><span class="tag t-n">剔除</span>持仓仅 1 手</td></tr>
-<tr><td>沪铅 PB</td><td class="num">16180</td><td class="num">16120</td><td class="num up">+0.37%</td><td class="num">—</td><td><span class="tag t-n">不触发</span>&lt;0.5%</td></tr>
-<tr><td>豆粕 M / 豆油 Y / 粳米 RR / 菜粕 RM / 豆二 B</td><td class="num">—</td><td class="num">—</td><td class="num up">+0.02~0.21%</td><td class="num">—</td><td><span class="tag t-n">不触发</span>&lt;0.5%</td></tr>
-</table>
-
-<h4>▍外盘（实时，hf_ 系）</h4>
-<table>
-<tr><th>品种</th><th class="num">最新</th><th class="num">昨收</th><th class="num">涨跌幅</th><th>定性</th></tr>
-<tr><td>LME 铜</td><td class="num">14318.3</td><td class="num">14233.5</td><td class="num up">+0.60%</td><td><span class="tag t-up">重点</span><span class="tag t-w">不建议追</span>日内</td></tr>
-<tr><td>伦敦金现货</td><td class="num">4338.89</td><td class="num">4316.60</td><td class="num up">+0.52%</td><td><span class="tag t-up">重点</span>数日（超跌修复）</td></tr>
-<tr><td>伦敦银现货</td><td class="num">63.83</td><td class="num">63.55</td><td class="num up">+0.44%</td><td><span class="tag t-n">不触发</span></td></tr>
-<tr><td>LME 锌</td><td class="num">3903.2</td><td class="num">3892.0</td><td class="num up">+0.29%</td><td><span class="tag t-n">不触发</span></td></tr>
-<tr><td>LME 铝</td><td class="num">3299.8</td><td class="num">3293.5</td><td class="num up">+0.19%</td><td><span class="tag t-n">不触发</span></td></tr>
-</table>
-
-<h4>▍外盘（延迟快照 01:26–01:27，仅作隔夜参考）</h4>
-<table>
-<tr><th>品种</th><th class="num">最新</th><th class="num">昨结</th><th class="num">涨跌幅</th></tr>
-<tr><td>NYMEX 燃油</td><td class="num">5.095</td><td class="num">5.058</td><td class="num up">+0.73%</td></tr>
-<tr><td>COMEX 铜</td><td class="num">6.550</td><td class="num">6.548</td><td class="num up">+0.03%</td></tr>
-<tr><td>WTI 原油</td><td class="num">101.90</td><td class="num">102.48</td><td class="num dn">-0.57%</td></tr>
-<tr><td>NYMEX 天然气</td><td class="num">2.820</td><td class="num">2.834</td><td class="num dn">-0.49%</td></tr>
-<tr><td>NYMEX 汽油</td><td class="num">3.392</td><td class="num">3.393</td><td class="num dn">-0.05%</td></tr>
-<tr><td>NYMEX 铂金</td><td class="num">1788.9</td><td class="num">1801.1</td><td class="num dn">-0.68%</td></tr>
-<tr><td>COMEX 黄金</td><td class="num">4375.2</td><td class="num">4407.3</td><td class="num dn">-0.73%</td></tr>
-<tr><td>COMEX 白银</td><td class="num">64.165</td><td class="num">64.927</td><td class="num dn">-1.17%</td></tr>
-<tr><td>CBOT 玉米</td><td class="num">528.75</td><td class="num">533.75</td><td class="num dn">-0.94%</td></tr>
-<tr><td>CBOT 大豆</td><td class="num">1321.0</td><td class="num">1332.25</td><td class="num dn">-0.84%</td></tr>
-<tr><td>CBOT 小麦</td><td class="num">735.0</td><td class="num">741.25</td><td class="num dn">-0.84%</td></tr>
-<tr><td>布伦特原油</td><td class="num">106.19</td><td class="num">107.63</td><td class="num dn">-1.34%</td></tr>
-</table>
-<div class="note">布伦特今日路径（实时）：开 109.94 → 高 109.97 → 低 106.16 → 现 106.19。<b>日内冲高回落，振幅 3.6%。</b>08:00 曾 +1% 报 109.125，13:16 跌幅扩大至 1% 报 106.52。国内 SC 的 +5.43% 是跟随夜盘 110 美元冲高，日盘已自高点 838.3 回落至 810.1。</div>
-</div>
+  <summary>① 一句话结论<span class="sum-note">先看这里</span></summary>
+  <div class="body">
+    <div class="card hot">
+      <h4>主线：能源（唯一过阈值的强驱动）</h4>
+      <div class="kv">国内 <b>SC 原油 +9.52%</b>、<b>集运欧线 +2.84%</b>、<b>燃油 +2.75%</b>；国际 <b>WTI +2.60%</b>、<b>布伦特 +2.48%</b>、<b>NYMEX 天然气 +1.62%</b>。</div>
+      <div class="kv">归因：<b>供给扰动（沙特东西输油管道关闭）+ 地缘冲突（霍尔木兹通行量腰斩 + 曼德海峡告急）+ 缓和预期落空（阿曼会议推迟）</b>。</div>
+      <div class="kv">持续性：<span class="lv lv1">数周</span> 中金测算中东出口减量已回到 <b>1000 万桶/日</b> 以上，复产至少推迟到 1Q27；但破百后"需求顶"将显现，属高波动脉冲。</div>
+    </div>
+    <div class="warnbox">
+      <b>⚠ 今日最大特征：期货与股票全面背离。</b>原油暴涨的同时，A股<b>炼化及贸易 −0.64%、油服工程 −0.06%、中国石化 −1.63%</b>——油价对中下游是<b>成本利空</b>，且 9/11 已提前炒作过一轮（招商轮船当日涨停，5 日 +8.72%）。
+      今日 A 股主线在<b>医疗服务 +3.98%、电池 +2.52%、生物制品 +2.25%</b>，资金不在周期。
+    </div>
+    <div class="okbox">
+      <b>✅ 真正能对上传导的只有 3 处：</b><br>
+      1. <b>原油上游开采</b>：中国海油 600938 <span class="up">+1.62%</span><br>
+      2. <b>油运</b>：招商轮船 601872 <span class="up">+1.60%</span>、中远海能 600026 <span class="up">+0.43%</span><br>
+      3. <b>油服</b>：中海油服 601808 <span class="up">+0.40%</span>、博迈科 603727 <span class="up">+0.70%</span>、中油工程 600339 <span class="up">+0.30%</span><br>
+      <span style="color:#6b7280">（宁波海运 600798 +5.85% 是航运港口情绪龙头，主业干散/沿海，与油价关联弱，不作商品受益标的）</span>
+    </div>
+  </div>
 </details>
 
+<!-- ============ 国际期货 ============ -->
 <details>
-<summary>② 上涨原因 &amp; 持续性分档（含依据）</summary>
-<div class="body">
-
-<div class="box box-i">
-<b>▍原油链（SC / LU / FU / BU / EC）— 归因：地缘冲突 + 供给扰动 — 持续性：数周</b><br>
-<b>可核验数据点：</b>
-<ul>
-<li>9/10 布伦特 11 月结算 <span class="up">+6.3% 报 107.63</span>；WTI 10 月 <span class="up">+6.7% 报 102.48</span>（为 5 月以来首次收于 102 上方）。</li>
-<li>霍尔木兹海峡周边<b>航运遇袭事件增加</b>；美国对伊朗实施<b>海上封锁</b>；伊朗表态若美继续攻击将升级打击。</li>
-<li>胡塞武装把<b>沙特资产</b>列为攻击目标；沙特警告<b>上月原油产量骤降至 1990 年以来最低</b>。</li>
-<li>天然气、柴油价格同步大涨 → 能源涨价的通胀二次效应。</li>
-<li>布油年内已涨逾 75%，仍低于 4 月战时高点 126 美元（部分原油仍能从波斯湾运出）。</li>
-</ul>
-<b>判断依据（为何定"数周"而非"日内"）：</b>供给端是<b>实际减量</b>（沙特产量降至 1990 年最低），且美伊"为长期战争做准备"属持续性冲突，非一次性事件。<br>
-<b>反向风险（为何要防 1–3 日回踩）：</b>Kpler 数据显示，趋势跟随型 CTA 在布油的仓位已达 <b>100% 多头上限</b>，本交易日买入空间可能用尽；WTI 程序化多头 91%。今日日内已从 109.97 跌至 106.19。
-</div>
-
-<div class="box box-i">
-<b>▍集运欧线 EC +2.44% — 归因：地缘绕行 → 运价 — 持续性：数周</b><br>
-霍尔木兹/红海通行风险上升 → 船舶绕行 → 运距拉长 + 战争险保费 ↑ → 欧线运价上行。与原油同源，共用同一地缘驱动，故同为"数周"。
-</div>
-
-<div class="box box-i">
-<b>▍沥青 BU +1.04% — 归因：成本推动（被动） — 持续性：数日</b><br>
-无独立驱动，本质是原油成本传导 + 道路施工旺季。原油回踩则沥青同步回踩，属跟随项，不单列机会。
-</div>
-
-<div class="box box-w">
-<b>▍玻璃 FG +1.35% — 归因：⚠ 推断，非新闻实证 — 持续性：日内</b><br>
-<b>本次检索未获取 9/11 当日玻璃/纯碱的专门新闻。</b>板块层面广发证券提及"2026–2027 年超产管控 + 碳市场"供给端政策，但该表述指向<b>水泥</b>，非玻璃。玻璃上涨可能与反内卷/供给侧预期及资金面有关，<b>属推断，不得作为决策依据</b>。需以后续现货涨价函 / 冷修产线数据验证。
-</div>
-
-<div class="box box-w">
-<b>▍LME 铜 +0.60% — ⚠ 上涨但驱动是利空，不建议追 — 持续性：日内</b><br>
-消息人士称，<b>白宫铜关税计划因对制造成本和生活负担的担忧而陷入停滞</b>，此前连涨多日的 LME 期铜昨夜突然跳水。今日 +0.60% 是跳水后的技术反抽（日内低 14151.5），<b>非趋势重启</b>。传导结果：A股工业金属 -5.37%（0/59 上涨）、江西铜业 -7.37%、西部矿业 -9.71%，港股江西铜业跌超 10%。
-</div>
-
-<div class="box box-w">
-<b>▍伦敦金现货 +0.52% — 归因：超跌修复 — 持续性：数日（加息落地前震荡）</b><br>
-隔夜纽约尾盘现货金 <span class="dn">-1.91% 报 4314.82</span>、现货银 <span class="dn">-5.43% 报 63.60</span>。压制项：<b>美国 8 月 PPI 强劲 → 美联储 9/16 加息概率升至近 70%</b>，美 10 年期债息逼近 5 厘。日内 +0.52% 属空头回补，加息落地前难有趋势。
-</div>
-</div>
+  <summary>② 国际商品期货全景<span class="sum-note">20 个品种 · 3 红 17 绿</span></summary>
+  <div class="body">
+    <div class="scroll">
+    <table>
+      <thead><tr><th>品种</th><th>最新</th><th>涨跌幅</th><th>快照时点</th></tr></thead>
+      <tbody>
+        <tr><td>WTI原油</td><td>102.65</td><td class="up">+2.60%</td><td class="fl">09-13 22:36</td></tr>
+        <tr><td>布伦特原油</td><td>107.20</td><td class="up">+2.48%</td><td class="fl">09-14 10:46</td></tr>
+        <tr><td>NYMEX天然气</td><td>2.877</td><td class="up">+1.62%</td><td class="fl">09-13 22:37</td></tr>
+        <tr><td>NYMEX铂金</td><td>1805.7</td><td class="fl">+0.45%</td><td class="fl">09-13 22:37</td></tr>
+        <tr><td>伦敦铂金现货</td><td>1803.06</td><td class="fl">+0.30%</td><td class="fl">09-14 10:47</td></tr>
+        <tr><td>CBOT大豆</td><td>1300.0</td><td class="fl">+0.27%</td><td class="fl">09-13 21:37</td></tr>
+        <tr><td>伦敦金现货</td><td>4347.11</td><td class="dn">−0.03%</td><td class="fl">09-14 10:46</td></tr>
+        <tr><td>LME铝</td><td>3250.5</td><td class="dn">−0.08%</td><td class="fl">09-14 10:46</td></tr>
+        <tr><td>CBOT小麦</td><td>724.5</td><td class="dn">−0.10%</td><td class="fl">09-13 21:37</td></tr>
+        <tr><td>CBOT玉米</td><td>529.5</td><td class="dn">−0.14%</td><td class="fl">09-13 21:37</td></tr>
+        <tr><td>LME镍</td><td>16423</td><td class="dn">−0.28%</td><td class="fl">09-14 10:46</td></tr>
+        <tr><td>LME铜</td><td>14187.6</td><td class="dn">−0.37%</td><td class="fl">09-14 10:46</td></tr>
+        <tr><td>COMEX黄金</td><td>4392.3</td><td class="dn">−0.38%</td><td class="fl">09-13 22:37</td></tr>
+        <tr><td>LME锡</td><td>53134.6</td><td class="dn">−0.43%</td><td class="fl">09-14 10:46</td></tr>
+        <tr><td>COMEX白银</td><td>64.895</td><td class="dn">−0.45%</td><td class="fl">09-13 22:36</td></tr>
+        <tr><td>伦敦银现货</td><td>64.12</td><td class="dn">−0.51%</td><td class="fl">09-14 10:46</td></tr>
+        <tr><td>LME锌</td><td>3851.8</td><td class="dn">−0.75%</td><td class="fl">09-14 10:46</td></tr>
+        <tr><td>COMEX铜</td><td>6.486</td><td class="dn">−0.95%</td><td class="fl">09-13 22:37</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note">
+      ⚠ <b>时点错配声明</b>：CME/CBOT/NYMEX 系列快照停在 9/13 美盘（周六），A股与国内商品是 9/14 盘中——两者不可互相推算，本表仅供方向参考。<br>
+      ⚠ <b>有色金属集体走弱</b>：LME 铜 −0.37%、锌 −0.75%、锡 −0.43%、镍 −0.28%，COMEX 铜 −0.95%。光大期货口径：9/10 LME 铜曾创 14875 美元历史新高，随后白宫传出「尚未就精炼铜关税作出决定」，囤货逻辑瓦解单日暴跌 4%，叠加 9 月加息概率 85%–90%，短期偏空。
+    </div>
+  </div>
 </details>
 
-<details>
-<summary>③ A股主板受益标的（仅 60xxxx / 00xxxx / 002xxx）</summary>
-<div class="body">
-<div class="note">已硬性排除创业板 300xxx / 301xxx 与科创板 688xxx。涨跌幅为 9/11 盘中（13:35 前后）快照。</div>
-
-<h4>▍A-1 油气开采（油价↑ → 实现价格↑ → 上游毛利↑）— 相对抗跌</h4>
-<table>
-<tr><th>代码</th><th>名称</th><th class="num">现价</th><th class="num">涨跌幅</th><th>传导路径</th></tr>
-<tr><td>601857</td><td>中国石油</td><td class="num">11.22</td><td class="num dn">-0.44%</td><td class="chain">布油 107.63 → 自产原油实现价格抬升 → 勘探开采板块毛利扩张。全市场 5100 股下跌背景下仅小幅收绿，为石油链最抗跌权重。</td></tr>
-<tr><td>600938</td><td>中国海油</td><td class="num">34.14</td><td class="num dn">-0.81%</td><td class="chain">纯上游、无炼化拖累，油价弹性最大。今日高开 35.50（+3.1%）后回落，量比 2.76，有资金兑现。</td></tr>
-<tr><td>600028</td><td>中国石化</td><td class="num">5.53</td><td class="num dn">-0.54%</td><td class="chain">上游+炼化一体化：上游受益 vs 炼化成本受损，两端对冲，故波动最小。</td></tr>
-<tr><td>600968</td><td>海油发展</td><td class="num">4.00</td><td class="num dn">-0.25%</td><td class="chain">油价 → 中海油资本开支 → 油田服务订单。油服工程板块内跌幅最小。</td></tr>
-</table>
-
-<h4>▍A-2 油服工程 — 跟随下跌</h4>
-<table>
-<tr><th>代码</th><th>名称</th><th class="num">现价</th><th class="num">涨跌幅</th><th>传导路径</th></tr>
-<tr><td>601808</td><td>中海油服</td><td class="num">12.55</td><td class="num dn">-1.34%</td><td class="chain">高油价 → 上游 Capex 上行 → 钻井服务费率。传导有 1–2 季度时滞，今日被大盘 Beta 压过。</td></tr>
-<tr><td>600583</td><td>海油工程</td><td class="num">6.04</td><td class="num dn">-1.79%</td><td class="chain">同上，海上工程订单周期更长。</td></tr>
-<tr><td>603619</td><td>中曼石油</td><td class="num">23.22</td><td class="num dn">-3.81%</td><td class="chain">民营油服+自有区块，弹性最大但筹码不稳：换手 10.76%，高开 25.00 后杀至 23.20。</td></tr>
-<tr><td>002353</td><td>杰瑞股份</td><td class="num">118.55</td><td class="num dn">-2.80%</td><td class="chain">压裂设备出口。20 日 -21.41%、60 日 -27.74%，趋势已走坏，非当前优选。</td></tr>
-<tr><td>000096</td><td>广聚能源</td><td class="num">8.11</td><td class="num dn">-2.17%</td><td class="chain">成品油/燃油贸易，对应 FU +4.22%。但贸易端进销价差反而被压缩。</td></tr>
-</table>
-
-<h4>▍A-3 炼化 — ⚠ 油价上涨是成本利空，逻辑反向</h4>
-<table>
-<tr><th>代码</th><th>名称</th><th class="num">现价</th><th class="num">涨跌幅</th><th>传导路径（反向）</th></tr>
-<tr><td>600346</td><td>恒力石化</td><td class="num">17.32</td><td class="num dn">-5.97%</td><td class="chain">原油为原料 → 成本抬升 + 需求担忧 → 炼化价差收窄。<b>板块内跌幅最大。</b></td></tr>
-<tr><td>002493</td><td>荣盛石化</td><td class="num">13.66</td><td class="num dn">-4.94%</td><td class="chain">同上。</td></tr>
-<tr><td>000703</td><td>恒逸石化</td><td class="num">17.48</td><td class="num dn">-2.89%</td><td class="chain">同上（PTA/涤纶链，PX 今日 -0.62% 亦走弱）。</td></tr>
-<tr><td>000059</td><td>华锦股份</td><td class="num">5.60</td><td class="num dn">-3.28%</td><td class="chain">同上，炼化一体化。</td></tr>
-</table>
-
-<h4>▍A-4 航运（EC 集运欧线 +2.44% → 运价）</h4>
-<table>
-<tr><th>代码</th><th>名称</th><th class="num">现价</th><th class="num">涨跌幅</th><th>传导路径</th></tr>
-<tr><td>601872</td><td>招商轮船</td><td class="num">19.86</td><td class="num dn">-3.50%</td><td class="chain">油运 + 干散。高开 21.46 后杀至 19.58，振幅 10.3%。YTD 已 +127.49%，获利盘出逃。</td></tr>
-<tr><td>600026</td><td>中远海能</td><td class="num">20.79</td><td class="num dn">-2.39%</td><td class="chain">纯油运，绕行 → 吨海里需求↑。60 日 +9.88%、YTD +83.98%，高位震荡。</td></tr>
-<tr><td>601919</td><td>中远海控</td><td class="num">16.23</td><td class="num dn">-0.92%</td><td class="chain">集运，直接对应 EC 指数。股息率 6.21%，相对抗跌。</td></tr>
-<tr><td>600428</td><td>中远海特</td><td class="num">11.29</td><td class="num dn">-0.53%</td><td class="chain">特种船（纸浆 
--0.46%、汽车船）。</td></tr>
-<tr><td>601022</td><td>宁波远洋</td><td class="num">8.43</td><td class="num dn">-1.40%</td><td class="chain">集运支线。</td></tr>
-</table>
-
-<h4>▍A-5 玻璃（FG +1.35%）— 今日唯一期股同向</h4>
-<table>
-<tr><th>代码</th><th>名称</th><th class="num">现价</th><th class="num">涨跌幅</th><th>传导路径</th></tr>
-<tr><td>600876</td><td>凯盛新能</td><td class="num">8.70</td><td class="num up">+9.99%</td><td class="chain">涨停。光伏玻璃/浮法，量比 6.81，5 日 +23.40%、10 日 +21.17%，是当前资金主攻位。</td></tr>
-<tr><td>002201</td><td>九鼎新材</td><td class="num">—</td><td class="num up">+10.02%</td><td class="chain">涨停，玻璃玻纤板块龙头（板块 +0.96%，12/16 上涨）。</td></tr>
-<tr><td>002613</td><td>北玻股份</td><td class="num">3.66</td><td class="num up">+3.68%</td><td class="chain">玻璃深加工设备，量比 3.48，换手 7.06%。</td></tr>
-<tr><td>000012</td><td>南 玻Ａ</td><td class="num">3.81</td><td class="num up">+0.79%</td><td class="chain">浮法 + 光伏玻璃，量比 1.82。</td></tr>
-<tr><td>600586</td><td>金晶科技</td><td class="num">4.13</td><td class="num dn">-0.96%</td><td class="chain">纯碱（SA -0.19%）+ 玻璃双主业，纯碱走弱拖累。</td></tr>
-<tr><td>600819</td><td>耀皮玻璃</td><td class="num">5.86</td><td class="num dn">-0.85%</td><td class="chain">浮法玻璃。</td></tr>
-</table>
-
-<h4>▍A-6 沥青（BU +1.04%）</h4>
-<table>
-<tr><th>代码</th><th>名称</th><th class="num">现价</th><th class="num">涨跌幅</th><th>传导路径</th></tr>
-<tr><td>002377</td><td>国创高新</td><td class="num">3.25</td><td class="num dn">-6.34%</td><td class="chain">改性沥青。换手 23.74%（极高），5 日仍 +18.18%、20 日 +21.72% — 属<b>前期炒作后的高位派发</b>，非新启动，规避。</td></tr>
-</table>
-
-<h4>▍A-7 贵金属 / 有色 — 列为"已跌透观察位"，非买入建议</h4>
-<table>
-<tr><th>代码</th><th>名称</th><th class="num">现价</th><th class="num">涨跌幅</th><th>说明</th></tr>
-<tr><td>601899</td><td>紫金矿业</td><td class="num">32.24</td><td class="num dn">-5.48%</td><td class="chain">金铜双杀，成交额 102.6 亿（全市场前列）。</td></tr>
-<tr><td>600489</td><td>中金黄金</td><td class="num">24.24</td><td class="num dn">-4.49%</td><td class="chain">纯金标的，跟随隔夜现货金 -1.91%。</td></tr>
-<tr><td>002155</td><td>湖南黄金</td><td class="num">27.61</td><td class="num dn">-3.26%</td><td class="chain">金+锑。</td></tr>
-<tr><td>600547</td><td>山东黄金</td><td class="num">34.44</td><td class="num dn">-3.23%</td><td class="chain">5 日 -9.13%，跌势已持续。</td></tr>
-<tr><td>000975</td><td>山金国际</td><td class="num">25.25</td><td class="num dn">-2.40%</td><td class="chain">金+银，银跌幅更深（-5.43%）。</td></tr>
-<tr><td>600988</td><td>赤峰黄金</td><td class="num">43.88</td><td class="num dn">-0.95%</td><td class="chain">贵金属板块内最抗跌（板块 -3.34%，0/11 上涨）。</td></tr>
-<tr><td>601168</td><td>西部矿业</td><td class="num">36.54</td><td class="num dn">-9.71%</td><td class="chain">铜铅锌，工业金属崩塌最烈标的之一。</td></tr>
-<tr><td>600362</td><td>江西铜业</td><td class="num">45.98</td><td class="num dn">-7.37%</td><td class="chain">成交额 45.1 亿，港股同步跌超 10%。</td></tr>
-</table>
-</div>
-</details>
-
-<details>
-<summary>④ 同期重要消息（政策 / 地缘 / 供给 / 库存 / 外盘 / 宏观）</summary>
-<div class="body">
-<div class="kv"><span class="k">宏观数据</span><span>美国 8 月 PPI 强劲 → <b>美联储 9/16 FOMC 加息概率升至近 70%</b>；美 10 年期国债收益率逼近 5 厘。这是今日全球风险资产普跌的总源头。</span></div>
-<div class="kv"><span class="k">地缘</span><span>霍尔木兹海峡周边航运遇袭事件增加；美国对伊朗海上封锁；伊朗称若美继续攻击将升级打击；胡塞武装以沙特资产为目标。</span></div>
-<div class="kv"><span class="k">供给扰动</span><span>① 沙特警告上月原油产量骤降至 <b>1990 年以来最低</b>（利多油）；② 消息人士称<b>白宫铜关税计划因成本担忧陷入停滞</b>（利空铜）。</span></div>
-<div class="kv"><span class="k">持仓/仓位</span><span>Kpler：趋势跟随型 CTA 在布伦特原油仓位达 <b>100% 多头上限</b>，本交易日买入空间可能已用尽；WTI 程序化多头 91%。</span></div>
-<div class="kv"><span class="k">外盘·美股</span><span>三大指数集体收跌（道 -0.60%、纳 -0.65%、标普 -0.58%）；费城半导体 -2%+；铜概念股重挫（麦克莫兰铜金 -6%、南方铜业 -7%）；存储板块下挫（SK海力士 -5%、美光 -5%、西部数据 -4%）。</span></div>
-<div class="kv"><span class="k">外盘·亚太</span><span>日经 225 跌破 64000，日内 -3.13%；韩国 KOSPI -3.29%（三星、SK海力士盘中跌逾 4%）；恒指午盘 -0.85%，江西铜业股份跌超 10%。MSCI 亚太 -1%。</span></div>
-<div class="kv"><span class="k">A股</span><span>午盘沪指 -1.81%、深成指 -2.34%、创业板指 -2.04%；<b>超 5100 股下跌</b>；半日成交 1.27 万亿（放量 1833 亿）；科创 50 创 2026 年 5 月以来新低。逆势活跃：电力（闽东电力/江苏新能/杭州热电涨停）、PCB（超声电子/澳弘电子/协和电子涨停）、军工（内蒙一机 +9.99%、光电股份 +10.02%，地面兵装 +4.09% 且 12/12 全红）、MLCC/光纤。</span></div>
-<div class="kv"><span class="k">商品异动</span><span>碳酸锂主力 10:33 跳水跌近 10% 报 129100（现 -6.69%）；国内开盘原油涨超 6%、燃料油涨超 5%、纯苯/沥青涨超 3%、液化气涨超 2%；沪银、铂跌超 5%，钯跌超 4%，国际铜、沪锌跌超 3%。</span></div>
-<div class="kv"><span class="k">机构观点</span><span>华泰：FOMC 前"雾里开车"，建议均衡配置；中信：港股高股息优势收窄，优先银行/煤炭/物业/燃气；广发：2026–2027 年"超产管控+碳市场"供给端政策，关注水泥底部资产。</span></div>
-</div>
-</details>
-
-<details>
-<summary>⑤ 不触发项（下跌品种 + 重新触发量化阈值）</summary>
-<div class="body">
-
-<div class="box box-w">
-<b>▍国内跌幅前列（全部不推送）</b><br>
-<span class="dn">碳酸锂 LC -6.69%（盘中一度 -10% @129100）</span>、<span class="dn">沪银 AG -5.34%</span>、<span class="dn">沪锌 ZN -3.13%</span>、<span class="dn">乙二醇 EG -3.31%</span>、<span class="dn">沪锡 SN -2.92%</span>、<span class="dn">焦煤 JM -2.92%</span>、<span class="dn">红枣 CJ -2.88%</span>、<span class="dn">焦炭 J -2.65%</span>、<span class="dn">沪铜 CU -2.54%</span>、<span class="dn">氧化铝 AO -2.45%</span>、<span class="dn">20号胶 NR -2.30%</span>、<span class="dn">硅铁 SF -2.26%</span>、<span class="dn">顺丁橡胶 BR -2.23%</span>、<span class="dn">工业硅 SI -1.98%</span>、<span class="dn">铁矿 I -1.85%</span>、<span class="dn">烧碱 SH -1.81%</span>、<span class="dn">橡胶 RU -1.71%</span>、<span class="dn">沪金 AU -1.65%</span>、<span class="dn">沪镍 NI -1.61%</span>、<span class="dn">甲醇 MA -1.57%</span>、<span class="dn">苯乙烯 EB -1.47%</span>、<span class="dn">不锈钢 SS -1.37%</span>、<span class="dn">生猪 LH -1.33%</span>、<span class="dn">棉花 CF -1.30%</span>、<span class="dn">豆一 A -1.27%</span>、<span class="dn">沪铝 AL -1.24%</span>、<span class="dn">螺纹 RB -1.21%</span>、<span class="dn">热卷 HC -1.13%</span>、<span class="dn">LPG -1.14%</span> 等。
-</div>
-
-<div class="box box-w">
-<b>▍外盘下跌（不推送）</b><br>
-<span class="dn">布伦特 -1.34%</span>（日内自 109.97 回落）、<span class="dn">COMEX银 -1.17%</span>、<span class="dn">CBOT玉米 -0.94%</span>、<span class="dn">COMEX金 -0.73%</span>、<span class="dn">LME锡 -0.73%</span>、<span class="dn">铂金 -0.68%</span>、<span class="dn">WTI -0.57%</span>、<span class="dn">天然气 -0.49%</span>、<span class="dn">CBOT大豆 -0.84%</span>、<span class="dn">CBOT小麦 -0.84%</span>、<span class="dn">LME镍 -0.11%</span>、<span class="dn">汽油 -0.05%</span>。
-</div>
-
-<h4>▍重新触发阈值（量化，满足全部条件才重新纳入推送）</h4>
-<table>
-<tr><th>品种</th><th>价格/涨幅条件</th><th>附加确认</th></tr>
-<tr><td>沪金 AU</td><td>日涨幅 ≥ +1.0%</td><td>伦敦金现货站稳 4350 美元上方（现 4338.89）</td></tr>
-<tr><td>沪银 AG</td><td>日涨幅 ≥ +2.0%</td><td>伦敦银现货 ≥ 65.0 美元（现 63.83）</td></tr>
-<tr><td>沪铜 CU</td><td>日涨幅 ≥ +1.0%</td><td>LME 铜 ≥ 14600 美元（现 14318，9/10 高点 14782）</td></tr>
-<tr><td>碳酸锂 LC</td><td>日涨幅 ≥ +3.0%</td><td>收复 140000（现 132400）</td></tr>
-<tr><td>焦煤 / 焦炭</td><td>日涨幅 ≥ +2.0%</td><td>持仓量同步增仓 ≥ 3%</td></tr>
-<tr><td>乙二醇 EG</td><td>日涨幅 ≥ +2.0%</td><td>SC 原油维持 800 上方（现 810.1）</td></tr>
-<tr><td>豆粕 M / 玉米 C</td><td>M ≥ +1.0% 或 CBOT 玉米 ≥ +1.5%</td><td>CBOT 大豆同步转正（现 -0.84%）</td></tr>
-<tr><td>布伦特原油</td><td>日内重新站上 109.5 并收在上方</td><td>回落不破 106.0（现 106.19）</td></tr>
-<tr><td>玻璃 FG</td><td>日涨幅 ≥ +2.0%</td><td>需有现货涨价函/冷修产线新闻实证（现无）</td></tr>
-</table>
-</div>
-</details>
-
+<!-- ============ 国内期货 ============ -->
 <details open>
-<summary>⑥ ⚠ 背离警示（期货 vs A股板块）— 5 组</summary>
-<div class="body">
+  <summary>③ 国内商品期货 · 涨幅榜<span class="sum-note">10 个品种 &gt;+0.5%</span></summary>
+  <div class="body">
+    <div class="scroll">
+    <table>
+      <thead><tr><th>品种</th><th>最新</th><th>昨结</th><th>涨跌幅</th><th>持仓</th></tr></thead>
+      <tbody>
+        <tr><td>原油 SC</td><td>887.0</td><td>809.9</td><td class="up">+9.52%</td><td>30,950</td></tr>
+        <tr><td>集运指数 EC</td><td>2102.0</td><td>2044.0</td><td class="up">+2.84%</td><td>26,833</td></tr>
+        <tr><td>燃油 FU</td><td>4410</td><td>4292</td><td class="up">+2.75%</td><td>225,004</td></tr>
+        <tr><td>LPG PG</td><td>7091</td><td>7002</td><td class="up">+1.27%</td><td>94,063</td></tr>
+        <tr><td>多晶硅 PS</td><td>36850</td><td>36415</td><td class="up">+1.19%</td><td>114,984</td></tr>
+        <tr><td>鸡蛋 JD</td><td>3856</td><td>3817</td><td class="up">+1.02%</td><td>285,527</td></tr>
+        <tr><td>沥青 BU</td><td>5237</td><td>5187</td><td class="up">+0.96%</td><td>262,131</td></tr>
+        <tr><td>生猪 LH</td><td>11560</td><td>11495</td><td class="up">+0.57%</td><td>221,634</td></tr>
+        <tr><td>尿素 UR</td><td>1805</td><td>1795</td><td class="up">+0.56%</td><td>254,813</td></tr>
+        <tr><td>PTA TA</td><td>6346</td><td>6312</td><td class="up">+0.54%</td><td>1,191,914</td></tr>
+        <tr><td class="fl">线材 WR</td><td>3451</td><td>3434</td><td class="fl">+0.50%</td><td class="fl">1（剔除）</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note">线材持仓仅 1 手，无流动性，剔除。低硫燃油 LU +0.31%、硅铁 +0.07%、瓶片 +0.07%、短纤 +0.05%、粳米 +0.11%、甲醇 +0.10%、乙二醇 +0.07% 均未过 +0.5% 阈值。</div>
 
-<div class="box box-w">
-<b>【强背离】原油链：期货暴涨 vs 石油股全线下跌</b><br>
-SC +5.43% / LU +4.42% / FU +4.22% / BU +1.04% &nbsp;↔&nbsp; <span class="dn">炼化及贸易 -2.28%</span>、<span class="dn">油服工程 -2.72%</span>、<span class="dn">燃气Ⅱ -2.21%</span>、<span class="dn">航运港口 -2.04%</span><br>
-<b>成因拆解：</b>① 布油日内自 109.97 回落至 106.19（-1.34%），A股交易的是"冲高回落"而非昨夜的 +6.3%；② 美联储加息概率近 70% 压制风险偏好，全市场 5100 股下跌，Beta 压过 Alpha；③ 油价上涨对中下游炼化是<b>成本利空</b>（恒力 -5.97%、荣盛 -4.94%），对上游才是利好（中国石油 -0.44%、中国海油 -0.81% 相对抗跌）。<br>
-<b>结论：</b>此背离不算错杀机会，而是"上游微跌 / 中下游暴跌"的结构性分化，<b>只做上游不碰炼化</b>。
-</div>
-
-<div class="box box-w">
-<b>【强背离】铜：LME +0.60% vs A股工业金属 -5.37%</b><br>
-LME 铜实时 14318（+0.60%）&nbsp;↔&nbsp; 沪铜 <span class="dn">-2.54%</span>、工业金属 <span class="dn">-5.37%</span>（0/59 上涨）、西部矿业 <span class="dn">-9.71%</span>、江西铜业 <span class="dn">-7.37%</span><br>
-<b>成因：</b>主导变量不是价格而是<b>政策预期逆转</b>——白宫铜关税计划陷入停滞，此前的"关税溢价"要被系统性回吐。LME 的 +0.60% 只是昨夜跳水后的技术反抽。A股在补跌政策预期，方向正确。<b>不可抄底。</b>
-</div>
-
-<div class="box box-w">
-<b>【中背离】贵金属：伦敦金现货 +0.52% vs 贵金属板块 -3.34%</b><br>
-伦敦金 4338.89（+0.52%）、伦敦银 63.83（+0.44%）&nbsp;↔&nbsp; 贵金属板块 <span class="dn">-3.34%</span>（0/11 上涨）、紫金矿业 <span class="dn">-5.48%</span>、中金黄金 <span class="dn">-4.49%</span><br>
-<b>成因：</b>时点错配——A股跟随的是隔夜纽约尾盘（现货金 -1.91%、银 -5.43%），现货金日内 +0.52% 的修复尚未传导。<b>若午后伦敦金维持 4330 上方，明日贵金属板块存在补涨修复窗口。</b>
-</div>
-
-<div class="box box-w">
-<b>【中背离】集运：EC +2.44% vs 航运港口 -2.04%</b><br>
-集运欧线期货 2010（+2.44%，日内高 2108）&nbsp;↔&nbsp; 航运港口 <span class="dn">-2.04%</span>、招商轮船 <span class="dn">-3.50%</span>（高开 21.46 → 低 19.58，振幅 10.3%）<br>
-<b>成因：</b>运价上涨的利好在 9/9–9/10 已被抢跑兑现（招商轮船 YTD +127.49%、中远海能 +83.98%），今日为高位获利了结。<b>期货新高但股价不跟 = 利好出尽信号。</b>
-</div>
-
-<div class="box box-i">
-<b>【一致·非背离】玻璃：FG +1.35% ↔ 玻璃玻纤 +0.96%</b><br>
-期货与股票同向：凯盛新能 +9.99%（涨停）、九鼎新材 +10.02%（涨停）、北玻股份 +3.68%、南玻A +0.79%。<b>今日唯一正反馈链条。</b>但需注意玻璃上涨缺乏当日新闻实证（详见 ②），持续性存疑。
-</div>
-</div>
+    <h4 style="margin:14px 0 4px">跌幅榜（不触发）</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>品种</th><th>涨跌幅</th><th>品种</th><th>涨跌幅</th></tr></thead>
+      <tbody>
+        <tr><td>玻璃 FG</td><td class="dn">−5.59%</td><td>沪铅 PB</td><td class="dn">−1.92%</td></tr>
+        <tr><td>纯碱 SA</td><td class="dn">−4.08%</td><td>焦炭 J</td><td class="dn">−1.86%</td></tr>
+        <tr><td>顺丁橡胶 BR</td><td class="dn">−3.68%</td><td>橡胶 RU</td><td class="dn">−1.81%</td></tr>
+        <tr><td>烧碱 SH</td><td class="dn">−3.20%</td><td>焦煤 JM</td><td class="dn">−1.64%</td></tr>
+        <tr><td>沪锡 SN</td><td class="dn">−3.12%</td><td>淀粉 CS</td><td class="dn">−1.63%</td></tr>
+        <tr><td>PVC V</td><td class="dn">−2.44%</td><td>氧化铝 AO</td><td class="dn">−1.61%</td></tr>
+        <tr><td>20号胶 NR</td><td class="dn">−2.16%</td><td>沪锌 ZN</td><td class="dn">−1.60%</td></tr>
+        <tr><td colspan="4"><span class="fl">碳酸锂 LC：最新价 133960 = 昨结算 133960，涨跌幅 0.00% —— <b>数据未刷新，标注「数据缺失」，不作判断</b></span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
 </details>
 
+<!-- ============ 归因 ============ -->
 <details>
-<summary>⑦ 数据口径与缺失声明</summary>
-<div class="body">
-<div class="note">
-<b>数据真实性声明（无推测填充）：</b>
-<ul>
-<li>CME / CBOT / NYMEX 系（<code>fu*</code>）接口返回 <code>isDelayed=true</code>，快照时间 <b>2026-09-11 01:26–01:27</b>，实为 9/10 美盘尾盘数据，<b>非实时</b>，已在表格中单独分区标注。</li>
-<li>LME / 伦敦金银 / 布伦特（<code>hf_*</code>）为实时，更新至 <b>13:35–13:37</b>。</li>
-<li>国内商品期货为新浪 <code>nf_</code> 主力连续合约，快照 <b>13:37:30</b>，13:30 后属午后开盘时段，非收盘定盘价。</li>
-<li><b>玻璃（FG）上涨未检索到 9/11 当日专门新闻</b>，原因归为推断并在正文显式标注，未包装成结论。</li>
-<li>线材 WR 持仓量仅 1 手，报价无参考价值，已从涨幅榜剔除。</li>
-<li>个股涨跌幅为 13:35 前后盘中快照，<b>非收盘价</b>，尾盘可能变化。</li>
-<li>本报告所有数值均来自实时接口返回，<b>无任何推测或编造数值</b>。</li>
-</ul>
-</div>
-<div class="note">
-<b>刷新命令（工作区 <code>C:\Users\Minim\WorkBuddy\期货</code>）：</b><br>
-<code>python sina_scan.py</code> — 重扫国内 65 个商品期货品种涨跌幅并写入 <code>sina_movers.json</code>
-</div>
-</div>
+  <summary>④ 上涨原因 & 持续性分档<span class="sum-note">含判断依据</span></summary>
+  <div class="body">
+
+    <div class="card hot">
+      <h4>1. 原油链（SC / 布伦特 / WTI / FU / PG / BU / TA）<span class="lv lv1">数周</span></h4>
+      <div class="kv"><b>原因类型：供给扰动 + 地缘冲突 + 库存去化</b></div>
+      <div class="chain">霍尔木兹海峡通行量 600–700 万桶/日 → 200–300 万桶/日（Kpler）→ 中东出口减量 &gt;1000 万桶/日 → 陆上库存 8–9 月重回去化 → 现货溢价走阔（北海现货较期货升水 13 美元/桶）→ 盘面脉冲</div>
+      <ul>
+        <li><b>沙特东西输油管道 9/11 关闭</b>（预防性，遭无人机袭击），交易商称若数日内不恢复，全球供应损失约 4%；该管道是霍尔木兹受阻后沙特红海转运主力（延布港出口 150→450 万桶/日）。</li>
+        <li><b>阿曼会议推迟</b>：原定 9/14 在塞拉莱举行的霍尔木兹新通道会议推迟，缓和预期落空，油价应声大涨。</li>
+        <li><b>曼德海峡告急</b>：胡塞武装进驻哈尼什群岛，红海替代通道受威胁。</li>
+        <li><b>成品油裂解创新高</b>：ICE 柴油裂解 92.73 美元/桶、NYMEX 取暖油 111.90 美元/桶，均创年内新高（中信证券 9/14）。</li>
+      </ul>
+      <div class="kv"><b>持续性判断依据（数周）</b>：中金下调中东复产预测——4Q26 中东产量或仍低于冲突前 700–800 万桶/日（占全球 7–8%），复产进程至少延至 1Q27；同时全球陆上库存低于前期，放大溢价弹性。<b>反向约束</b>：中金同时提示油价破百后"需求顶"将显现，新加坡裂解价差已高位回落，属脉冲而非趋势。</div>
+    </div>
+
+    <div class="card">
+      <h4>2. 集运欧线 EC +2.84%<span class="lv lv2">数日</span></h4>
+      <div class="kv"><b>原因类型：地缘冲突 → 绕行 + 燃油成本</b></div>
+      <div class="chain">曼德海峡/红海风险升级 → 欧线绕行好望角 → 航程拉长、吨海里需求↑ + 船用燃油成本随原油飙升 → 运价指数上行</div>
+      <div class="kv"><b>持续性判断依据（数日）</b>：EC 是运价指数不是运量，地缘溢价脉冲性极强；今日盘中一度 +6%（报 2167.5），10:47 已回落至 +2.84%，日内振幅巨大，不具备数周级别趋势特征。</div>
+    </div>
+
+    <div class="card">
+      <h4>3. 燃油 / LPG / 沥青 / PTA<span class="lv lv2">数日至数周</span></h4>
+      <div class="kv"><b>原因类型：成本传导（原油）</b>。所有品种均为原油下游，涨幅与原油高度相关但逐级递减（FU +2.75% &gt; PG +1.27% &gt; BU +0.96% &gt; TA +0.54%）。</div>
+      <div class="kv"><b>关键细节</b>：低硫燃油 LU 仅 +0.31%，远弱于高硫燃油 FU +2.75% —— 说明本轮是<b>重质/高硫供给端受扰动</b>（中东中重质原油断供），而非航运需求驱动。</div>
+      <div class="kv"><b>持续性判断依据</b>：完全跟随原油；但若油价破百后需求负反馈兑现，裂解价差回落会先于原油见顶，故给「数日至数周」。</div>
+    </div>
+
+    <div class="card">
+      <h4>4. 多晶硅 PS +1.19%<span class="lv lv3">数日（政策博弈型）</span></h4>
+      <div class="kv"><b>原因类型：政策（反内卷）+ 产业整合</b></div>
+      <ul>
+        <li>通威股份并购青海丽豪已取得市场监管总局《经营者集中反垄断审查不予禁止决定书》（9/9 公告），龙头整合获监管认可。</li>
+        <li>六部委光伏行业不正当竞争专项整治；三项光伏强制性国标 2027/1/1 实施；4/1 起取消光伏产品出口退税。</li>
+      </ul>
+      <div class="kv"><b>持续性判断依据（数日，弱）</b>：光大期货 9/14 口径显示基本面并未改善——多晶硅厂库<b>周增 3000 吨至 31.6 万吨</b>，N 型料 4 万元/吨持稳、现货几无成交，行业产能 350 万吨 vs 需求 120–145 万吨、开工率不足 40%。属「减产强预期 vs 累库弱现实」的博弈，无基本面反转支撑。</div>
+    </div>
+
+    <div class="card">
+      <h4>5. 鸡蛋 JD +1.02% / 生猪 LH +0.57%<span class="lv lv3">日内</span></h4>
+      <div class="kv"><b>原因：⚠ 数据缺失 —— 近 7 天资讯检索未返回任何鸡蛋/生猪供给、存栏、疫情或收储相关驱动报道，无法归因。</b></div>
+      <div class="kv"><b>持续性判断依据（日内）</b>：涨幅仅 +1.02%/+0.57%，且 A股养殖板块（申万养殖业 −0.73%）全面反向，说明现货端涨价未被权益市场认可，按「日内、不主推」处理。</div>
+    </div>
+
+    <div class="card">
+      <h4>6. 尿素 UR +0.56%<span class="lv lv3">数日</span></h4>
+      <div class="kv"><b>原因：⚠ 部分缺失</b> —— 未检索到当日尿素专项新闻。仅能确认成本端（煤/气）随能源走强，及秋季备肥季节性支撑。<b>不做强归因</b>。</div>
+      <div class="kv"><b>持续性判断依据（数日）</b>：涨幅仅 +0.56%，且 A股农化制品 −0.67% 反向，传导不成立。</div>
+    </div>
+
+    <div class="card">
+      <h4>7. NYMEX 天然气 +1.62%<span class="lv lv2">数日</span></h4>
+      <div class="kv"><b>原因类型：地缘 + 替代能源联动</b>。智通财经 9/11 报道：俄乌冲突影响下欧洲天然气价格随能源整体上行，柴油等成品油涨幅更显著。</div>
+      <div class="kv"><b>持续性判断依据（数日，动能存疑）</b>：NYMEX 天然气<b>持仓单日大减 17137 手</b>（−17,137），是<b>减仓上涨</b>而非增仓推动，通常意味着空头回补而非新多进场，动能可持续性弱。</div>
+    </div>
+  </div>
 </details>
 
-<div class="sub" style="text-align:center;margin-top:18px">
-生成时间 2026-09-11 13:35 ｜ 仅供研究参考，不构成投资建议
-</div>
+<!-- ============ A股映射 ============ -->
+<details open>
+  <summary>⑤ A股主板受益标的<span class="sum-note">仅 60xxxx / 00xxxx · 42 只</span></summary>
+  <div class="body">
+    <div class="okbox">口径说明：已用脚本过滤 <span class="pill">300xxx</span><span class="pill">301xxx</span><span class="pill">688xxx</span>，全部标的为沪市主板（600/601/603/605）或深市主板（000/001/002/003）。涨跌幅为 <b>9/14 盘中 10:47 实时</b>。</div>
+
+    <h4>A 组 · 原油上游开采 &amp; 油运 &amp; 油服（真受益）</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th><th>量比</th><th>5日</th></tr></thead>
+      <tbody>
+        <tr><td>600938</td><td>中国海油</td><td class="up">+1.62%</td><td>34.46</td><td>1.39</td><td class="up">+4.05%</td></tr>
+        <tr><td>601872</td><td>招商轮船</td><td class="up">+1.60%</td><td>20.32</td><td>2.70</td><td class="up">+8.72%</td></tr>
+        <tr><td>603727</td><td>博迈科</td><td class="up">+0.70%</td><td>17.19</td><td>1.16</td><td class="dn">−3.05%</td></tr>
+        <tr><td>600026</td><td>中远海能</td><td class="up">+0.43%</td><td>20.95</td><td>2.31</td><td class="up">+6.08%</td></tr>
+        <tr><td>601808</td><td>中海油服</td><td class="up">+0.40%</td><td>12.51</td><td>1.83</td><td class="up">+0.56%</td></tr>
+        <tr><td>600339</td><td>中油工程</td><td class="up">+0.30%</td><td>3.35</td><td>1.50</td><td class="fl">0.00%</td></tr>
+        <tr><td>600583</td><td>海油工程</td><td class="up">+0.17%</td><td>6.00</td><td>1.80</td><td class="dn">−0.50%</td></tr>
+        <tr><td>601857</td><td>中国石油</td><td class="dn">−0.44%</td><td>11.19</td><td>1.43</td><td class="up">+1.54%</td></tr>
+        <tr><td>601975</td><td>招商南油</td><td class="dn">−0.86%</td><td>4.61</td><td>1.94</td><td class="up">+3.60%</td></tr>
+        <tr><td>603619</td><td>中曼石油</td><td class="dn">−1.20%</td><td>22.96</td><td>1.87</td><td class="up">+1.41%</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="chain"><b>传导链</b>：中东出口减量 1000 万桶/日 → 油价破百 → ① 上游开采（中国海油）实现价格直接抬升，毛利弹性最大；② 霍尔木兹受阻→绕行好望角→吨海里需求↑+运距拉长→油轮运价（招商轮船、中远海能）；③ 高油价维持→上游资本开支预期↑→油服订单（中海油服、海油工程、博迈科、中油工程）。<br><b>反例</b>：中国石油 −0.44% 因炼化板块占比大，油价是成本；招商南油 −0.86% 为成品油运输，9/20 日已涨 25.61%，今日高开 4.74 回落。</div>
+
+    <h4>B 组 · 成本受损方（<span class="dn">不推，油价上涨是利空</span>）</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th><th>逻辑</th></tr></thead>
+      <tbody>
+        <tr><td>000059</td><td>华锦股份</td><td class="dn">−1.97%</td><td>5.47</td><td>纯炼化，原油=成本</td></tr>
+        <tr><td>600346</td><td>恒力石化</td><td class="dn">−1.85%</td><td>16.95</td><td>炼化一体化，裂解价差回落</td></tr>
+        <tr><td>000703</td><td>恒逸石化</td><td class="dn">−1.73%</td><td>17.05</td><td>PTA/聚酯，成本挤压</td></tr>
+        <tr><td>600028</td><td>中国石化</td><td class="dn">−1.63%</td><td>5.43</td><td>纯炼化+销售，最纯成本受害者</td></tr>
+        <tr><td>002221</td><td>东华能源</td><td class="dn">−1.55%</td><td>5.73</td><td>LPG 涨价对其 PDH 是原料成本</td></tr>
+        <tr><td>002408</td><td>齐翔腾达</td><td class="dn">−1.28%</td><td>5.39</td><td>C4 深加工，成本端承压</td></tr>
+        <tr><td>603225</td><td>新凤鸣</td><td class="dn">−1.30%</td><td>16.71</td><td>涤纶长丝，10日 −20.54%</td></tr>
+        <tr><td>601233</td><td>桐昆股份</td><td class="up">+0.21%</td><td>23.46</td><td>PTA+长丝，勉强持平</td></tr>
+        <tr><td>002648</td><td>卫星化学</td><td class="up">+0.04%</td><td>27.23</td><td>轻烃裂解，成本相对独立</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="chain"><b>为什么油价涨、炼化跌</b>：中金 9/14 明确提示"短期油价及运费上涨正在冲击欧亚炼油毛利，汽油等成品油裂解价差存高位回落压力"。炼化赚的是 <b>裂解价差</b>，不是油价绝对值；原料涨而产品跟不动 = 价差压缩 = 利空。</div>
+
+    <h4>C 组 · 集运 / 航运</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th><th>量比</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>600798</td><td>宁波海运</td><td class="up">+5.85%</td><td>3.62</td><td>6.86</td><td>航运港口龙头，量比 6.86 放量；主业干散/沿海，非欧线</td></tr>
+        <tr><td>601919</td><td>中远海控</td><td class="dn">−0.31%</td><td>16.14</td><td>1.58</td><td>集运龙头，EC 涨但股价跌（背离）</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h4>D 组 · 多晶硅 / 光伏（PS +1.19% 传导弱）</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th><th>5日</th></tr></thead>
+      <tbody>
+        <tr><td>600438</td><td>通威股份</td><td class="up">+1.00%</td><td>11.16</td><td class="dn">−4.37%</td></tr>
+        <tr><td>002129</td><td>TCL中环</td><td class="up">+0.81%</td><td>8.76</td><td class="dn">−4.78%</td></tr>
+        <tr><td>601908</td><td>京运通</td><td class="up">+0.34%</td><td>2.99</td><td class="up">+0.67%</td></tr>
+        <tr><td>600089</td><td>特变电工</td><td class="dn">−0.69%</td><td>18.59</td><td class="dn">−1.85%</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="chain">多晶硅涨价 → 硅料厂毛利改善预期 → 通威（硅料龙头，且并购丽豪获反垄断放行）。但厂库 31.6 万吨仍在累积，板块仅 +0.49%（申万光伏设备），传导强度弱。</div>
+
+    <h4>E 组 · 天然气（NYMEX 气 +1.62%）</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th></tr></thead>
+      <tbody>
+        <tr><td>603393</td><td>新天然气</td><td class="dn">−0.04%</td><td>26.20</td></tr>
+        <tr><td>605090</td><td>九丰能源</td><td class="dn">−0.40%</td><td>32.70</td></tr>
+        <tr><td>600256</td><td>广汇能源</td><td class="dn">−0.43%</td><td>6.99</td></tr>
+        <tr><td>600803</td><td>新奥股份</td><td class="dn">−1.31%</td><td>18.77</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="kv" style="color:#b26a00">燃气板块 +0.55%，但个股普跌。NYMEX 气是减仓上涨，且国内气价与国际气价传导有滞后，本组<b>不作为受益标的推送</b>，仅列示供跟踪。</div>
+
+    <h4>F 组 · 尿素 / 煤化工（UR +0.56%）</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th></tr></thead>
+      <tbody>
+        <tr><td>000830</td><td>鲁西化工</td><td class="up">+0.83%</td><td>12.12</td></tr>
+        <tr><td>600426</td><td>华鲁恒升</td><td class="dn">−0.20%</td><td>19.83</td></tr>
+        <tr><td>600096</td><td>云天化</td><td class="dn">−0.92%</td><td>29.04</td></tr>
+        <tr><td>000902</td><td>新洋丰</td><td class="dn">−1.06%</td><td>14.03</td></tr>
+        <tr><td>600691</td><td>潞化科技</td><td class="dn">−1.94%</td><td>3.04</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h4>G 组 · 养殖（<span class="dn">背离组，不推</span>）</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th></tr></thead>
+      <tbody>
+        <tr><td>002714</td><td>牧原股份</td><td class="up">+0.38%</td><td>42.34</td><td>002234</td><td>民和股份</td><td class="dn">−0.99%</td><td>8.02</td></tr>
+        <tr><td>002299</td><td>圣农发展</td><td class="dn">−0.06%</td><td>16.67</td><td>002157</td><td>正邦科技</td><td class="dn">−1.26%</td><td>3.13</td></tr>
+        <tr><td>002100</td><td>天康生物</td><td class="dn">−0.62%</td><td>7.98</td><td>000876</td><td>新希望</td><td class="dn">−2.13%</td><td>7.36</td></tr>
+        <tr><td colspan="4"></td><td>002458</td><td>益生股份</td><td class="dn">−2.95%</td><td>8.56</td></tr>
+        <tr><td colspan="4"></td><td>000735</td><td>罗牛山</td><td class="dn">−3.83%</td><td>6.03</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h4>H 组 · 沥青（BU +0.96%）</h4>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>代码</th><th>名称</th><th>涨跌</th><th>现价</th><th>换手</th></tr></thead>
+      <tbody>
+        <tr><td>002377</td><td>国创高新</td><td class="dn">−4.42%</td><td>3.03</td><td>11.85%</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="kv" style="color:#b26a00">沥青期货涨但唯一纯正沥青标的暴跌 4.42%、换手 11.85%（5 日仍 +10.58%）——典型高位出货，<b>不推</b>。</div>
+  </div>
+</details>
+
+<!-- ============ 背离 ============ -->
+<details open>
+  <summary>⑥ 背离警示<span class="sum-note">8 组 · 2 组一级</span></summary>
+  <div class="body">
+    <div class="warnbox">
+      <b>🔴 一级背离 · 原油期货暴涨 vs 石化股下跌</b><br>
+      SC +9.52% / 布伦特 +2.48% / WTI +2.60%，但申万<b>炼化及贸易 −0.64%、油服工程 −0.06%</b>，中国石化 −1.63%、华锦股份 −1.97%、恒力石化 −1.85%。<br>
+      <b>解读</b>：① 油价对炼化是成本利空，逻辑本就不该机械映射；② 9/11 已提前定价一轮（招商轮船当日涨停、5 日 +8.72%），今日为兑现；③ 中信证券 9/14 指出 A 股对加息定价犹豫，本周加速调整是「对加息落地的定价」，资金切向医药/电池。<br>
+      <b>处置</b>：只保留上游开采 + 油运 + 油服三条真受益线。
+    </div>
+    <div class="warnbox">
+      <b>🔴 一级背离 · 玻璃/纯碱期货崩跌 vs 玻璃玻纤股上涨</b><br>
+      玻璃 FG <span class="dn">−5.59%</span>、纯碱 SA <span class="dn">−4.08%</span>，但申万<b>玻璃玻纤 +1.61%</b>（全市场第 7），凯盛新能涨停、板块换手 3.73%。<br>
+      <b>解读</b>：涨的是<b>光伏玻璃/玻纤（反内卷）</b>，不是浮法玻璃，两者供需完全不同。期货跌的是浮法。<br>
+      <b>处置</b>：不可用 FG/SA 期货涨跌去判断玻璃玻纤板块。
+    </div>
+    <div class="card">
+      <h4>🟠 二级背离</h4>
+      <ul>
+        <li><b>鸡蛋 +1.02% / 生猪 +0.57% vs 养殖业 −0.73%</b>：罗牛山 −3.83%、益生 −2.95%、新希望 −2.13%。期货涨未被权益认可。</li>
+        <li><b>橡胶 RU −1.81% / 顺丁胶 BR −3.68% vs 橡胶板块 +0.43%</b>：板块涨由轮胎/非轮胎件拉动，非原料。</li>
+        <li><b>多晶硅 +1.19% vs 光伏设备 +0.49%</b>：传导衰减，板块内 37/67 上涨但分化。</li>
+        <li><b>沥青 +0.96% vs 国创高新 −4.42%</b>：高位放量出货。</li>
+        <li><b>尿素 +0.56% vs 农化制品 −0.67%</b>。</li>
+        <li><b>集运 EC +2.84% vs 中远海控 −0.31%</b>：EC 是运价指数，且欧线绕行利好的是运价而非即期利润。</li>
+        <li><b>伦敦金 −0.03% / 伦敦银 −0.51% vs 贵金属板块 +0.72%</b>（山金国际 +2.21%）：方正证券口径——加息预期虽升温，但央行购金 + ETF 流入支撑金价，权益先于商品反应。</li>
+      </ul>
+    </div>
+  </div>
+</details>
+
+<!-- ============ 不触发 ============ -->
+<details>
+  <summary>⑦ 不触发项 & 重新触发阈值<span class="sum-note">量化</span></summary>
+  <div class="body">
+    <div class="kv" style="margin-bottom:8px"><b>统一规则</b>：日涨跌幅 ≤ +0.5% 不推送；有色金属类因波动率更高，阈值上调至 <b>+1.0%</b>；农产品需同时满足「&gt;+0.5% 且持仓增加」。</div>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>不触发品种</th><th>当前</th><th>原因</th><th>重新触发阈值</th></tr></thead>
+      <tbody>
+        <tr><td>玻璃 FG</td><td class="dn">−5.59%</td><td>下跌</td><td>日涨 &gt;+0.5% 且增仓，并站回 950 上方</td></tr>
+        <tr><td>纯碱 SA</td><td class="dn">−4.08%</td><td>下跌</td><td>日涨 &gt;+0.5% 且增仓</td></tr>
+        <tr><td>顺丁橡胶 BR</td><td class="dn">−3.68%</td><td>下跌</td><td>日涨 &gt;+0.5%</td></tr>
+        <tr><td>烧碱 SH</td><td class="dn">−3.20%</td><td>下跌</td><td>日涨 &gt;+0.5%</td></tr>
+        <tr><td>沪锡 SN</td><td class="dn">−3.12%</td><td>下跌</td><td>日涨 &gt;<b>+1.0%</b>（有色）</td></tr>
+        <tr><td>PVC V</td><td class="dn">−2.44%</td><td>下跌</td><td>日涨 &gt;+0.5%</td></tr>
+        <tr><td>20号胶 NR</td><td class="dn">−2.16%</td><td>下跌</td><td>日涨 &gt;+0.5%</td></tr>
+        <tr><td>沪铅 PB</td><td class="dn">−1.92%</td><td>下跌</td><td>日涨 &gt;<b>+1.0%</b>（有色）</td></tr>
+        <tr><td>焦炭 J / 焦煤 JM</td><td class="dn">−1.86%/−1.64%</td><td>下跌</td><td>日涨 &gt;+0.5%</td></tr>
+        <tr><td>橡胶 RU</td><td class="dn">−1.81%</td><td>下跌</td><td>日涨 &gt;+0.5%</td></tr>
+        <tr><td>氧化铝 AO</td><td class="dn">−1.61%</td><td>下跌</td><td>日涨 &gt;+0.5%</td></tr>
+        <tr><td>淀粉 CS / 玉米 C</td><td class="dn">−1.63%/−1.19%</td><td>下跌</td><td>日涨 &gt;+0.5% 且增仓</td></tr>
+        <tr><td>沪锌 ZN</td><td class="dn">−1.60%</td><td>下跌</td><td>日涨 &gt;<b>+1.0%</b>（有色）</td></tr>
+        <tr><td>LME铜 / LME锌 / LME锡 / LME镍 / LME铝</td><td class="dn">−0.37% ~ −0.08%</td><td>未过阈值</td><td>日涨 &gt;<b>+1.0%</b>（有色）</td></tr>
+        <tr><td>COMEX铜 / 金 / 银</td><td class="dn">−0.95%/−0.38%/−0.45%</td><td>未过阈值</td><td>日涨 &gt;<b>+1.0%</b>（有色）</td></tr>
+        <tr><td>伦敦金 / 伦敦银</td><td class="dn">−0.03%/−0.51%</td><td>未过阈值</td><td>日涨 &gt;<b>+1.0%</b></td></tr>
+        <tr><td>CBOT玉米 / 小麦</td><td class="dn">−0.14%/−0.10%</td><td>未过阈值</td><td>日涨 &gt;+0.5% 且增仓</td></tr>
+        <tr><td>NYMEX铂金 / 伦敦铂</td><td class="fl">+0.45%/+0.30%</td><td>差一点</td><td>&gt;+0.5%</td></tr>
+        <tr><td>CBOT大豆</td><td class="fl">+0.27%</td><td>未过阈值</td><td>&gt;+0.5% 且增仓</td></tr>
+        <tr><td>低硫燃油 LU / 硅铁 SF / 瓶片 PR / 短纤 PF / 粳米 RR</td><td class="fl">+0.31% ~ +0.05%</td><td>未过阈值</td><td>&gt;+0.5%</td></tr>
+        <tr><td>甲醇 MA / 乙二醇 EG</td><td class="fl">+0.10%/+0.07%</td><td>未过阈值</td><td>&gt;+0.5%</td></tr>
+        <tr><td>碳酸锂 LC</td><td class="fl">0.00%</td><td><b>数据缺失</b>（最新价=昨结算）</td><td>接口返回有效昨结后再评估</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</details>
+
+<!-- ============ 消息面 ============ -->
+<details>
+  <summary>⑧ 同期重要消息 & 日历<span class="sum-note">政策/地缘/供给/宏观</span></summary>
+  <div class="body">
+    <div class="card">
+      <h4>地缘 / 供给扰动</h4>
+      <ul>
+        <li><b>沙特东西输油管道 9/11 关闭</b>（伊拉克方向无人机袭击，预防性），未披露恢复计划；若数日不恢复 = 全球供应损失约 4%。</li>
+        <li><b>霍尔木兹海峡</b>：9 月通行量降至 200–300 万桶/日（7–8 月为 600–700 万）；9/13 一艘伊朗集装箱货轮在海峡附近遭袭，1 死 4 伤。</li>
+        <li><b>曼德海峡</b>：也门政府军撤出哈尼什群岛后胡塞武装进驻并建立军事阵地。</li>
+        <li><b>阿曼会议推迟</b>：原定 9/14 塞拉莱「霍尔木兹新通道」会议推迟，日期待定；巴林明确不参会。伊朗重申重开前提是美方履行「伊斯兰堡谅解备忘录」。</li>
+        <li><b>俄罗斯</b>：柴油出口禁令延长至 9 月末；8 月柴油出口降至 14 万桶/日，较 2025 年 −82%。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>政策 / 关税</h4>
+      <ul>
+        <li><b>美国 232 铜关税</b>：白宫「尚未就精炼铜关税作出决定」，9/28 前须出最终决策——铜价最大不确定源。</li>
+        <li><b>光伏</b>：六部委不正当竞争专项整治；三项强制国标 2027/1/1 实施；4/1 起取消光伏产品出口退税；通威并购丽豪获反垄断放行。</li>
+        <li><b>印尼镍</b>：PT Weda Bay Nickel 获批重启采矿（停产维护 4 个月），配额限制松动信号。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>宏观数据 / 日历</h4>
+      <ul>
+        <li><b>美国 8 月 CPI</b>：同比 +3.4%、环比 +0.4%；核心 CPI 同比 +2.4%、<b>环比 +0.3%（超预期 0.2%）</b>。</li>
+        <li><b>美国 8 月 PPI</b>：环比 +0.4%、同比 +5.4%，超预期。</li>
+        <li><b>9/15–16 FOMC</b>（北京时间 <b>9/17 凌晨</b>）：加息 25bp 概率 CME FedWatch 约 <b>85%</b>，部分机构报 90%；高盛由「按兵不动」改口「加息 25bp」。市场焦点转向点阵图与声明措辞，瑞银预计 9 月、12 月各加一次。</li>
+        <li><b>密歇根大学通胀预期</b>：9 月初一年期预期由 4.0% 跃升至 4.6%。</li>
+        <li><b>库存</b>：全球陆上石油库存 8 月重回去化，9 月去库压力或进一步加大（中金）；全球铜显性库存 105.7 万吨（−0.2 万吨）。</li>
+      </ul>
+    </div>
+    <div class="note">⚠ 未检索到本周中国经济数据发布的具体日期，不做推测列示。</div>
+  </div>
+</details>
+
+<!-- ============ 数据声明 ============ -->
+<details>
+  <summary>⑨ 数据真实性声明<span class="sum-note">必读</span></summary>
+  <div class="body">
+    <ul>
+      <li><b>时点错配</b>：CME/CBOT/NYMEX 系列快照停在 <b>9/13 美盘收盘</b>（周六），LME 与伦敦金银铂为 9/14 近实时，国内商品与 A 股为 9/14 盘中实时。三者不可互相推算，已分表列示。</li>
+      <li><b>数据缺失</b>：碳酸锂 LC 最新价 = 昨结算（133960），涨跌幅显示为 0.00%，判定为接口未刷新，<b>已标注「数据缺失」，未做任何推测填充</b>。</li>
+      <li><b>归因缺失</b>：鸡蛋、生猪、尿素三个上涨品种近 7 天未检索到明确驱动新闻，<b>已标注「原因不明/部分缺失」</b>，未编造归因。</li>
+      <li><b>涨跌停自检</b>：SC +9.52% 未超过上海原油期货涨跌停板幅度，且 09:40 与 10:47 两次快照昨结算均为 809.9（同一合约，无换月错配），判定为有效数据。</li>
+      <li><b>板块 leader 不入库</b>：申万行业龙头常为 300/301/688（如医疗服务 leader 万邦医药 sz301520、生物制品 leader 近岸蛋白 sh688137），<b>仅作板块强弱参考，不进个股池</b>。</li>
+      <li>本页所有数值均来自接口原始返回，未做二次推算或补齐。</li>
+    </ul>
+  </div>
+</details>
+
+<div class="foot">战法助手 · 期股联动盘中推送 · 2026-09-14 10:45<br>自包含单文件，可离线查看</div>
 
 </body>
 </html>
