@@ -763,10 +763,6 @@ body {
         <div id="limitUpSummaryStats"></div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🐉 龙虎榜动向摘要</span><span class="card-toggle">▼</span></div>
-      <div class="card-body" id="lhbSummary"></div>
-    </div>
   </div>
   <!-- 详细分析 Tab -->
   <div class="tab-panel" id="ov-detail">
@@ -842,7 +838,7 @@ body {
         <button class="push-btn primary" onclick="pushThemeToFeishu()">📤 推送当前题材</button>
         <button class="push-btn ghost" onclick="copyThemePushText()">📋 复制推送内容</button>
       </div>
-      <div class="section-text mb-8" style="opacity:.6;font-size:11px;">提示：浏览器直连飞书可能被跨域(CORS)拦截；若提示失败，请用「复制推送内容」手动发到群里。<strong>定时自动推送由后台任务完成</strong>，不受此限制。</div>
+      <div class="section-text mb-8" style="opacity:.6;font-size:11px;">提示：浏览器可直连飞书群机器人（已开启跨域白名单）。若推送失败会显示<strong>飞书返回的精确错误码</strong>（如 code=19021 多为「安全关键词不匹配」或「开启了签名校验」）。也可用「复制推送内容」手动发到群里。<strong>定时自动推送由后台任务完成</strong>，走服务端发送不受浏览器限制。</div>
     </div>
   </div>
 </div>
@@ -895,21 +891,6 @@ body {
 
 <!-- ==================== PAGE 6: 战法阁 ==================== -->
 <div class="page" id="page-echelon">
-  <div class="card">
-    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🔥 昨日新增连板</span><span class="card-toggle">▼</span></div>
-    <div class="card-body" id="echelonNewOnly"></div>
-  </div>
-  <div class="card">
-    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📋 涨停板明细表</span><span class="card-toggle">▼</span></div>
-    <div class="card-body">
-      <div class="table-wrap" id="limitUpDetailTable"></div>
-      <div id="limitUpStats" class="mt-8"></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🐉 龙虎榜动向</span><span class="card-toggle">▼</span></div>
-    <div class="card-body" id="lhbDetail"></div>
-  </div>
   <!-- ===== 妖股观察 · 横向 Tab（连板妖股 / 二板潜力股 / 高胜率战法） ===== -->
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🎪 妖股观察 · 高胜率战法</span><span class="card-toggle">▼</span></div>
@@ -3090,7 +3071,7 @@ function generateAISummary() {
                 : temp <= 35 ? '情绪偏冷，低吸需等待赚钱效应修复信号'
                 : '分化行情，避免追高弱转强不明确的品种') + '。';
   if (lvlTxt) s += '次日：' + lvlTxt + '，重点跟踪 ' + (topNames[0] || '主线龙头') + ' 竞价表现。';
-  s += '（数据源：' + (CURRENT_SOURCE === 'em' ? '东方财富' : CURRENT_SOURCE === 'mixed' ? '通达信+东方财富' : '通达信') + '，仅供复盘参考，不构成投资���议）';
+  s += '（数据源：' + (CURRENT_SOURCE === 'em' ? '东方财富' : CURRENT_SOURCE === 'mixed' ? '通达信+东方财富' : '通达信') + '，仅供复盘参考，不构成投资建议）';
   return s;
 }
 
@@ -3809,7 +3790,7 @@ function renderLimitUpSummary() {
   sHtml += '</div>';
   // 封板时间分布特征
   var feature = '';
-  if (earlyRatio >= 60) feature = '早盘涨停占比 <b style="color:#e34d59;">' + earlyRatio + '%</b> 极���，资金做多意愿强烈，开盘即抢筹封板，连板梯队有望进一步拓展。但需警惕一致性预期过强后的分歧风险。';
+  if (earlyRatio >= 60) feature = '早盘涨停占比 <b style="color:#e34d59;">' + earlyRatio + '%</b> 极高，资金做多意愿强烈，开盘即抢筹封板，连板梯队有望进一步拓展。但需警惕一致性预期过强后的分歧风险。';
   else if (earlyRatio >= 40) feature = '早盘涨停占比 <b style="color:#f59e0b;">' + earlyRatio + '%</b> 偏高，主流资金早盘集中发力，午后以分歧轮动为主，资金进场节奏健康。';
   else if (earlyRatio >= 20) feature = '早盘涨停占比 <b>' + earlyRatio + '%</b> 偏低，午盘与尾盘拉升占比较大，盘中分歧明显，多空博弈激烈，需观察主线持续性。';
   else feature = '早盘涨停占比仅 <b>' + earlyRatio + '%</b>，多数涨停在午盘以后才形成，说明资金观望情绪浓厚，进攻意愿不足。';
@@ -4494,7 +4475,7 @@ function renderCapitalPage() {
         + (DATA.volume.mainNetInflow < 0 ? '资金整体呈撤离态势；' : '资金整体呈流入态势；')
         + '涨停封单集中于' + (topIn.length ? topIn.slice(0, 5).map(function (t) { return t.name; }).join('、') : '（无涨停数据）')
         + '等方向，反映短线活跃资金对上述题材的认同度较高。注：板块口径为涨停封单衍生指标，该交易日未取到交易所板块级主力净流，未编造。</p>';
-      hintLine = '<p><strong>盘面启示：</strong>封单金额聚集的题材往往对应当日最强主线，但封单衍生指标仅反映涨停强度，需结��真实成交与板块主力净流综合判断。</p>';
+      hintLine = '<p><strong>盘面启示：</strong>封单金额聚集的题材往往对应当日最强主线，但封单衍生指标仅反映涨停强度，需结合真实成交与板块主力净流综合判断。</p>';
     }
     var srcLine = '<p style="opacity:.7;font-size:12px;">数据来源：' + (CURRENT_SOURCE === 'live' ? '东方财富公开行情接口（实时直连）'
       : CURRENT_SOURCE === 'em' ? '东方财富' : CURRENT_SOURCE === 'mixed' ? '通达信 + 东方财富' : '通达信')
@@ -4556,6 +4537,7 @@ function fetchZSForTheme() {
   if (!DATA.themeRadar || !DATA.themeRadar.themes || !DATA.themeRadar.themes.length) return;
   var codes = [];
   DATA.themeRadar.themes.forEach(function (t) {
+    (t.front || []).forEach(function (s) { if (s.code && codes.indexOf(s.code) < 0) codes.push(s.code); });
     (t.backRows || []).forEach(function (b) { if (b.code && codes.indexOf(b.code) < 0) codes.push(b.code); });
   });
   if (!codes.length) return;
@@ -4655,11 +4637,14 @@ function renderThemeRadar() {
     var frontRows = (t.front || []).map(function (s) {
       var qf = THEME_QUOTE_MAP[s.code];
       var fnet = (qf && qf.mainNetFlowYi != null) ? qf.mainNetFlowYi : s.mainNetFlowYi;
+      var zs = ZS_MAP[s.code];
+      var zsTxt = (zs != null && isFinite(zs)) ? ((zs > 0 ? '+' : '') + zs.toFixed(2) + '%') : '封板';
+      var zsColor = (zs != null && isFinite(zs)) ? (zs > 0 ? 'var(--red)' : 'var(--green)') : 'opacity:.55;';
       return '<tr>'
         + '<td>' + (s.code || '') + '</td>'
         + '<td>' + (s.name || '') + '</td>'
         + '<td style="color:var(--red);font-weight:700;">' + (s.streak || 1) + '板</td>'
-        + '<td style="opacity:.55;">封板</td>'
+        + '<td style="color:' + zsColor + ';font-weight:700;">' + zsTxt + '</td>'
         + '<td>' + (s.time || '-') + '</td>'
         + '<td>' + (s.sealAmount != null ? s.sealAmount + '亿' : '-') + '</td>'
         + '<td>' + (fnet != null ? (fnet > 0 ? '+' : '') + fnet + '亿' : '-') + '</td>'
@@ -4817,7 +4802,7 @@ function renderFsPushState() {
 function buildThemePushPayload() {
   var tr = DATA.themeRadar || {}, themes = tr.themes || [];
   if (!themes.length) return null;
-  var lu = DATA.limitUp || {}, idx = DATA.indices || {}, kw = _lsGet(FS_KEYWORD_KEY);
+  var lu = DATA.limitUp || {}, idx = DATA.indices || {}, kw = _lsGet(FS_KEYWORD_KEY) || '喵喵';
   var stamp = LAST_LIVE_AT ? fmtDateTime(LAST_LIVE_AT) : (CURRENT_SNAP_AT || DATA.date);
   var els = [];
   var head = '**涨停** ' + (lu.count || 0) + ' 只 · **跌停** ' + (lu.limitDown || 0) + ' 只 · **最高** ' + (lu.maxStreak || 0) + ' 板';
@@ -4842,7 +4827,7 @@ function buildThemePushPayload() {
   els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: (kw ? kw + ' · ' : '') + '喵喵盘研社 · ' + stamp + ' · 东方财富真实数据' }] });
   return { msg_type: 'interactive',
     card: { config: { wide_screen_mode: true },
-      header: { title: { tag: 'plain_text', content: '📡 实时题材雷达 · ' + DATA.date }, template: 'red' },
+      header: { title: { tag: 'plain_text', content: '📡 喵喵盘研社 · 实时题材雷达 · ' + DATA.date }, template: 'red' },
       elements: els } };
 }
 function buildThemePushText() {
@@ -4887,32 +4872,33 @@ function copyThemePushText() {
 function pushThemeToFeishu() {
   var hook = _lsGet(FS_WEBHOOK_KEY);
   if (!hook) { showNotify('⚠️ 请先粘贴飞书群机器人 webhook 并点「保存」', 4500); return; }
-  var payload = buildThemePushPayload();
+  var payload;
+  try { payload = buildThemePushPayload(); }
+  catch (e) { showNotify('⚠️ 生成推送内容失败：' + (e && e.message ? e.message : e), 8000); return; }
   if (!payload) { showNotify('⚠️ 当前无题材数据可推送', 3000); return; }
-  var body = JSON.stringify(payload);
+  var body;
+  try { body = JSON.stringify(payload); }
+  catch (e) { showNotify('⚠️ 推送内容序列化失败：' + (e && e.message ? e.message : e), 8000); return; }
   try { setBusy(true); } catch (e) {}
   var finish = function () { try { setBusy(false); } catch (e) {} };
-  var attempt = function (mode, ct) {
-    var opt = { method: 'POST', headers: { 'Content-Type': ct }, body: body };
-    if (mode) opt.mode = mode;
-    return fetch(hook, opt);
-  };
-  attempt(null, 'application/json').then(function (r) {
-    return r.text().then(function (t) {
+  // 飞书 webhook 已开启 CORS（实测返回 Access-Control-Allow-Origin:*），浏览器可直连并读取响应，无需 no-cors 兜底
+  fetch(hook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function (t) {
       var j = null; try { j = JSON.parse(t); } catch (e) {}
-      if (j && j.code != null && j.code !== 0) throw new Error(j.msg || ('飞书返回 code=' + j.code));
-      finish(); showNotify('✅ 已推送到飞书群，请查收', 4000);
-    });
-  }).catch(function (e) {
-    return attempt('no-cors', 'text/plain').then(function () {
+      if (j && j.code != null && j.code !== 0) {
+        throw new Error('飞书返回 code=' + j.code + '，msg=' + (j.msg || '（常见原因：关键词不匹配 / 开启签名校验未带签名 / 卡片格式错误）'));
+      }
       finish();
-      showNotify('📤 已尝试发送：飞书未返回确认（不透明响应）。请到群里查收；<br/>若未收到说明被浏览器跨域拦截，请用「复制推送内容」手动发。', 7000);
-    }).catch(function () {
+      showNotify('✅ 已推送到飞书群，请到群里查收', 4500);
+    })
+    .catch(function (e) {
       finish();
-      showNotify('❌ 推送失败：' + (e && e.message ? e.message : '浏览器跨域被拦')
-        + '。<br/>可点「复制推送内容」手动发到群里。', 8000);
+      showNotify('❌ 推送失败：' + (e && e.message ? e.message : e) + '。<br/>可点「复制推送内容」手动发到群里。', 9000);
     });
-  });
 }
 
 /* ===== Render Market Breadth ===== */
@@ -5395,6 +5381,24 @@ function ml2DetailCard(b) {
   return h;
 }
 
+/* 主线去重：同一分类内，若板块名是另一板块名的「前缀子概念」
+   （如 半导体 → 半导体概念 / 半导体设备 / 半导体材料；电子化学品Ⅱ → 电子化学品Ⅲ），
+   仅保留更短的主板块，避免重复展示刷屏。 */
+function mlDedup(arr) {
+  if (!arr || !arr.length) return [];
+  var sorted = arr.slice().sort(function (a, b) { return (a.name || '').length - (b.name || '').length; });
+  var keep = [];
+  sorted.forEach(function (b) {
+    var name = b.name || '';
+    var isSub = keep.some(function (k) {
+      var kn = k.name || '';
+      return kn.length > 0 && name.length > kn.length && name.indexOf(kn) === 0;
+    });
+    if (!isSub) keep.push(b);
+  });
+  return keep;
+}
+
 function renderMainThemes() {
   var barEl = document.getElementById('mlBar');
   var grpEl = document.getElementById('mlGroups');
@@ -5426,10 +5430,12 @@ function renderMainThemes() {
         + '</div>';
     }
 
-    var order = ['main', 'watch', 'branch', 'fading'];
+    // 只展示主线数据（当下主线 + 观察主线），去掉分支/落榜噪音；同类去重 + 限量，避免"几十个主线"刷屏。
+    var order = ['main', 'watch'];
+    var capMap = { main: 10, watch: 8 };
     var gh = banner;
     order.forEach(function (k) {
-      var arr = (D.groups[k] || []);
+      var arr = mlDedup(D.groups[k] || []);
       var c = ML2_CAT[k];
       gh += '<div class="ml2-sec">';
       gh += '<div class="ml2-sec-h">' + c.icon + ' ' + c.name + ' <span class="cnt">（' + arr.length + ' 个）</span></div>';
@@ -5437,7 +5443,7 @@ function renderMainThemes() {
         gh += '<div class="ml2-sub" style="font-size:12.5px">暂无</div>';
       } else {
         gh += '<div class="ml2-grid">';
-        arr.slice(0, (k === 'main' || k === 'watch') ? 6 : 8).forEach(function (b, i) { gh += ml2BoardCard(b, i); });
+        arr.slice(0, capMap[k]).forEach(function (b, i) { gh += ml2BoardCard(b, i); });
         gh += '</div>';
       }
       gh += '</div>';
@@ -5447,7 +5453,7 @@ function renderMainThemes() {
     if (detEl) {
       var dh = '<div class="ml2-sec-h" style="margin-top:6px">📋 主线明细 <span class="cnt">（龙1=最高连板+封单最大｜龙2=次强｜中军=资金承载核心｜补涨龙=首板首封最早｜潜力股=综合分Top3）</span></div>';
       order.forEach(function (k) {
-        (D.groups[k] || []).slice(0, (k === 'main') ? 6 : 4).forEach(function (b) { dh += ml2DetailCard(b); });
+        mlDedup(D.groups[k] || []).slice(0, capMap[k]).forEach(function (b) { dh += ml2DetailCard(b); });
       });
       detEl.innerHTML = dh;
     }
@@ -5638,7 +5644,7 @@ function shapeSelect(type) {
     results.forEach(function(r) { html += '<li>' + r + '</li>'; });
     html += '</ul>';
   }
-  html += '<div class="fs-11 text-secondary mt-8">注：仅基于手动录入的K线数据筛选，不联网抓���，仅作复盘观察备选</div>';
+  html += '<div class="fs-11 text-secondary mt-8">注：仅基于手动录入的K线数据筛选，不联网抓取，仅作复盘观察备选</div>';
   document.getElementById('shapeResult').innerHTML = html;
 }
 
