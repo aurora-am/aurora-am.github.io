@@ -810,9 +810,11 @@ var themePlan = function themePlan(t, ctx) {
   // 板块预计高度
   const heightBonus = t.count >= 7 ? 3 : t.count >= 5 ? 2 : t.count >= 3 ? 1 : 0;
   const sectorHeight = Math.min(L + heightBonus, ctx.maxLbc + 1);
+  // 板块预计高度（红色加粗标注「预计高度几板」，与页面已有红色 #f85149 一致）
+  const heightMark = `<span style="color:#f85149;font-weight:700">${sectorHeight} 板</span>`;
   const heightText = P
-    ? `${sectorHeight} 板（当前 ${L} 板｜题材 ${t.count} 家 / ${yi(t.amount)} 亿支撑｜市场最高 ${ctx.maxLbc} 板封顶）。晋级至 ${sectorHeight} 板对应 ≈ ${f2(P * Math.pow(1.10, sectorHeight - L))} 元`
-    : `${sectorHeight} 板（当前 ${L} 板｜题材 ${t.count} 家支撑｜市场最高 ${ctx.maxLbc} 板封顶）`;
+    ? `${heightMark}（当前 ${L} 板｜题材 ${t.count} 家 / ${yi(t.amount)} 亿支撑｜市场最高 ${ctx.maxLbc} 板封顶）。晋级至 ${sectorHeight} 板对应 ≈ ${f2(P * Math.pow(1.10, sectorHeight - L))} 元`
+    : `${heightMark}（当前 ${L} 板｜题材 ${t.count} 家支撑｜市场最高 ${ctx.maxLbc} 板封顶）`;
 
   // 预判走势
   let trend;
