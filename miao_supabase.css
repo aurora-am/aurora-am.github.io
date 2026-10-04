@@ -1,0 +1,45 @@
+/* ===== 喵喵盘研社 · Supabase 会员层样式 ===== */
+.miao-mask{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(2px);}
+.miao-mask.show{display:flex;}
+.miao-modal{position:relative;width:min(420px,92vw);max-height:88vh;overflow:auto;background:#fff;border-radius:14px;padding:24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.28);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;}
+.miao-close{position:absolute;top:10px;right:14px;font-size:24px;color:#94a3b8;cursor:pointer;line-height:1;}
+.miao-close:hover{color:#1a1a2e;}
+.miao-title{margin:0 0 14px;font-size:19px;font-weight:700;color:#1a1a2e;}
+.miao-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid #e8eef6;}
+.miao-tab{padding:8px 14px;font-size:14px;color:#5a6a7e;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.miao-tab.active{color:#1a73e8;font-weight:600;border-bottom-color:#1a73e8;}
+.miao-label{display:block;margin:12px 0 6px;font-size:13px;color:#5a6a7e;font-weight:600;}
+.miao-in{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d8e2ee;border-radius:8px;font-size:14px;outline:none;font-family:inherit;}
+.miao-in:focus{border-color:#1a73e8;box-shadow:0 0 0 3px rgba(26,115,232,.15);}
+.miao-err{min-height:18px;margin-top:8px;font-size:12.5px;color:#e34d59;}
+.miao-btn{width:100%;margin-top:14px;padding:11px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;}
+.miao-btn.primary{background:#1a73e8;color:#fff;}
+.miao-btn.primary:hover{background:#1557b0;}
+.miao-btn.pay{background:linear-gradient(135deg,#07c160,#05a350);color:#fff;}
+.miao-btn.pay:hover{opacity:.92;}
+.miao-btn:disabled{opacity:.6;cursor:not-allowed;}
+.miao-foot{margin-top:12px;text-align:center;font-size:13px;}
+.miao-foot a{color:#1a73e8;text-decoration:none;}
+.miao-tip{margin-top:12px;font-size:12px;color:#94a3b8;line-height:1.6;}
+.mm-eb{margin-bottom:12px;padding:7px 10px;border-radius:8px;background:#fff4e5;color:#b45309;font-size:12.5px;font-weight:600;}
+.dur-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.dur-card{position:relative;padding:12px 10px;border:1.5px solid #d8e2ee;border-radius:10px;cursor:pointer;text-align:center;transition:.15s;}
+.dur-card:hover{border-color:#1a73e8;}
+.dur-card.active{border-color:#1a73e8;background:#e8f0fe;}
+.dur-tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#1a73e8;color:#fff;font-size:11px;padding:2px 8px;border-radius:9px;font-weight:600;}
+.dur-badge{position:absolute;top:-8px;right:6px;background:#e34d59;color:#fff;font-size:10.5px;padding:2px 6px;border-radius:8px;font-weight:600;}
+.dur-name{font-size:13px;color:#5a6a7e;}
+.dur-price{margin-top:4px;font-size:21px;font-weight:800;color:#1a1a2e;}
+.dur-orig{font-size:12px;color:#94a3b8;text-decoration:line-through;}
+.dur-per{margin-top:2px;font-size:11.5px;color:#94a3b8;}
+.miao-sum{margin-top:14px;text-align:right;font-size:14px;color:#5a6a7e;}
+.miao-sum b{font-size:20px;color:#e34d59;}
+.vip-badge{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap;}
+.vip-badge.guest{background:rgba(255,255,255,.14);color:#fff;}
+.vip-badge.free{background:#eef2f7;color:#5a6a7e;}
+.vip-badge.pro{background:linear-gradient(135deg,#f5d78e,#e9b949);color:#5b3d00;}
+.miao-toast{position:fixed;left:50%;bottom:38px;transform:translate(-50%,14px);padding:10px 18px;border-radius:8px;background:#1a1a2e;color:#fff;font-size:14px;opacity:0;transition:.25s;z-index:100000;pointer-events:none;max-width:90vw;}
+.miao-toast.show{opacity:1;transform:translate(-50%,0);}
+.miao-toast.ok{background:#07a35a;}
+.miao-toast.warn{background:#e8891a;}
+@media(max-width:480px){.dur-grid{grid-template-columns:1fr 1fr;}.miao-modal{padding:20px 16px;}}
