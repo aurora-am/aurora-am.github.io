@@ -8,6 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <title>喵喵盘研社 · 复盘工作台</title>
 <script src="echarts.min.js"></script>
+<link rel="stylesheet" href="css/membership.css">
 <style>
 /* ===== CSS Variables: Light Theme ===== */
 :root {
@@ -732,6 +733,10 @@ body {
       <div class="toggle-switch" id="syncToggle"></div>
     </div>
     <button class="topbar-btn" onclick="toggleShare(this)" id="shareBtn">📱 <span class="btn-text">分享</span></button>
+    <span id="vipBadge" class="vip-badge">检测中…</span>
+    <button class="topbar-btn vip-buy" id="vipBuyBtn" onclick="MiaoWB.openPurchase()">👑 开通会员</button>
+    <button class="topbar-btn" id="vipChpwBtn" onclick="MiaoWB.openChangePw()">🔑 修改密码</button>
+    <button class="topbar-btn" id="vipLogoutBtn" onclick="MiaoWB.logout()">退出</button>
   </div>
 </div>
 
@@ -762,6 +767,8 @@ body {
     <div class="nav-item" data-page="overnight" onclick="navigateTo('overnight')"><span class="nav-icon">⚡</span> 隔夜判断</div>
     <div class="nav-item" data-page="notes" onclick="navigateTo('notes')"><span class="nav-icon">📝</span> 复盘笔记</div>
     <div class="nav-item" data-page="tthelper" onclick="navigateTo('tthelper')"><span class="nav-icon">💱</span> 做T助手</div>
+    <div class="nav-item" data-page="edge" onclick="navigateTo('edge')"><span class="nav-icon">🚀</span> 盘中雷达</div>
+    <div class="nav-item" data-page="verify" onclick="navigateTo('verify')"><span class="nav-icon">🎯</span> 次日回验</div>
   </nav>
 
   <!-- Main Content -->
@@ -1053,6 +1060,12 @@ body {
   <div class="page" id="page-tthelper">
     <iframe src="tt-helper.html" title="做T助手" loading="lazy"></iframe>
   </div>
+<div class="page" id="page-edge">
+  <div id="edgeWrap"><div class="empty-hint">加载中…</div></div>
+</div>
+<div class="page" id="page-verify">
+  <div id="verifyWrap"><div class="empty-hint">加载中…</div></div>
+</div>
   </div><!-- /main-content -->
 </div><!-- /app-layout -->
 
@@ -6093,7 +6106,11 @@ function renderPageCharts(page) {
   } else if (page === 'notes') {
     try { notesCalYM = null; renderNotesCal(); } catch(e) { console.error('notesCal:', e.message); }
     try { if (!notesCurDate) loadNotes(notesTodayStr()); } catch(e) {}
-  }
+  
+  } else if (page === 'edge') {
+    try { EDGE.renderEdge(); } catch(e) { console.error('edge:', e.message); }
+  } else if (page === 'verify') {
+    try { EDGE.renderVerify(); } catch(e) { console.error('verify:', e.message); }}
 }
 
 /* ===== Tab Switch ===== */
@@ -14518,5 +14535,327 @@ window.addEventListener('DOMContentLoaded', init);
 <!-- AUCTION_DATA_START -->
 <script>var EMBEDDED_AUCTION = {"date":"2026-09-15","capturedAt":"2026-09-15 19:24:30","mode":"backfill","source":"收盘后回溯：一字涨停按快照涨停池「首封 09:25:00」推导；板块竞价高开与一字跌停明细收盘后无法回溯（板块高开可参考主线K线包今日开盘/昨收口径）","sectors":[],"topGaps":[],"oneWordZT":[{"code":"002912","name":"中新赛克","fbt":"092500","chgPct":10.02,"turnover":23.27,"lbc":4}],"oneWordDT":[]};</script>
 <!-- AUCTION_DATA_END -->
+  <script src="js/common.js"></script>
+  <script src="js/workbench-bootstrap.js"></script>
+
+
+
+
+
+
+
+
+
+/* === EDGE_MODULES_START === */
+(function(){
+// ===================== EDGE MODULES (P0) =====================
+// 早板榜 / 赚钱效应 / 情绪周期 / 盘中雷达 / 次日回验
+// 数据全部来自 site/data/*.json（真实快照计算，无数据诚实显示"待补"）
+var EDGE = { edgeData: null, radarData: null, verifyData: null, loaded: {} };
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function nz(v){ var n=Number(v); return isFinite(n)?n:0; }
+function pct(v,digits){ if(v===null||v===undefined||v==='') return '—';
+  var n=Number(v); if(!isFinite(n)) return '—';
+  return (n>=0?'+':'')+n.toFixed(digits===undefined?2:digits)+'%'; }
+function amount(v){ if(v===null||v===undefined||v==='') return '—';
+  var n=nz(v); if(n>=100000000) return (n/100000000).toFixed(2)+'亿';
+  if(n>=10000) return (n/10000).toFixed(0)+'万'; return String(Math.round(n)); }
+function loadJSON(url){
+  // 优先走后端 API（会员校验/付费墙可在服务端控制），失败再回退同名静态文件
+  return fetch(url).then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(function(j){ return (j && j.data) ? j.data : j; }).catch(function(e){
+    // /api/panels/edge/{edge|radar|verify} → data/{edge_modules|intraday_radar|verify_history}.json
+    var MAP = { edge:'edge_modules', radar:'intraday_radar', verify:'verify_history' };
+    var m = String(url).match(/edge\/([a-z]+)$/);
+    var key = m && MAP[m[1]];
+    if(!key) throw e;
+    return fetch('data/' + key + '.json').then(function(r2){
+      if(!r2.ok) throw new Error('数据未生成：' + key);
+      return r2.json();
+    });
+  });
+}
+function pendingBox(msg){ return '<div class="edge-pending">'+esc(msg||'数据待补')+'</div>'; }
+
+// ---------------- 情绪周期徽章（挂在总览可用，这里作为独立展示）----------------
+function phaseBadge(p){
+  if(!p) return '';
+  var cls = p.phase==='主升'?'up':(p.phase==='退潮'||p.phase==='冰点'?'down':'mid');
+  return '<span class="edge-phase '+cls+'">'+esc(p.phase)+'</span>';
+}
+
+// =============== 页面1：盘中雷达 + 早板榜 + 赚钱效应 + 情绪周期 ===============
+function renderEdge(){
+  var wrap = document.getElementById('edgeWrap');
+  if(!wrap) return;
+  var tasks = [];
+  if(!EDGE.loaded.edge){
+    tasks.push(loadJSON('/api/panels/edge/edge').then(function(d){ EDGE.edgeData=d; EDGE.loaded.edge=1; })
+      .catch(function(e){ EDGE.edgeData={ error:e.message }; EDGE.loaded.edge=1; }));
+  }
+  if(!EDGE.loaded.radar){
+    tasks.push(loadJSON('/api/panels/edge/radar').then(function(d){ EDGE.radarData=d; EDGE.loaded.radar=1; })
+      .catch(function(e){ EDGE.radarData={ empty:true, reason:'加载失败：'+e.message }; EDGE.loaded.radar=1; }));
+  }
+  if(tasks.length===0){ drawEdge(); return; }
+  wrap.innerHTML = '<div class="empty-hint">加载中…</div>';
+  Promise.all(tasks).then(drawEdge).catch(function(e){
+    wrap.innerHTML = pendingBox('加载失败：'+e.message);
+  });
+}
+
+function drawEdge(){
+  var wrap = document.getElementById('edgeWrap');
+  if(!wrap) return;
+  var d = EDGE.edgeData || {};
+  var radar = EDGE.radarData || {};
+  var h = '';
+
+  // ===== 顶部：情绪周期 + 赚钱效应 三大卡（付费钩子核心）=====
+  var ph = d.emotionPhase || {};
+  var me = d.moneyEffect || {};
+  h += '<div class="edge-kpis">';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">情绪周期</div>'+
+       '<div class="edge-kpi-v">'+phaseBadge(ph)+'</div>'+
+       '<div class="edge-kpi-s">'+esc(ph.advice||'')+'</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">赚钱效应（昨涨停今表现）</div>'+
+       '<div class="edge-kpi-v big '+(me.moneyEffect>=50?'up':'down')+'">'+
+       (me.moneyEffect===null||me.moneyEffect===undefined?'待补':me.moneyEffect+'%')+'</div>'+
+       '<div class="edge-kpi-s">昨涨停 '+esc(me.yesterdayCount||0)+' 只 · 均涨 '+pct(me.avgPct)+
+       ' · 续板 '+(me.keepRate===null||me.keepRate===undefined?'—':me.keepRate+'%')+'</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">一进二 / 二进三</div>'+
+       '<div class="edge-kpi-v">'+(me.j1to2===null||me.j1to2===undefined?'—':me.j1to2+'%')+
+       ' / '+(me.j2to3===null||me.j2to3===undefined?'—':me.j2to3+'%')+'</div>'+
+       '<div class="edge-kpi-s">昨涨停股次日晋级率</div></div>';
+  h += '</div>';
+
+  // ===== 赚钱效应不可用时诚实提示原因 =====
+  if(me && me.complete===false && me.reason){
+    h += '<div class="edge-note warn">'+esc(me.reason)+'</div>';
+  }
+
+  // ===== 情绪周期四阶段规则表（让用户看懂判定依据，不做黑箱）=====
+  if(ph.rules && ph.rules.length){
+    h += '<div class="edge-card"><h4>情绪周期判定依据（客观阈值，非黑箱）</h4><table class="edge-tb">';
+    h += '<tr><th>阶段</th><th>触发条件</th><th>应对</th></tr>';
+    ph.rules.forEach(function(r){
+      var on = r.name===ph.phase;
+      h += '<tr'+(on?' class="on"':'')+'><td>'+esc(r.name)+(on?' ●':'')+'</td><td>'+esc(r.cond)+'</td><td>'+esc(r.act)+'</td></tr>';
+    });
+    h += '</table></div>';
+  }
+
+  // ===== P0-4 早板榜（核心：越早封板资金认可度越高）=====
+  var eb = d.earlyBoard || {};
+  h += '<div class="edge-card"><h4>⚡ 早板榜 · 封板时间排序'+
+       (eb.cutoff?' <span class="edge-cut">'+esc(eb.cutoff)+' 前高亮 = 早盘资金认可度高</span>':'')+'</h4>';
+  if(eb.top && eb.top.length){
+    h += '<div class="edge-buckets">';
+    (eb.buckets||[]).forEach(function(b){
+      h += '<div class="edge-bucket"><div class="edge-bucket-n">'+esc(b.label)+'</div><div class="edge-bucket-v">'+b.count+'</div></div>';
+    });
+    h += '</div>';
+    h += '<table class="edge-tb edge-early"><tr><th>时间</th><th>名称</th><th>连板</th><th>涨幅</th><th>封单</th><th>涨停原因</th></tr>';
+    eb.top.forEach(function(r){
+      h += '<tr'+(r.early?' class="early"':'')+'>'+
+           '<td class="mono">'+esc(r.time)+'</td>'+
+           '<td>'+esc(r.name)+(r.is20cm?' <span class="tag20">20cm</span>':'')+(r.onLHB?' <span class="taglhb">龙虎榜</span>':'')+'</td>'+
+           '<td>'+(r.streak?('<b class="streak">'+r.streak+'板</b>'):'首板')+'</td>'+
+           '<td class="up">'+pct(r.chgPct)+'</td>'+
+           '<td class="mono">'+amount(r.sealAmount)+'</td>'+
+           '<td class="reason">'+esc(r.reason||'')+'</td></tr>';
+    });
+    h += '</table>';
+    h += '<div class="edge-note">共 '+esc(eb.total)+' 只可排序 · '+esc(eb.earlyCount)+' 只于 '+esc(eb.cutoff)+' 前封板</div>';
+  } else {
+    h += pendingBox('早板榜数据待补（需当日快照含封板时间）');
+  }
+  h += '</div>';
+
+  // ===== 赚钱效应样本（昨日涨停股今日表现）=====
+  if(me.samples && me.samples.length){
+    h += '<div class="edge-card"><h4>昨日涨停股 · 今日真实表现</h4><table class="edge-tb">';
+    h += '<tr><th>名称</th><th>昨日板数</th><th>今日涨幅</th><th>状态</th></tr>';
+    me.samples.forEach(function(s){
+      h += '<tr><td>'+esc(s.name)+'</td><td>'+(s.prevStreak||'首板')+'</td>'+
+           '<td class="'+(s.chgPct>=0?'up':'down')+'">'+pct(s.chgPct)+'</td>'+
+           '<td>'+(s.stillLimit?'<span class="taglhb">续封板</span>':'<span class="taggray">回落</span>')+'</td></tr>';
+    });
+    h += '</table></div>';
+  }
+
+  // ===== P0-1 盘中雷达（题材点火时间线）=====
+  h += '<div class="edge-card"><h4>🔥 盘中雷达 · 题材点火时间线'+
+       (radar.date?' <span class="edge-cut">'+esc(radar.date)+'</span>':'')+'</h4>';
+  if(radar.empty){
+    h += pendingBox(radar.reason || '盘中推送暂无记录');
+    h += '<div class="edge-note">'+esc(radar.schedule||'')+'</div>';
+  } else if(radar.active && radar.active.length){
+    if(radar.note) h += '<div class="edge-note">'+esc(radar.note)+'</div>';
+    h += '<div class="edge-buckets">';
+    (radar.buckets||[]).forEach(function(b){
+      h += '<div class="edge-bucket"><div class="edge-bucket-n">'+esc(b.label)+'</div><div class="edge-bucket-v">'+b.count+'</div></div>';
+    });
+    h += '</div>';
+    h += '<table class="edge-tb"><tr><th>点火时间</th><th>题材</th><th>类型</th><th>涨停家数</th><th>推送</th></tr>';
+    radar.active.slice(0,30).forEach(function(t){
+      var tm = String(t.firstSeen||'').slice(11,16) || '—';
+      h += '<tr><td class="mono">'+esc(tm)+'</td><td>'+esc(t.name)+'</td>'+
+           '<td>'+esc(t.type==='industry'?'行业':'概念')+'</td>'+
+           '<td><b class="up">'+t.count+'</b></td>'+
+           '<td>'+(t.pushed?'<span class="taglhb">已推</span>':'<span class="taggray">—</span>')+'</td></tr>';
+    });
+    h += '</table>';
+    if(radar.active.length>30) h += '<div class="edge-note">仅显示最早点火的前 30 个题材，共 '+radar.active.length+' 个</div>';
+  }
+  h += '<div class="edge-note">'+esc(radar.schedule||'')+'</div>';
+  h += '</div>';
+
+  // ===== 情绪周期策略建议 =====
+  if(ph.advice){
+    h += '<div class="edge-card advice"><h4>今日操作建议</h4><div class="edge-advice">'+esc(ph.advice)+'</div></div>';
+  }
+
+  wrap.innerHTML = h;
+}
+
+// =============== 页面2：次日回验（自证胜率，信任护城河）===============
+function renderVerify(){
+  var wrap = document.getElementById('verifyWrap');
+  if(!wrap) return;
+  if(EDGE.loaded.verify){
+    drawVerify(); return;
+  }
+  wrap.innerHTML = '<div class="empty-hint">加载中…</div>';
+  loadJSON('/api/panels/edge/verify').then(function(d){
+    EDGE.verifyData = d; EDGE.loaded.verify = 1; drawVerify();
+  }).catch(function(e){
+    wrap.innerHTML = pendingBox('加载失败：'+e.message);
+    EDGE.loaded.verify = 1;
+  });
+}
+
+function drawVerify(){
+  var wrap = document.getElementById('verifyWrap');
+  if(!wrap) return;
+  var d = EDGE.verifyData || {};
+  var h = '';
+
+  if(d.error){
+    wrap.innerHTML = pendingBox('回验数据待补：'+d.error); return;
+  }
+
+  var ov = d.overall || {};
+  // ===== 顶部 KPI =====
+  h += '<div class="edge-kpis">';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">累计验证样本</div><div class="edge-kpi-v big">'+esc(ov.n||0)+'</div><div class="edge-kpi-s">覆盖 '+esc(d.snapCount||0)+' 个交易日候选池</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日赚钱率</div><div class="edge-kpi-v big '+(ov.winRate>=50?'up':'down')+'">'+(ov.winRate===null||ov.winRate===undefined?'—':ov.winRate+'%')+'</div><div class="edge-kpi-s">次日收盘为正占比</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日平均涨幅</div><div class="edge-kpi-v big '+(ov.avgChg>=0?'up':'down')+'">'+pct(ov.avgChg)+'</div><div class="edge-kpi-s">全样本平均</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日涨停率</div><div class="edge-kpi-v big">'+((ov.limitRate===null||ov.limitRate===undefined)?'—':ov.limitRate+'%')+'</div><div class="edge-kpi-s">次日再度涨停</div></div>';
+  h += '</div>';
+
+  h += '<div class="edge-note">口径：每个交易日收盘生成候选池 → 次日收盘用真实行情结算。'+
+       '数据源腾讯/新浪日K（前复权），未验证样本不计入胜率。'+
+       (d.unverified?('当前未验证 '+d.unverified+' 条。'):'')+'</div>';
+
+  // ===== 分策略胜率 =====
+  if(d.summary && d.summary.length){
+    h += '<div class="edge-card"><h4>分策略次日表现（真实回测）</h4><table class="edge-tb">';
+    h += '<tr><th>策略</th><th>样本</th><th>次日赚钱率</th><th>平均涨幅</th><th>涨停率</th></tr>';
+    d.summary.forEach(function(s){
+      h += '<tr><td>'+esc(s.label||s.key)+'</td><td>'+esc(s.n)+'</td>'+
+           '<td class="'+(s.winRate>=50?'up':'down')+'"><b>'+(s.winRate==null?'—':s.winRate+'%')+'</b></td>'+
+           '<td class="'+(s.avgChg>=0?'up':'down')+'">'+pct(s.avgChg)+'</td>'+
+           '<td>'+(s.limitRate==null?'—':s.limitRate+'%')+'</td></tr>';
+    });
+    h += '</table></div>';
+  }
+
+  // ===== 按日期明细（最近 30 天）=====
+  var recs = (d.records||[]).filter(function(r){ return r.verified; });
+  var byDate = {};
+  recs.forEach(function(r){
+    if(!byDate[r.date]) byDate[r.date] = [];
+    byDate[r.date].push(r);
+  });
+  var dates = Object.keys(byDate).sort().reverse().slice(0,30);
+  if(dates.length){
+    h += '<div class="edge-card"><h4>逐日回验明细（最近 '+dates.length+' 个交易日）</h4><table class="edge-tb">';
+    h += '<tr><th>推荐日</th><th>次日</th><th>样本</th><th>赚钱率</th><th>均涨</th><th>最佳</th><th>最差</th></tr>';
+    dates.forEach(function(dk){
+      var arr = byDate[dk];
+      var win = arr.filter(function(r){return r.win;}).length;
+      var wr = Math.round(win/arr.length*1000)/10;
+      var sum = arr.reduce(function(a,r){return a+r.chgPct;},0)/arr.length;
+      var best = arr.slice().sort(function(a,b){return b.chgPct-a.chgPct;})[0];
+      var worst = arr.slice().sort(function(a,b){return a.chgPct-b.chgPct;})[0];
+      h += '<tr><td class="mono">'+esc(dk)+'</td><td class="mono">'+esc(arr[0].nextDay||'—')+'</td>'+
+           '<td>'+arr.length+'</td>'+
+           '<td class="'+(wr>=50?'up':'down')+'"><b>'+wr+'%</b></td>'+
+           '<td class="'+(sum>=0?'up':'down')+'">'+pct(sum)+'</td>'+
+           '<td class="up">'+esc(best?best.name:'—')+'</td>'+
+           '<td class="down">'+esc(worst?worst.name:'—')+'</td></tr>';
+    });
+    h += '</table></div>';
+  }
+
+  h += '<div class="edge-note">⚠️ 回测基于历史行情，不代表未来收益。本模块如实呈现，含表现不佳的策略组，不做美化。</div>';
+  wrap.innerHTML = h;
+}
+
+window.EDGE = EDGE;
+// 把渲染方法挂到 EDGE 上，供 navigateTo/renderPageCharts 调用与测试访问
+EDGE.renderEdge = renderEdge;
+EDGE.renderVerify = renderVerify;
+EDGE.drawEdge = drawEdge;
+EDGE.drawVerify = drawVerify;
+
+// ===================== 样式 =====================
+var css = document.createElement('style');
+css.textContent =
+'.edge-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0;}'+
+'.edge-kpi{background:#fff;border:1px solid #d8e2ee;border-radius:12px;padding:12px;}'+
+'.edge-kpi-l{font-size:12px;color:#5a6a7e;margin-bottom:6px;}'+
+'.edge-kpi-v{font-size:16px;font-weight:800;color:#1a1a2e;}'+
+'.edge-kpi-v.big{font-size:22px;}'+
+'.edge-kpi-s{font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.4;}'+
+'.edge-card{background:#fff;border:1px solid #d8e2ee;border-radius:12px;padding:14px;margin:12px 0;}'+
+'.edge-card h4{margin:0 0 10px;font-size:14px;font-weight:800;color:#1a1a2e;}'+
+'.edge-cut{font-size:11px;font-weight:400;color:#1a73e8;background:#e8f0fe;padding:1px 7px;border-radius:10px;margin-left:6px;}'+
+'.edge-tb{width:100%;border-collapse:collapse;font-size:12px;}'+
+'.edge-tb th{background:#eef4fb;color:#2c3e50;font-weight:700;text-align:left;padding:7px;border:1px solid #d8e2ee;white-space:nowrap;}'+
+'.edge-tb td{padding:7px;border:1px solid #d8e2ee;vertical-align:top;}'+
+'.edge-tb tr.on{background:#fff8e6;}'+
+'.edge-tb tr.early{background:#f0fff4;}'+
+'.edge-tb tr.early td.mono:first-child{font-weight:800;color:#1aad5e;}'+
+'.edge-tb .up{color:#e34d59;}.edge-tb .down{color:#1aad5e;}'+
+'.edge-tb .mono{font-family:Consolas,Monaco,monospace;white-space:nowrap;}'+
+'.edge-tb .streak{color:#e34d59;}'+
+'.edge-tb .reason{color:#5a6a7e;font-size:11px;max-width:260px;}'+
+'.tag20{background:#fff0f3;color:#e34d59;font-size:10px;padding:1px 5px;border-radius:8px;}'+
+'.taglhb{background:#f3e8ff;color:#7F77DD;font-size:10px;padding:1px 5px;border-radius:8px;}'+
+'.taggray{background:#f1f3f6;color:#94a3b8;font-size:10px;padding:1px 5px;border-radius:8px;}'+
+'.edge-buckets{display:flex;gap:8px;margin:8px 0 12px;flex-wrap:wrap;}'+
+'.edge-bucket{flex:1;min-width:90px;background:#f6f9fd;border:1px solid #e3ecf7;border-radius:8px;padding:8px;text-align:center;}'+
+'.edge-bucket-n{font-size:11px;color:#5a6a7e;}'+
+'.edge-bucket-v{font-size:18px;font-weight:800;color:#1a73e8;margin-top:2px;}'+
+'.edge-note{font-size:11px;color:#94a3b8;margin-top:8px;line-height:1.5;}'+
+'.edge-note.warn{background:#fff8e6;border-left:3px solid #EF9F27;padding:8px 10px;border-radius:0 6px 6px 0;color:#854F0B;}'+
+'.edge-pending{background:#f6f9fd;border:1px dashed #c9d8ea;border-radius:10px;padding:20px;text-align:center;color:#94a3b8;font-size:13px;}'+
+'.edge-phase{display:inline-block;padding:2px 12px;border-radius:20px;font-size:14px;font-weight:800;}'+
+'.edge-phase.up{background:#fdeaea;color:#e34d59;}'+
+'.edge-phase.down{background:#e6f7ed;color:#1aad5e;}'+
+'.edge-phase.mid{background:#fff4e5;color:#f0932b;}'+
+'.edge-card.advice{background:linear-gradient(135deg,#fff8e6,#fff);border-color:#f5d9a8;}'+
+'.edge-advice{font-size:14px;color:#854F0B;font-weight:600;line-height:1.6;}'+
+'@media(max-width:768px){.edge-kpis{grid-template-columns:repeat(2,1fr);}.edge-tb{font-size:11px;}}'+
+'@media(max-width:480px){.edge-kpis{grid-template-columns:1fr;}}';
+document.head.appendChild(css);
+})();
+/* === EDGE_MODULES_END === */
 </body>
 </html>

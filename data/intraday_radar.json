@@ -1,0 +1,4157 @@
+{
+  "empty": false,
+  "date": "2026-09-21",
+  "asOf": "2026-09-21 14:27:00",
+  "round": 6,
+  "baselineComplete": true,
+  "note": "题材归属 = 板块成分股 ∩ 当日涨停池（真实交集，非名称匹配）",
+  "active": [
+    {
+      "boardCode": "BK0590",
+      "name": "西部大开发",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 14,
+      "codes": [
+        "000560",
+        "000995",
+        "001317",
+        "002246",
+        "002907",
+        "600301",
+        "600712",
+        "600714",
+        "600721",
+        "600785",
+        "600992",
+        "601086",
+        "601811",
+        "603230"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0800",
+      "name": "人工智能",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 12,
+      "codes": [
+        "000560",
+        "001389",
+        "002172",
+        "002367",
+        "002614",
+        "002792",
+        "002869",
+        "300691",
+        "600894",
+        "603042",
+        "603068",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0854",
+      "name": "华为概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 12,
+      "codes": [
+        "000560",
+        "000829",
+        "001373",
+        "001389",
+        "002388",
+        "002585",
+        "002614",
+        "002792",
+        "002869",
+        "300691",
+        "603068",
+        "603319"
+      ],
+      "pushed": true,
+      "pushedAt": "2026-09-21 14:25"
+    },
+    {
+      "boardCode": "BK0668",
+      "name": "医疗器械概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 11,
+      "codes": [
+        "000504",
+        "000566",
+        "002022",
+        "002589",
+        "002614",
+        "002900",
+        "300110",
+        "300642",
+        "600587",
+        "688026",
+        "688315"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1657",
+      "name": "病原体防治",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 11,
+      "codes": [
+        "000566",
+        "000756",
+        "002022",
+        "002349",
+        "002900",
+        "002907",
+        "300110",
+        "300642",
+        "600664",
+        "600721",
+        "600812"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0825",
+      "name": "新零售",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 9,
+      "codes": [
+        "000756",
+        "002321",
+        "002614",
+        "600127",
+        "600630",
+        "600712",
+        "600785",
+        "601086",
+        "603001"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0906",
+      "name": "流感",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 9,
+      "codes": [
+        "000566",
+        "000756",
+        "002022",
+        "002349",
+        "300110",
+        "600613",
+        "600664",
+        "600721",
+        "600812"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0653",
+      "name": "养老概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 8,
+      "codes": [
+        "000002",
+        "002172",
+        "002178",
+        "002285",
+        "002349",
+        "002589",
+        "002614",
+        "600664"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0615",
+      "name": "中药概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 8,
+      "codes": [
+        "000566",
+        "002172",
+        "002349",
+        "002589",
+        "002907",
+        "600587",
+        "600613",
+        "600664"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0465",
+      "name": "化学制药",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 8,
+      "codes": [
+        "000566",
+        "000756",
+        "002900",
+        "300110",
+        "600613",
+        "600664",
+        "600812",
+        "920478"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0554",
+      "name": "物联网",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 8,
+      "codes": [
+        "002178",
+        "002367",
+        "002724",
+        "002869",
+        "600894",
+        "603042",
+        "603068",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1106",
+      "name": "创新药",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 7,
+      "codes": [
+        "000566",
+        "000756",
+        "002900",
+        "600503",
+        "600664",
+        "600721",
+        "600812"
+      ],
+      "pushed": true,
+      "pushedAt": "2026-09-21 14:25"
+    },
+    {
+      "boardCode": "BK0494",
+      "name": "节能环保",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 6,
+      "codes": [
+        "000504",
+        "001376",
+        "002172",
+        "002246",
+        "002303",
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1115",
+      "name": "跨境电商",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 6,
+      "codes": [
+        "001216",
+        "001317",
+        "002614",
+        "600630",
+        "600712",
+        "603001"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0665",
+      "name": "电商概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 6,
+      "codes": [
+        "000829",
+        "002303",
+        "600127",
+        "600825",
+        "601811",
+        "603001"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0506",
+      "name": "创投",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 6,
+      "codes": [
+        "000566",
+        "000829",
+        "002367",
+        "600825",
+        "600894",
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0830",
+      "name": "区块链",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 6,
+      "codes": [
+        "000829",
+        "002303",
+        "002589",
+        "002869",
+        "601811",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1650",
+      "name": "通信技术",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 6,
+      "codes": [
+        "001389",
+        "002792",
+        "002860",
+        "002869",
+        "603042",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0834",
+      "name": "乡村振兴",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 6,
+      "codes": [
+        "002321",
+        "600127",
+        "600218",
+        "600712",
+        "603289",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1001",
+      "name": "内贸流通",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 6,
+      "codes": [
+        "000829",
+        "002589",
+        "600712",
+        "600785",
+        "600857",
+        "601086"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0727",
+      "name": "医疗服务",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 5,
+      "codes": [
+        "000504",
+        "002172",
+        "002622",
+        "600721",
+        "688315"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0538",
+      "name": "化学制品",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 5,
+      "codes": [
+        "002246",
+        "002453",
+        "300829",
+        "603020",
+        "605566"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0953",
+      "name": "鸿蒙概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 5,
+      "codes": [
+        "000560",
+        "000829",
+        "002178",
+        "002614",
+        "002869"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0917",
+      "name": "半导体概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 5,
+      "codes": [
+        "002388",
+        "603068",
+        "603316",
+        "603663",
+        "688026"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0714",
+      "name": "5G概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 5,
+      "codes": [
+        "001389",
+        "002792",
+        "002860",
+        "603042",
+        "603175"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0900",
+      "name": "新能源车",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 5,
+      "codes": [
+        "002860",
+        "600218",
+        "600894",
+        "603175",
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:房地产开",
+      "name": "房地产开",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 5,
+      "codes": [
+        "000002",
+        "000402",
+        "600325",
+        "600503",
+        "600606"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0889",
+      "name": "医美概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000504",
+        "000756",
+        "002172",
+        "002900"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0574",
+      "name": "锂电池概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000504",
+        "001216",
+        "002388",
+        "002585"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0812",
+      "name": "贬值受益",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "001216",
+        "600448",
+        "603580",
+        "605196"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0940",
+      "name": "网红经济",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000829",
+        "002614",
+        "600630",
+        "600712"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0891",
+      "name": "国产芯片",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002453",
+        "002963",
+        "603068",
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1183",
+      "name": "谷子经济",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002614",
+        "600593",
+        "601086",
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0680",
+      "name": "智能家居",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000002",
+        "002084",
+        "002614",
+        "300691"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1652",
+      "name": "新消费",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000756",
+        "000829",
+        "002172",
+        "002900"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0852",
+      "name": "冷链物流",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002172",
+        "002589",
+        "600664",
+        "600894"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1025",
+      "name": "预制菜概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002303",
+        "002321",
+        "300829",
+        "600127"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1078",
+      "name": "肝炎概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000566",
+        "300110",
+        "600664",
+        "600721"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0704",
+      "name": "无人机",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002388",
+        "002860",
+        "300691",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0837",
+      "name": "互联网医疗",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000566",
+        "002178",
+        "002589",
+        "600587"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0628",
+      "name": "智慧城市",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002178",
+        "002963",
+        "600894",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0833",
+      "name": "小米概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "001373",
+        "002388",
+        "002585",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0802",
+      "name": "智能驾驶",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002869",
+        "300691",
+        "603068",
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1061",
+      "name": "数字经济",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000560",
+        "002869",
+        "600606",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1648",
+      "name": "电池技术",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002388",
+        "002585",
+        "600218",
+        "603663"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0482",
+      "name": "一般零售",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "600712",
+        "600785",
+        "600857",
+        "601086"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0909",
+      "name": "降解塑料",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002585",
+        "300829",
+        "600281",
+        "603289"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1090",
+      "name": "机器人概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "300691",
+        "600587",
+        "600894",
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0945",
+      "name": "装配建筑",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000002",
+        "002084",
+        "002482",
+        "600606"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0677",
+      "name": "粤港自贸",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002084",
+        "002285",
+        "600325",
+        "600894"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0870",
+      "name": "单抗概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000566",
+        "002022",
+        "002349",
+        "600812"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0490",
+      "name": "军工",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002246",
+        "002724",
+        "600992",
+        "603819"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1041",
+      "name": "医疗器械",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "002022",
+        "300642",
+        "600587",
+        "688026"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1653",
+      "name": "味蕾经济",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000995",
+        "300829",
+        "601579",
+        "603020"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0822",
+      "name": "租售同权",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 4,
+      "codes": [
+        "000002",
+        "000560",
+        "002285",
+        "600325"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0845",
+      "name": "百度概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000607",
+        "000829",
+        "002869"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0440",
+      "name": "家居用品",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000910",
+        "001216",
+        "002084"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:房地产服",
+      "name": "房地产服",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000560",
+        "002285",
+        "600743"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0992",
+      "name": "REITs概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000002",
+        "002285",
+        "600743"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1225",
+      "name": "服装家纺",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "600630",
+        "603001",
+        "603958"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1721",
+      "name": "高成长股",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "600301",
+        "600630",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0695",
+      "name": "小金属概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "600301",
+        "601123",
+        "603663"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1218",
+      "name": "出版",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "600825",
+        "601811",
+        "603230"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0939",
+      "name": "辅助生殖",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000756",
+        "002172",
+        "688026"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0806",
+      "name": "精准医疗",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002022",
+        "002172",
+        "300642"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0877",
+      "name": "PCB",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000910",
+        "001389",
+        "603175"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1646",
+      "name": "消费电子概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002303",
+        "603068",
+        "605566"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1080",
+      "name": "新型城镇化",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002482",
+        "002724",
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0721",
+      "name": "PPP模式",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "600606",
+        "603316",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0966",
+      "name": "碳交易",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000402",
+        "002178",
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0823",
+      "name": "养老金",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002022",
+        "002367",
+        "601811"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1056",
+      "name": "幽门螺杆菌概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000566",
+        "000756",
+        "002907"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0689",
+      "name": "阿里概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000756",
+        "603068",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0875",
+      "name": "ETC",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002860",
+        "002869",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0588",
+      "name": "光伏概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002585",
+        "002860",
+        "605196"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0989",
+      "name": "储能概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002388",
+        "002792",
+        "002860"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1659",
+      "name": "精准诊断",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002022",
+        "002589",
+        "688315"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0634",
+      "name": "大数据",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002178",
+        "600894",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0910",
+      "name": "专用设备",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002367",
+        "600894",
+        "603289"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0841",
+      "name": "体外诊断概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002022",
+        "002589",
+        "300642"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0523",
+      "name": "新材料",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002585",
+        "300829",
+        "603663"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1072",
+      "name": "中俄贸易概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002792",
+        "600218",
+        "605196"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1009",
+      "name": "元宇宙概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "300691",
+        "600606",
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0722",
+      "name": "虚拟现实",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000829",
+        "300691",
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0712",
+      "name": "一带一路",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "001317",
+        "002792",
+        "600894"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0528",
+      "name": "转债标的",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "600325",
+        "603289",
+        "688026"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0675",
+      "name": "病毒防治",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002022",
+        "002900",
+        "300642"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1655",
+      "name": "零售概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "002900",
+        "300110",
+        "600712"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0896",
+      "name": "白酒",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 3,
+      "codes": [
+        "000995",
+        "600606",
+        "601579"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1118",
+      "name": "数据确权",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000607",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0923",
+      "name": "抖音概念(字节概念)",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000607",
+        "000829"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0662",
+      "name": "在线教育",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000607",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1647",
+      "name": "电网概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "001216",
+        "002622"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0664",
+      "name": "婴童概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002172",
+        "600630"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0672",
+      "name": "沪企改革",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600630",
+        "600825"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0643",
+      "name": "上海自贸",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600630",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1027",
+      "name": "小金属",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600281",
+        "600301"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0856",
+      "name": "工业大麻",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002303",
+        "600448"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0866",
+      "name": "人造肉",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002303",
+        "603020"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1129",
+      "name": "数字水印",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002303",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0990",
+      "name": "快递概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "001317",
+        "002303"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0808",
+      "name": "军民融合",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002246",
+        "002303"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1036",
+      "name": "半导体",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "603068",
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1179",
+      "name": "房屋检测",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "603316",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1058",
+      "name": "地下管网",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600218",
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1137",
+      "name": "存储芯片",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "001389",
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0959",
+      "name": "数字阅读",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000829",
+        "601811"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0955",
+      "name": "C2M概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600448",
+        "603001"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0838",
+      "name": "东北振兴",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600593",
+        "600664"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0454",
+      "name": "塑料",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002585",
+        "603580"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0873",
+      "name": "垃圾分类",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002860",
+        "603289"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1136",
+      "name": "光通信模块",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "002860"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0693",
+      "name": "基因测序",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "300642",
+        "688315"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1658",
+      "name": "创新医疗服务",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002178",
+        "600721"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0861",
+      "name": "数字孪生",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002178",
+        "002869"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0581",
+      "name": "智能电网",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002178",
+        "002622"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0922",
+      "name": "数据中心",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002178",
+        "603042"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0915",
+      "name": "WiFi",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0629",
+      "name": "卫星导航",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1178",
+      "name": "AI眼镜",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "300691",
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1134",
+      "name": "算力概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "603068",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0567",
+      "name": "股权激励",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002367",
+        "300691"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0459",
+      "name": "元件",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "001389",
+        "603175"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1151",
+      "name": "短剧互动游戏",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "603258",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1629",
+      "name": "AI应用",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000560",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0696",
+      "name": "国产软件",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002869",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0982",
+      "name": "电子车牌",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002869",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1135",
+      "name": "数据要素",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002869",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0937",
+      "name": "蚂蚁金服概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600606",
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1077",
+      "name": "统一大市场",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "001317",
+        "002589"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1019",
+      "name": "化学原料",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600714",
+        "603663"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1093",
+      "name": "汽车一体化压铸",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "603289",
+        "603663"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0577",
+      "name": "核能核电",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002724",
+        "603663"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0968",
+      "name": "固态电池",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002388",
+        "603663"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:汽车零部",
+      "name": "汽车零部",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600218",
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0859",
+      "name": "超清视频",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002585",
+        "300691"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0498",
+      "name": "AB股",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000020",
+        "600613"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0644",
+      "name": "特斯拉概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "603175",
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1166",
+      "name": "低空经济",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1138",
+      "name": "液冷服务器",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002963",
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:计算机设",
+      "name": "计算机设",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002869",
+        "300691"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0880",
+      "name": "UWB概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "002869"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0860",
+      "name": "边缘计算",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002869",
+        "603042"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1654",
+      "name": "文娱消费",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600593",
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1111",
+      "name": "AIGC概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000560",
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0700",
+      "name": "充电桩",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002388",
+        "600894"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0448",
+      "name": "通信设备",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "603042"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0964",
+      "name": "6G概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "603042"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1088",
+      "name": "F5G概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "603042"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:光学光电",
+      "name": "光学光电",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000020",
+        "001373"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1185",
+      "name": "冰雪经济",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600325",
+        "600593"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0692",
+      "name": "旅游概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600593",
+        "600606"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1040",
+      "name": "中药Ⅱ",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002349",
+        "002907"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1177",
+      "name": "荣耀概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000829",
+        "002388"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1699",
+      "name": "股权分散",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002388",
+        "600503"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0617",
+      "name": "石墨烯",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002724",
+        "600503"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1069",
+      "name": "智慧灯杆",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002724",
+        "002963"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1124",
+      "name": "毫米波概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002792",
+        "300691"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0963",
+      "name": "商业航天",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002246",
+        "002792"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1193",
+      "name": "海南自贸",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000566",
+        "001317"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0895",
+      "name": "维生素",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000566",
+        "600812"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1174",
+      "name": "合成生物",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600587",
+        "600812"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0548",
+      "name": "生物疫苗",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000566",
+        "600812"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0813",
+      "name": "雄安新区",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600606",
+        "600812"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1259",
+      "name": "养殖业",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "001201",
+        "002321"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0882",
+      "name": "猪肉概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "001201",
+        "603151"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0706",
+      "name": "脑机接口",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000566",
+        "600587"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0974",
+      "name": "化妆品概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002900",
+        "300110"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0667",
+      "name": "安防概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "300691",
+        "603819"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0888",
+      "name": "农业种植",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "300829",
+        "603395"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0637",
+      "name": "互联网金融",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002285",
+        "600606"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0477",
+      "name": "酿酒概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "000995",
+        "601579"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:装修装饰",
+      "name": "装修装饰",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "002482",
+        "002963"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0705",
+      "name": "上证380",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 2,
+      "codes": [
+        "600325",
+        "603175"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0698",
+      "name": "免疫治疗",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000504"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1052",
+      "name": "动力电池回收",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000504"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1220",
+      "name": "广告营销",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000607"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1074",
+      "name": "托育服务",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000607"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0965",
+      "name": "社区团购",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000607"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0972",
+      "name": "快手概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000607"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1022",
+      "name": "职业教育",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000607"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0839",
+      "name": "知识产权",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000607"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0918",
+      "name": "特高压",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "001216"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1172",
+      "name": "AI语料",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600825"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1753",
+      "name": "光刻胶",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002453"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:其他家电",
+      "name": "其他家电",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002614"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0996",
+      "name": "毛发医疗",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002172"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1228",
+      "name": "冶钢原料",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "601123"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1265",
+      "name": "包装印刷",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002303"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0733",
+      "name": "包装材料",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002303"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1076",
+      "name": "建筑节能",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0597",
+      "name": "水利建设",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0425",
+      "name": "工程建设",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603316"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0894",
+      "name": "阿兹海默",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000756"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0676",
+      "name": "独家药品",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000756"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1224",
+      "name": "纺织制造",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600448"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1116",
+      "name": "抗菌面料",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600448"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1712",
+      "name": "医药医疗风格",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600664"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:家电零部",
+      "name": "家电零部",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002860"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0905",
+      "name": "传感器",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002860"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0908",
+      "name": "HJT电池",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002860"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1097",
+      "name": "TOPCon电池",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002860"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0428",
+      "name": "电力",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "001376"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1170",
+      "name": "AI制药（医疗）",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "688315"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0710",
+      "name": "量子科技",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "688315"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0737",
+      "name": "软件开发",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002178"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0893",
+      "name": "无线耳机",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0969",
+      "name": "汽车芯片",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603068"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1713",
+      "name": "科技风格",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "001389"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1238",
+      "name": "IT服务Ⅱ",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1047",
+      "name": "数据安全",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0886",
+      "name": "智慧政务",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1075",
+      "name": "电子身份证",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0655",
+      "name": "网络安全",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1104",
+      "name": "信创",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1188",
+      "name": "DeepSeek概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0579",
+      "name": "云计算",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0447",
+      "name": "互联网服务",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603636"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1042",
+      "name": "医药商业",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002589"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1095",
+      "name": "钒电池",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600218"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1100",
+      "name": "减速器",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600218"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1014",
+      "name": "发电机概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600218"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0864",
+      "name": "氢能源",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600218"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1150",
+      "name": "新型工业化",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600218"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0682",
+      "name": "燃料电池概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600218"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0991",
+      "name": "工程机械概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600218"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1651",
+      "name": "显示技术",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002585"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0890",
+      "name": "MLCC",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002585"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1113",
+      "name": "复合集流体",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002585"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1156",
+      "name": "PEEK材料概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1089",
+      "name": "汽车热管理",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1184",
+      "name": "人形机器人",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1157",
+      "name": "飞行汽车(eVTOL)",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1002",
+      "name": "激光雷达",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603319"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0556",
+      "name": "移动支付",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002869"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0920",
+      "name": "车联网(车路云)",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002869"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1125",
+      "name": "电子后视镜",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002869"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1046",
+      "name": "游戏Ⅱ",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0509",
+      "name": "网络游戏",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0853",
+      "name": "电子竞技",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603258"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1102",
+      "name": "空气能热泵",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002084"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0592",
+      "name": "铁路基建",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600894"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0580",
+      "name": "LED概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600894"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1168",
+      "name": "铜缆高速连接",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603042"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1660",
+      "name": "光纤概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603042"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0902",
+      "name": "MiniLED",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "001373"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1004",
+      "name": "工业母机",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603289"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:旅游及景",
+      "name": "旅游及景",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600593"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0485",
+      "name": "旅游酒店",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600593"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:其他电子",
+      "name": "其他电子",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002388"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0690",
+      "name": "氟化工概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002388"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0988",
+      "name": "钠离子电池",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002388"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:照明设备",
+      "name": "照明设备",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002724"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0899",
+      "name": "CRO",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600721"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0708",
+      "name": "体育产业",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "001234"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0545",
+      "name": "通用设备",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600992"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0921",
+      "name": "卫星互联网",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002792"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0519",
+      "name": "稀缺资源",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600714"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1175",
+      "name": "玻璃基板",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600714"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0421",
+      "name": "铁路公路",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "001317"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0944",
+      "name": "肝素概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600812"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:专业连锁",
+      "name": "专业连锁",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000829"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0957",
+      "name": "拼多多概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000829"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0671",
+      "name": "彩票概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000829"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0984",
+      "name": "华为汽车",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000829"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0666",
+      "name": "苹果概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000829"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0632",
+      "name": "土地流转",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002321"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0669",
+      "name": "生态农业",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002321"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0887",
+      "name": "鸡肉概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002321"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0614",
+      "name": "食品安全",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002321"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:农产品加",
+      "name": "农产品加",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600127"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1086",
+      "name": "粮食概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600127"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0892",
+      "name": "乳业",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600127"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1258",
+      "name": "饲料",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603151"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0914",
+      "name": "医废处理",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600587"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0994",
+      "name": "空间站概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002246"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0983",
+      "name": "核污染防治",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002246"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0933",
+      "name": "退税商店",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600712"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0993",
+      "name": "宠物经济",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002900"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1146",
+      "name": "减肥药",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002907"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0986",
+      "name": "CAR-T细胞疗法",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000566"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1030",
+      "name": "电机Ⅱ",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603819"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0595",
+      "name": "风能",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603819"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1026",
+      "name": "调味品概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603020"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0731",
+      "name": "农化制品",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603395"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1028",
+      "name": "燃气Ⅱ",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002259"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1649",
+      "name": "油气资源",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002259"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0843",
+      "name": "天然气",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002259"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0493",
+      "name": "新能源",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002259"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0883",
+      "name": "数字货币",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600606"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1279",
+      "name": "非白酒",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "601579"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1277",
+      "name": "白酒Ⅱ",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000995"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0985",
+      "name": "换电概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002963"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0547",
+      "name": "黄金概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "600857"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1197",
+      "name": "反内卷概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "001201"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0457",
+      "name": "电网设备",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "605196"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0832",
+      "name": "工业互联网",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "605196"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0980",
+      "name": "化债(AMC)概念",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002285"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0807",
+      "name": "共享经济",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "002285"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0610",
+      "name": "央视50_",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000002"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0811",
+      "name": "超级品牌",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000002"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1714",
+      "name": "金融地产风格",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000002"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0500",
+      "name": "HS300_",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "000002"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK1698",
+      "name": "股权集中",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "603175"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0947",
+      "name": "屏下摄像",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "300691"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "BK0998",
+      "name": "机器视觉",
+      "type": "concept",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "300691"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:工程咨询",
+      "name": "工程咨询",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:24",
+      "count": 1,
+      "codes": [
+        "920427"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    },
+    {
+      "boardCode": "HY:��装家纺",
+      "name": "��装家纺",
+      "type": "industry",
+      "firstSeen": "2026-09-21 14:27",
+      "count": 1,
+      "codes": [
+        "001234"
+      ],
+      "pushed": false,
+      "pushedAt": null
+    }
+  ],
+  "buckets": [
+    {
+      "label": "09:30-09:45",
+      "from": 930,
+      "to": 945,
+      "count": 0
+    },
+    {
+      "label": "09:46-10:30",
+      "from": 946,
+      "to": 1030,
+      "count": 0
+    },
+    {
+      "label": "10:31-11:30",
+      "from": 1031,
+      "to": 1130,
+      "count": 0
+    },
+    {
+      "label": "13:00-14:00",
+      "from": 1300,
+      "to": 1400,
+      "count": 0
+    },
+    {
+      "label": "14:01-15:05",
+      "from": 1401,
+      "to": 1505,
+      "count": 308
+    }
+  ],
+  "stats": {
+    "themeCount": 308,
+    "pushedCount": 2,
+    "maxLimitUp": 14
+  },
+  "hasRegistry": true,
+  "hasBoards": true,
+  "schedule": "盘中推送时段：09:30-11:35、13:00-15:05（每 5 分钟扫描）；早盘题材持续性最强",
+  "generatedAt": "2026-10-04T07:01:12.741Z"
+}
