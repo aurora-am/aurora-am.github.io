@@ -250,8 +250,10 @@
       (eb.active ? '<div class="mm-eb">🎁 早鸟价 · 距结束还有 ' + eb.daysLeft + ' 天（' + eb.deadline + '）</div>' : '') +
       '<div class="dur-grid">' + cards + '</div>' +
       '<div class="miao-sum">应付：<b id="miaoSum">¥' + p.tiers.month.amount + '</b></div>' +
-      '<button class="miao-btn pay" id="miaoPayBtn">立即开通</button>' +
-      '<div class="miao-tip">下单后由支付平台确认收款并自动开通会员；未支付不会开通。</div>'
+      '<a class="miao-btn pay" id="miaoPayWx" style="display:block;text-align:center;text-decoration:none;margin-top:14px" href="javascript:void(0)">微信支付</a>' +
+      '<a class="miao-btn pay ali" id="miaoPayAli" style="display:block;text-align:center;text-decoration:none;margin-top:8px" href="javascript:void(0)">支付宝支付</a>' +
+      '<div class="miao-foot"><a id="miaoGoManual" href="javascript:void(0)">收不到二维码？用备用付款方式</a></div>' +
+      '<div class="miao-tip">通过官方备案通道扫码收款，付款成功后自动开通；未支付不会开通。</div>'
     );
 
     var sel = 'month';
@@ -263,47 +265,54 @@
         $('miaoSum').textContent = '¥' + p.tiers[sel].amount;
       });
     });
-    $('miaoPayBtn').addEventListener('click', function () { doPay(sel); });
+    $('miaoPayWx').addEventListener('click', function () { doPay(sel, 'wxpay', this); });
+    $('miaoPayAli').addEventListener('click', function () { doPay(sel, 'alipay', this); });
+    $('miaoGoManual').addEventListener('click', function () { doPay(sel, 'manual', this); });
   }
 
-  async function doPay(dur) {
-    var btn = $('miaoPayBtn');
-    btn.disabled = true; btn.textContent = '提交中…';
+  async function doPay(dur, type, btn) {
+    var old = btn.textContent;
+    btn.classList.add('busy');
+    btn.textContent = '提交中…';
 
     // 1) 先落一张待支付订单（金额/天数全部由后端定价决定）
     var r = await sb.rpc('create_order', { p_duration: dur });
     if (r.error) {
-      btn.disabled = false; btn.textContent = '立即开通';
+      btn.classList.remove('busy'); btn.textContent = old;
       toast(mapErr(r.error.message), 'warn');
       return;
     }
 
-    // 2) 向 Edge Function 索取易支付收银台地址（EPAY_KEY 只在服务端）
     var tip = '';
-    try {
-      var fr = await fetch(SUPABASE_URL + '/functions/v1/epay-create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: SUPABASE_ANON,
-          Authorization: 'Bearer ' + (state.session && state.session.access_token)
-        },
-        body: JSON.stringify({ duration: dur })
-      });
-      var fj = await fr.json().catch(function () { return {}; });
-      if (fr.ok && fj.url) {
-        toast('正在跳转支付…', 'ok');
-        setTimeout(function () { location.href = fj.url; }, 600);
-        return;
+    // 2) 向 Edge Function 索取收银台地址（EPAY_KEY 只在服务端）
+    if (type !== 'manual') {
+      try {
+        var fr = await fetch(SUPABASE_URL + '/functions/v1/epay-create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_ANON,
+            Authorization: 'Bearer ' + (state.session && state.session.access_token)
+          },
+          body: JSON.stringify({ duration: dur, type: type })
+        });
+        var fj = await fr.json().catch(function () { return {}; });
+        if (fr.ok && fj.url) {
+          toast('正在跳转' + (type === 'alipay' ? '支付宝' : '微信') + '付款…', 'ok');
+          setTimeout(function () { location.href = fj.url; }, 600);
+          return;
+        }
+        tip = fj.error === 'EPAY_NOT_CONFIGURED'
+          ? '在线收款通道正在配置中，你的订单已保存。'
+          : (fj.message || '创建支付失败，请稍后重试。');
+      } catch (e) {
+        tip = '网络异常，订单已保存，可稍后重试。';
       }
-      tip = fj.error === 'EPAY_NOT_CONFIGURED'
-        ? '支付通道正在配置中，你的订单已保存，配置完成后可直接付款。'
-        : (fj.message || '创建支付失败，请稍后重试。');
-    } catch (e) {
-      tip = '网络异常，订单已保存，可稍后重试付款。';
+    } else {
+      tip = '请使用备用方式付款（下单后把订单号发给客服核对入账）。';
     }
 
-    btn.disabled = false; btn.textContent = '立即开通';
+    btn.classList.remove('busy'); btn.textContent = old;
     state.lastOrder = r.data;
     closeModal();
     openPending(r.data, tip);

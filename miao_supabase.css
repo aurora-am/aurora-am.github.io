@@ -17,6 +17,8 @@
 .miao-btn.primary:hover{background:#1557b0;}
 .miao-btn.pay{background:linear-gradient(135deg,#07c160,#05a350);color:#fff;}
 .miao-btn.pay:hover{opacity:.92;}
+.miao-btn.pay.ali{background:linear-gradient(135deg,#3a7afe,#1664dc);}
+.miao-btn.pay.ghost{background:#eef2f7;color:#5a6a7e;}
 .miao-btn:disabled{opacity:.6;cursor:not-allowed;}
 .miao-foot{margin-top:12px;text-align:center;font-size:13px;}
 .miao-foot a{color:#1a73e8;text-decoration:none;}
