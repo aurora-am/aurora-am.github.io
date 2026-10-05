@@ -315,17 +315,24 @@
     btn.classList.remove('busy'); btn.textContent = old;
     state.lastOrder = r.data;
     closeModal();
+    if (/尚未开通|未开启/.test(tip)) { toast(tip, 'warn'); setTimeout(function () { location.href = manualUrl(r.data); }, 900); return; }
     openPending(r.data, tip);
     await refreshState();
+  }
+
+  // 备用付款页（静态收款码 + 订单号人工核对）
+  function manualUrl(ord) {
+    if (!ord) return 'pay.html';
+    return 'pay.html?order=' + encodeURIComponent(ord.order_no) +
+      '&amount=' + encodeURIComponent(ord.amount) +
+      '&duration=' + encodeURIComponent(ord.duration) +
+      '&days=' + encodeURIComponent(ord.days);
   }
 
   // 订单待支付提示
   function openPending(ord, tip) {
     if (!ord) return;
-    var payUrl = 'pay.html?order=' + encodeURIComponent(ord.order_no) +
-      '&amount=' + encodeURIComponent(ord.amount) +
-      '&duration=' + encodeURIComponent(ord.duration) +
-      '&days=' + encodeURIComponent(ord.days);
+    var payUrl = manualUrl(ord);
     openModal(
       '<h3 class="miao-title">订单已创建</h3>' +
       '<div class="miao-sum" style="text-align:left">订单号：<b style="font-size:14px">' + esc(ord.order_no) + '</b></div>' +
