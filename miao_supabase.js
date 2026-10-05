@@ -250,8 +250,8 @@
       (eb.active ? '<div class="mm-eb">🎁 早鸟价 · 距结束还有 ' + eb.daysLeft + ' 天（' + eb.deadline + '）</div>' : '') +
       '<div class="dur-grid">' + cards + '</div>' +
       '<div class="miao-sum">应付：<b id="miaoSum">¥' + p.tiers.month.amount + '</b></div>' +
-      '<button class="miao-btn pay" id="miaoPayBtn">立即开通（测试模式）</button>' +
-      '<div class="miao-tip">当前为测试支付通道：不下单真实收款，直接写入订单并开通会员。</div>'
+      '<button class="miao-btn pay" id="miaoPayBtn">立即开通</button>' +
+      '<div class="miao-tip">下单后由支付平台确认收款并自动开通会员；未支付不会开通。</div>'
     );
 
     var sel = 'month';
@@ -268,13 +268,36 @@
 
   async function doPay(dur) {
     var btn = $('miaoPayBtn');
-    btn.disabled = true; btn.textContent = '处理中…';
+    btn.disabled = true; btn.textContent = '提交中…';
     var r = await sb.rpc('create_order', { p_duration: dur });
     btn.disabled = false; btn.textContent = '立即开通（测试模式）';
     if (r.error) { toast(mapErr(r.error.message), 'warn'); return; }
-    toast('开通成功！有效期至 ' + fmtDate(r.data.expire_at), 'ok');
+    // 安全修复 R-2 后：下单只创建 pending 订单，必须由支付回调（service_role）才开通
+    state.lastOrder = r.data;
     closeModal();
+    openPending(r.data);
     await refreshState();
+  }
+
+  // 订单待支付提示
+  function openPending(ord) {
+    if (!ord) return;
+    openModal(
+      '<h3 class="miao-title">订单已创建</h3>' +
+      '<div class="miao-sum" style="text-align:left">订单号：<b style="font-size:14px">' + esc(ord.order_no) + '</b></div>' +
+      '<div class="miao-sum" style="text-align:left">应付金额：<b>¥' + ord.amount + '</b>（' + esc(ord.duration) + '，' + ord.days + ' 天）</div>' +
+      '<div class="miao-sum" style="text-align:left">当前状态：<b style="color:#e8891a">等待支付</b></div>' +
+      '<div class="miao-tip">为保证交易安全，会员<b>仅在支付成功后</b>由支付回调自动开通；重复支付不会叠加时长。' +
+      '支付通道正在接入中，接入后本单可直接完成付款。</div>' +
+      '<button class="miao-btn primary" id="miaoRefreshOrder">刷新开通状态</button>' +
+      '<button class="miao-btn" id="miaoCloseOrder" style="background:#eef2f7;color:#5a6a7e;margin-top:8px">知道了</button>'
+    );
+    $('miaoCloseOrder').addEventListener('click', closeModal);
+    $('miaoRefreshOrder').addEventListener('click', async function () {
+      await refreshState();
+      if (state.isPro) { toast('会员已开通', 'ok'); closeModal(); }
+      else toast('仍在等待支付', 'warn');
+    });
   }
 
   // ---------------- 付费墙（渐隐遮罩：只展示前 2/3） ----------------
