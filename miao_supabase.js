@@ -269,26 +269,56 @@
   async function doPay(dur) {
     var btn = $('miaoPayBtn');
     btn.disabled = true; btn.textContent = '提交中…';
+
+    // 1) 先落一张待支付订单（金额/天数全部由后端定价决定）
     var r = await sb.rpc('create_order', { p_duration: dur });
+    if (r.error) {
+      btn.disabled = false; btn.textContent = '立即开通';
+      toast(mapErr(r.error.message), 'warn');
+      return;
+    }
+
+    // 2) 向 Edge Function 索取易支付收银台地址（EPAY_KEY 只在服务端）
+    var tip = '';
+    try {
+      var fr = await fetch(SUPABASE_URL + '/functions/v1/epay-create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON,
+          Authorization: 'Bearer ' + (state.session && state.session.access_token)
+        },
+        body: JSON.stringify({ duration: dur })
+      });
+      var fj = await fr.json().catch(function () { return {}; });
+      if (fr.ok && fj.url) {
+        toast('正在跳转支付…', 'ok');
+        setTimeout(function () { location.href = fj.url; }, 600);
+        return;
+      }
+      tip = fj.error === 'EPAY_NOT_CONFIGURED'
+        ? '支付通道正在配置中，你的订单已保存，配置完成后可直接付款。'
+        : (fj.message || '创建支付失败，请稍后重试。');
+    } catch (e) {
+      tip = '网络异常，订单已保存，可稍后重试付款。';
+    }
+
     btn.disabled = false; btn.textContent = '立即开通';
-    if (r.error) { toast(mapErr(r.error.message), 'warn'); return; }
-    // 安全修复 R-2 后：下单只创建 pending 订单，必须由支付回调（service_role）才开通
     state.lastOrder = r.data;
     closeModal();
-    openPending(r.data);
+    openPending(r.data, tip);
     await refreshState();
   }
 
   // 订单待支付提示
-  function openPending(ord) {
+  function openPending(ord, tip) {
     if (!ord) return;
     openModal(
       '<h3 class="miao-title">订单已创建</h3>' +
       '<div class="miao-sum" style="text-align:left">订单号：<b style="font-size:14px">' + esc(ord.order_no) + '</b></div>' +
       '<div class="miao-sum" style="text-align:left">应付金额：<b>¥' + ord.amount + '</b>（' + esc(ord.duration) + '，' + ord.days + ' 天）</div>' +
       '<div class="miao-sum" style="text-align:left">当前状态：<b style="color:#e8891a">等待支付</b></div>' +
-      '<div class="miao-tip">为保证交易安全，会员<b>仅在支付成功后</b>由支付回调自动开通；重复支付不会叠加时长。' +
-      '支付通道正在接入中，接入后本单可直接完成付款。</div>' +
+      '<div class="miao-tip">' + esc(tip || '会员仅在支付成功后由支付回调自动开通；重复支付不会叠加时长。') + '</div>' +
       '<button class="miao-btn primary" id="miaoRefreshOrder">刷新开通状态</button>' +
       '<button class="miao-btn" id="miaoCloseOrder" style="background:#eef2f7;color:#5a6a7e;margin-top:8px">知道了</button>'
     );
@@ -386,6 +416,15 @@
     wrapNavigate();
     if (sb) sb.auth.onAuthStateChange(function () { refreshState(); });
     refreshState();
+
+    // 支付完成回跳（?paid=1）→ 自动刷新会员态并提示
+    if (/[?&]paid=1/.test(location.search || '')) {
+      setTimeout(function () {
+        refreshState().then(function () {
+          toast(state.isPro ? '支付成功，会员已开通' : '支付已提交，稍候自动开通', state.isPro ? 'ok' : 'warn');
+        });
+      }, 800);
+    }
   }
 
   window.MiaoSB = {
