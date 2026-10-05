@@ -345,9 +345,8 @@
       '<div class="miao-wall-grad"></div>' +
       '<div class="miao-wall-ribbon"><span>会员专属 · 限时优惠</span></div>' +
       '<div class="miao-wall-title">解锁 <em>' + (PAGE_CN[page] || '会员内容') + '</em> 完整数据</div>' +
-      '<div class="miao-wall-desc">开通会员后即可查看本页剩余全部内容，含每日更新</div>' +
+      '<div class="miao-wall-desc">开通会员后可查看本页剩余全部内容，含每日更新</div>' +
       '<div class="miao-wall-btns">' +
-        '<button class="miao-wall-btn ghost" data-act="sub">订阅专栏 · 解锁全文</button>' +
         '<button class="miao-wall-btn gold" data-act="vip">超级会员 · 免费看</button>' +
       '</div>' +
       '<div class="miao-wall-foot">支持 一日体验 / 月卡 / 季卡 / 年卡，随时取消</div>';
@@ -360,6 +359,19 @@
     return w;
   }
 
+  // 移动端侧栏会变成底部 fixed 导航，CTA 需要上移避让
+  function syncBottomInset() {
+    var inset = 0;
+    try {
+      var nav = document.querySelector('.sidebar');
+      if (nav && window.getComputedStyle(nav).position === 'fixed') {
+        var r = nav.getBoundingClientRect();
+        if (r && r.height) inset = Math.round(r.height);
+      }
+    } catch (e) { /* jsdom 等无布局环境忽略 */ }
+    document.documentElement.style.setProperty('--miao-wall-bottom', inset + 'px');
+  }
+
   function setWall(page, gated) {
     var host = wallHost(page);
     if (!host) return;
@@ -370,6 +382,7 @@
     if (gated) {
       host.classList.add('miao-gated');
       if (!exist) host.appendChild(buildWall(page));
+      syncBottomInset();
     } else {
       host.classList.remove('miao-gated');
       if (exist && exist.parentNode) exist.parentNode.removeChild(exist);
@@ -416,6 +429,7 @@
     wrapNavigate();
     if (sb) sb.auth.onAuthStateChange(function () { refreshState(); });
     refreshState();
+    window.addEventListener('resize', syncBottomInset);
 
     // 支付完成回跳（?paid=1）→ 自动刷新会员态并提示
     if (/[?&]paid=1/.test(location.search || '')) {
