@@ -270,7 +270,7 @@
     var btn = $('miaoPayBtn');
     btn.disabled = true; btn.textContent = '提交中…';
     var r = await sb.rpc('create_order', { p_duration: dur });
-    btn.disabled = false; btn.textContent = '立即开通（测试模式）';
+    btn.disabled = false; btn.textContent = '立即开通';
     if (r.error) { toast(mapErr(r.error.message), 'warn'); return; }
     // 安全修复 R-2 后：下单只创建 pending 订单，必须由支付回调（service_role）才开通
     state.lastOrder = r.data;
