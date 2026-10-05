@@ -313,20 +313,25 @@
   // 订单待支付提示
   function openPending(ord, tip) {
     if (!ord) return;
+    var payUrl = 'pay.html?order=' + encodeURIComponent(ord.order_no) +
+      '&amount=' + encodeURIComponent(ord.amount) +
+      '&duration=' + encodeURIComponent(ord.duration) +
+      '&days=' + encodeURIComponent(ord.days);
     openModal(
       '<h3 class="miao-title">订单已创建</h3>' +
       '<div class="miao-sum" style="text-align:left">订单号：<b style="font-size:14px">' + esc(ord.order_no) + '</b></div>' +
       '<div class="miao-sum" style="text-align:left">应付金额：<b>¥' + ord.amount + '</b>（' + esc(ord.duration) + '，' + ord.days + ' 天）</div>' +
       '<div class="miao-sum" style="text-align:left">当前状态：<b style="color:#e8891a">等待支付</b></div>' +
-      '<div class="miao-tip">' + esc(tip || '会员仅在支付成功后由支付回调自动开通；重复支付不会叠加时长。') + '</div>' +
-      '<button class="miao-btn primary" id="miaoRefreshOrder">刷新开通状态</button>' +
+      '<div class="miao-tip">' + esc(tip || '会员仅在确认到账后开通；重复付款不会叠加时长。') + '</div>' +
+      '<a class="miao-btn pay" id="miaoGoPay" style="display:block;text-align:center;text-decoration:none" href="' + payUrl + '">前往付款（微信 / 支付宝）</a>' +
+      '<button class="miao-btn primary" id="miaoRefreshOrder" style="margin-top:8px">我已付款，刷新开通状态</button>' +
       '<button class="miao-btn" id="miaoCloseOrder" style="background:#eef2f7;color:#5a6a7e;margin-top:8px">知道了</button>'
     );
     $('miaoCloseOrder').addEventListener('click', closeModal);
     $('miaoRefreshOrder').addEventListener('click', async function () {
       await refreshState();
       if (state.isPro) { toast('会员已开通', 'ok'); closeModal(); }
-      else toast('仍在等待支付', 'warn');
+      else toast('仍在等待核对到账', 'warn');
     });
   }
 

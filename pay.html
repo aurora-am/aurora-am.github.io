@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>喵喵盘研社 · 付款</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--bd:#e3e6ec;--tx:#1f2329;--tx2:#5a6472;--pri:#1a73e8;--ok:#0a9d5a;--code:#f2f4f7;--gold:#f7c46b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding:18px 14px 40px}
+.wrap{max-width:520px;margin:0 auto}
+h1{font-size:19px;margin:0 0 2px;display:flex;align-items:center;gap:8px}
+.badge{font-size:11px;background:linear-gradient(135deg,#ffe3ae,#f7c46b);color:#6a4a06;padding:2px 8px;border-radius:9px;font-weight:700}
+.sub{color:var(--tx2);font-size:13px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin:12px 0}
+.sum{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px dashed var(--bd);font-size:14px}
+.sum:last-of-type{border-bottom:none}
+.sum b{font-size:19px;color:#e34d59}
+.mono{font-family:ui-monospace,Consolas,monospace;letter-spacing:.5px}
+.copy{margin-left:8px;border:none;background:var(--code);color:var(--tx2);border-radius:6px;padding:3px 9px;font-size:12px;cursor:pointer;font-family:inherit}
+.copy:hover{background:#e7ecf3}
+.qr{text-align:center;padding:14px 0 6px}
+.qr img{width:190px;height:190px;border:1px solid var(--bd);border-radius:10px;background:#fff}
+.qr .ph{width:190px;height:190px;border:1px dashed #c8d0da;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#9aa4b2;font-size:12.5px;text-align:center;padding:0 12px;background:#fafbfc}
+.qr .name{font-size:14px;font-weight:700;margin-top:9px}
+.hint{background:var(--code);border-radius:9px;padding:11px 13px;font-size:13px;color:var(--tx2);line-height:1.75;margin-top:12px}
+.hint b{color:var(--tx)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:10px 0 0}
+.steps li{counter-increment:s;position:relative;padding-left:26px;margin:7px 0;font-size:13.5px}
+.steps li:before{content:counter(s);position:absolute;left:0;top:2px;width:18px;height:18px;border-radius:50%;background:var(--pri);color:#fff;font-size:11px;line-height:18px;text-align:center;font-weight:700}
+.btn{display:block;width:100%;margin-top:14px;padding:12px;border:none;border-radius:9px;background:var(--pri);color:#fff;font-size:15px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;font-family:inherit}
+.btn.ghost{background:#eef2f7;color:var(--tx2);margin-top:8px}
+.foot{color:#9aa4b2;font-size:12px;text-align:center;margin-top:18px}
+a{color:var(--pri)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>喵喵盘研社 · 会员付款 <span class="badge">会员</span></h1>
+  <div class="sub">扫码付款后把订单号发给客服，核对入账后立即开通</div>
+
+  <div class="card" id="infoCard">
+    <div class="sum"><span>套餐</span><b id="pDur">—</b></div>
+    <div class="sum"><span>应付金额</span><b id="pAmt">—</b></div>
+    <div class="sum"><span>开通时长</span><b id="pDays" style="font-size:15px">—</b></div>
+    <div class="sum"><span>订单号</span><span class="mono" id="pOrd">—</span><button class="copy" id="cp">复制</button></div>
+  </div>
+
+  <div class="card">
+    <div class="qr" id="qrBox"></div>
+    <div class="hint">
+      <b>开通流程（3 步）</b>
+      <ol class="steps">
+        <li>用微信或支付宝扫描上方二维码付款</li>
+        <li>复制你的<b>订单号</b>发给客服（微信/QQ 同号）</li>
+        <li>客服核对入账后为你开通会员，<b>按天精确计算</b>，可随时续费叠加</li>
+      </ol>
+    </div>
+    <a class="btn ghost" id="backBtn" href="/">返回工作台</a>
+  </div>
+
+  <div class="foot">喵喵盘研社 · 会员与数据服务 · 付款后请保留订单号以便核对</div>
+</div>
+
+<script>
+var QR = {
+  wechat: 'img/qr-wechat.png',    // 管理员把微信收款码图片放这里
+  alipay: 'img/qr-alipay.png'     // 管理员把支付宝收款码图片放这里
+};
+var DUR_CN = { day: '一日体验', month: '月卡', quarter: '季卡', year: '年卡' };
+
+var q = new URLSearchParams(location.search);
+var ord = q.get('order') || '';
+var amt = q.get('amount') || '';
+var dur = q.get('duration') || '';
+var days = q.get('days') || '';
+
+document.getElementById('pDur').textContent = DUR_CN[dur] || (dur || '—');
+document.getElementById('pAmt').textContent = amt ? ('¥' + amt) : '—';
+document.getElementById('pDays').textContent = days ? (days + ' 天') : '—';
+document.getElementById('pOrd').textContent = ord || '（未生成订单号）';
+
+document.getElementById('cp').addEventListener('click', function () {
+  if (!ord) return alert('没有订单号可复制');
+  navigator.clipboard.writeText(ord).then(function () { alert('订单号已复制：' + ord); });
+});
+
+/* 渲染二维码：图片不存在时显示占位提示（管理员还没放收款码） */
+var box = document.getElementById('qrBox');
+function item(key, label) {
+  return '<div style="margin:0 8px;display:inline-block;vertical-align:top">' +
+    '<img src="' + QR[key] + '" alt="' + label + '" onerror="this.outerHTML=\'<div class=\\\'ph\\\'>管理员尚未上传<br>' + label + '收款码</div>\'">' +
+    '<div class="name">' + label + '</div></div>';
+}
+box.innerHTML = item('wechat', '微信') + item('alipay', '支付宝');
+</script>
+</body>
+</html>
