@@ -1,0 +1,51 @@
+name: Supabase 保活 + Pages 健康检查
+
+# R-5：Supabase 免费版项目连续 7 天无访问会被自动暂停（网站直接不可用）。
+# 本工作流每天访问一次站点与数据库，等于"有人访问"，可避免被暂停。
+# 顺带检查 GitHub Pages 自定义域名是否正常返回 200。
+
+on:
+  schedule:
+    # GitHub Actions cron 用 UTC：北京时间每天 08:10 => UTC 00:10
+    - cron: '10 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    name: 探活
+    runs-on: ubuntu-latest
+    steps:
+      - name: 访问站点（触发 Supabase 项目活跃）
+        run: |
+          set -e
+          for u in "https://mimihub.cloud/" "https://mimihub.cloud/mimihub.html"; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -L --max-time 30 "$u" || echo 000)
+            echo "$u -> $code"
+          done
+
+      - name: 探活 Supabase REST（带 anon key 读定价 RPC）
+        env:
+          SB_URL: ${{ vars.SB_URL }}
+          SB_ANON: ${{ vars.SB_ANON }}
+        run: |
+          # 未配置仓库变量时自动跳过，不报错
+          if [ -z "$SB_URL" ] || [ -z "$SB_ANON" ]; then
+            echo "未配置 secrets/vars SB_URL、SB_ANON —— 跳过数据库探活（如需可在仓库 Settings → Secrets 里添加）"
+            exit 0
+          fi
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+            -H "apikey: $SB_ANON" -H "Authorization: Bearer $SB_ANON" \
+            "$SB_URL/rest/v1/settings?select=key&limit=1" || echo 000)
+          echo "settings 探活 -> $code"
+
+      - name: 证书与跳转检查
+        run: |
+          echo "根域证书："
+          echo | openssl s_client -connect mimihub.cloud:443 -servername mimihub.cloud 2>/dev/null \
+            | openssl x509 -noout -subject -issuer 2>/dev/null || true
+          echo "www 证书（可能仍在签发中）："
+          echo | openssl s_client -connect www.mimihub.cloud:443 -servername www.mimihub.cloud 2>/dev/null \
+            | openssl x509 -noout -subject 2>/dev/null || echo "  www 尚未签发"

@@ -277,20 +277,61 @@
     await refreshState();
   }
 
-  // ---------------- 付费墙 ----------------
-  function applyGate(page, silent) {
-    state.currentPage = page;
-    var needLogin = PAID_PAGES.indexOf(page) >= 0;
-    if (!needLogin) return true;
+  // ---------------- 付费墙（渐隐遮罩：只展示前 2/3） ----------------
+  var PAGE_CN = {
+    theme: '实时题材', mainline: '主线板块', echelon: '战法阁 · 连板梯队',
+    stockpool: '股票池', overnight: '隔夜判断', edge: '盘中雷达', verify: '次日回验'
+  };
 
-    if (!state.user) {
-      if (!silent) { toast('该模块需登录后查看', 'warn'); openAuth('login'); }
-      return false;
+  function wallHost(page) { return $('page-' + page); }
+
+  function buildWall(page) {
+    var w = document.createElement('div');
+    w.className = 'miao-wall';
+    w.innerHTML =
+      '<div class="miao-wall-grad"></div>' +
+      '<div class="miao-wall-ribbon"><span>会员专属 · 限时优惠</span></div>' +
+      '<div class="miao-wall-title">解锁 <em>' + (PAGE_CN[page] || '会员内容') + '</em> 完整数据</div>' +
+      '<div class="miao-wall-desc">开通会员后即可查看本页剩余全部内容，含每日更新</div>' +
+      '<div class="miao-wall-btns">' +
+        '<button class="miao-wall-btn ghost" data-act="sub">订阅专栏 · 解锁全文</button>' +
+        '<button class="miao-wall-btn gold" data-act="vip">超级会员 · 免费看</button>' +
+      '</div>' +
+      '<div class="miao-wall-foot">支持 一日体验 / 月卡 / 季卡 / 年卡，随时取消</div>';
+    w.querySelectorAll('.miao-wall-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (!state.user) { toast('请先登录，再开通会员', 'warn'); openAuth('login'); return; }
+        openPurchase();
+      });
+    });
+    return w;
+  }
+
+  function setWall(page, gated) {
+    var host = wallHost(page);
+    if (!host) return;
+    var exist = null;
+    for (var i = 0; i < host.children.length; i++) {
+      if (host.children[i].className === 'miao-wall') { exist = host.children[i]; break; }
     }
-    if (!state.isPro) {
-      if (!silent) { toast('该模块为会员专属', 'warn'); openPurchase(); }
-      return false;
+    if (gated) {
+      host.classList.add('miao-gated');
+      if (!exist) host.appendChild(buildWall(page));
+    } else {
+      host.classList.remove('miao-gated');
+      if (exist && exist.parentNode) exist.parentNode.removeChild(exist);
     }
+  }
+
+  function syncWalls() {
+    PAID_PAGES.forEach(function (p) { setWall(p, !state.isPro); });
+    FREE_PAGES.forEach(function (p) { setWall(p, false); });
+  }
+
+  // 允许进入所有页面；付费页按会员态决定是否挂遮罩
+  function applyGate(page) {
+    state.currentPage = page;
+    syncWalls();
     return true;
   }
 
