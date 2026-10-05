@@ -10,8 +10,8 @@
   var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWp3aHRnbG5taHR5aGF2cG1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjEyMDksImV4cCI6MjEwNjY5NzIwOX0.NglgHEyY45zQoDSLgMoD3QBXislbAhCqn6xv0L9rlGo';
 
   // 免费模块（未登录也能看）；其余需登录且为 pro
-  var FREE_PAGES = ['overview', 'market', 'theme', 'premarket', 'notes'];
-  var PAID_PAGES = ['mainline', 'echelon', 'stockpool', 'overnight', 'edge', 'verify'];
+  var FREE_PAGES = ['overview', 'market', 'premarket', 'notes', 'tthelper'];
+  var PAID_PAGES = ['theme', 'mainline', 'echelon', 'stockpool', 'overnight', 'edge', 'verify'];
 
   var sb = null;
   var state = { user: null, session: null, isPro: false, expireAt: null, pricing: null, currentPage: 'overview' };
