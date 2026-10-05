@@ -95,7 +95,7 @@
       if (!$('miaoLoginBtn')) {
         var lb = document.createElement('button');
         lb.id = 'miaoLoginBtn'; lb.className = 'topbar-btn'; lb.textContent = '登录 / 注册';
-        lb.addEventListener('click', openAuth);
+        lb.addEventListener('click', function () { openAuth('login'); });
         if (buy && buy.parentNode) buy.parentNode.insertBefore(lb, buy);
       }
     } else {
@@ -138,7 +138,9 @@
     var email = ($('miaoEmail').value || '').trim();
     var pwd = $('miaoPwd').value || '';
     var err = $('miaoErr');
-    var isReg = document.querySelector('.miao-tab.active').dataset.t === 'reg';
+    var actTab = document.querySelector('.miao-tab.active');
+    if (!actTab) { actTab = document.querySelector('.miao-tab'); if (actTab) actTab.classList.add('active'); }
+    var isReg = !!(actTab && actTab.dataset.t === 'reg');
     err.textContent = '';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = '请输入正确的邮箱地址'; return; }
     if (pwd.length < 8) { err.textContent = '密码至少 8 位'; return; }
@@ -296,7 +298,7 @@
     if (typeof window.navigateTo !== 'function') return false;
     var orig = window.navigateTo;
     window.navigateTo = function (page) {
-      if (!applyGate(page, false)) return;
+      if (!applyGate(page, false)) return false;
       return orig.apply(this, arguments);
     };
     return true;
