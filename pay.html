@@ -30,6 +30,11 @@ h1{font-size:19px;margin:0 0 2px;display:flex;align-items:center;gap:8px}
 .steps li:before{content:counter(s);position:absolute;left:0;top:2px;width:18px;height:18px;border-radius:50%;background:var(--pri);color:#fff;font-size:11px;line-height:18px;text-align:center;font-weight:700}
 .btn{display:block;width:100%;margin-top:14px;padding:12px;border:none;border-radius:9px;background:var(--pri);color:#fff;font-size:15px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;font-family:inherit}
 .btn.ghost{background:#eef2f7;color:var(--tx2);margin-top:8px}
+.claim-tip{display:none;font-size:13px;margin-top:10px;padding:10px 12px;border-radius:8px;background:#eef2f7;color:#5a6a7e;line-height:1.7}
+.claim-tip.show{display:block}
+.claim-tip.ok{background:#e6f6ec;color:#0a7a45}
+.claim-tip.err{background:#fdeceb;color:#b3261e}
+.steps-li-desc{font-size:12.5px;color:#8b95a5;margin-top:8px}
 .foot{color:#9aa4b2;font-size:12px;text-align:center;margin-top:18px}
 a{color:var(--pri)}
 </style>
@@ -49,20 +54,28 @@ a{color:var(--pri)}
   <div class="card">
     <div class="qr" id="qrBox"></div>
     <div class="hint">
-      <b>开通流程（3 步）</b>
+      <b>开通流程（2 步）</b>
       <ol class="steps">
         <li>用微信或支付宝扫描上方二维码付款</li>
-        <li>复制你的<b>订单号</b>发给客服（微信/QQ 同号）</li>
-        <li>客服核对入账后为你开通会员，<b>按天精确计算</b>，可随时续费叠加</li>
+        <li>付完点下方<b>「我已付款」</b>，系统自动通知管理员核对，无需联系任何人</li>
       </ol>
+      <div class="steps-li-desc">管理员核对到账后立即为你开通（通常 1 小时内，最晚当天）。</div>
     </div>
+    <button class="btn" id="claimBtn">我已付款</button>
+    <div class="claim-tip" id="claimTip"></div>
     <a class="btn ghost" id="backBtn" href="/">返回工作台</a>
   </div>
 
   <div class="foot">喵喵盘研社 · 会员与数据服务 · 付款后请保留订单号以便核对</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
+var SB_URL = 'https://kbajwhtglnmhtyhavpmk.supabase.co';
+var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWp3aHRnbG5taHR5aGF2cG1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjEyMDksImV4cCI6MjEwNjY5NzIwOX0.NglgHEyY45zQoDSLgMoD3QBXislbAhCqn6xv0L9rlGo';
+var sb = null;
+try { if (window.supabase && SB_URL.indexOf('__') !== 0) sb = window.supabase.createClient(SB_URL, SB_ANON); } catch (e) { sb = null; }
+
 var QR = {
   wechat: 'img/qr-wechat.jpg',    // 管理员把微信收款码图片放这里
   alipay: 'img/qr-alipay.png'     // 管理员把支付宝收款码图片放这里
@@ -93,6 +106,43 @@ function item(key, label) {
     '<div class="name">' + label + '</div></div>';
 }
 box.innerHTML = item('wechat', '微信') + item('alipay', '支付宝');
+
+/* ---- 「我已付款」：只通知管理员，不自助开通（防伪造） ---- */
+var SB = 'https://kbajwhtglnmhtyhavpmk.supabase.co/functions/v1';
+var btn = document.getElementById('claimBtn');
+var tip = document.getElementById('claimTip');
+
+function setTip(txt, kind) {
+  tip.textContent = txt;
+  tip.className = 'claim-tip show' + (kind ? ' ' + kind : '');
+}
+
+btn.addEventListener('click', function () {
+  if (!ord) { setTip('本页没有订单号，请从工作台的购买流程进入。', 'err'); return; }
+  if (!sb) { setTip('请先登录后再确认付款（回到工作台登录即可）。', 'err'); return; }
+
+  btn.disabled = true; btn.textContent = '提交中…';
+  sb.auth.getSession().then(function (r) {
+    var tk = r.data && r.data.session ? r.data.session.access_token : '';
+    if (!tk) throw new Error('NO_SESSION');
+    return fetch(SB + '/claim-paid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SB_ANON, Authorization: 'Bearer ' + tk },
+      body: JSON.stringify({ order_no: ord })
+    }).then(function (res) { return res.json().then(function (j) { return { s: res.status, j: j }; }); });
+  }).then(function (o) {
+    btn.disabled = false; btn.textContent = '我已付款';
+    if (o.s === 200 && o.j.ok) {
+      if (o.j.alreadyPaid) { setTip('该订单已开通会员，如未生效请刷新页面。', 'ok'); }
+      else { setTip('✅ 已收到！管理员核对到账后会立即为你开通，通常 1 小时内。', 'ok'); btn.textContent = '已提交'; btn.disabled = true; }
+    } else {
+      setTip('提交失败：' + (o.j.message || o.j.error || '未知错误') + '（若未登录请回工作台登录后再试）', 'err');
+    }
+  }).catch(function (e) {
+    btn.disabled = false; btn.textContent = '我已付款';
+    setTip(e.message === 'NO_SESSION' ? '请先登录后再确认付款。' : '网络错误：' + e.message, 'err');
+  });
+});
 </script>
 </body>
 </html>
