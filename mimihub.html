@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>喵喵盘研社 · 复盘工作台</title>
+<title>观复・研社 · 复盘工作台</title>
 <script src="echarts.min.js"></script>
 <style>
 /* ===== CSS Variables: Light Theme ===== */
@@ -708,9 +708,9 @@ body {
 .notes-date-label { font-size:13px; font-weight:700; margin:4px 0 12px; }
 </style>
 <!-- ===== MIAO SUPABASE MEMBERSHIP LAYER START ===== -->
-<link rel="stylesheet" href="miao_supabase.css?v=acd5220d">
+<link rel="stylesheet" href="miao_supabase.css?v=fdc061db">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="miao_supabase.js?v=acd5220d"></script>
+<script src="miao_supabase.js?v=fdc061db"></script>
 <!-- ===== MIAO SUPABASE MEMBERSHIP LAYER END ===== -->
 </head>
 <body>
@@ -719,7 +719,7 @@ body {
 <div class="topbar">
   <div class="topbar-left">
     <div class="mobile-menu-btn" onclick="toggleSidebar()" style="margin-right:4px;">☰</div>
-    <div class="topbar-title">🐱 喵喵盘研社</div>
+    <div class="topbar-title">🐱 观复・研社</div>
     <span class="topbar-date-display" id="currentDateDisplay">2026-09-09</span>
     <span class="topbar-update" id="lastUpdateDisplay"></span>
   </div>
@@ -1075,7 +1075,7 @@ body {
 
 <script>
 /* ========================================================================
- * 喵喵盘研社复盘工作台 - JavaScript
+ * 观复・研社复盘工作台 - JavaScript
  * ====================================================================== */
 
 /* ===== Global DATA Object (Initial Empty State - filled by TDX MCP) ===== */
@@ -4845,7 +4845,7 @@ function renderFsPushState() {
 function buildThemePushPayload() {
   var tr = DATA.themeRadar || {}, themes = tr.themes || [];
   if (!themes.length) return null;
-  var lu = DATA.limitUp || {}, idx = DATA.indices || {}, kw = _lsGet(FS_KEYWORD_KEY) || '喵喵';
+  var lu = DATA.limitUp || {}, idx = DATA.indices || {}, kw = _lsGet(FS_KEYWORD_KEY || '观复・研社';
   var stamp = LAST_LIVE_AT ? fmtDateTime(LAST_LIVE_AT) : (CURRENT_SNAP_AT || DATA.date);
   var els = [];
   var head = '**涨停** ' + (lu.count || 0) + ' 只 · **跌停** ' + (lu.limitDown || 0) + ' 只 · **最高** ' + (lu.maxStreak || 0) + ' 板';
@@ -4867,10 +4867,10 @@ function buildThemePushPayload() {
     if (bk.length) lines.push('后排补涨：' + bk.join('；'));
     els.push({ tag: 'div', text: { tag: 'lark_md', content: lines.join('\n') } });
   });
-  els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: (kw ? kw + ' · ' : '') + '喵喵盘研社 · ' + stamp + ' · 东方财富真实数据' }] });
+  els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: (kw ? kw + ' · ' : '') + '观复・研社 · ' + stamp + ' · 东方财富真实数据' }] });
   return { msg_type: 'interactive',
     card: { config: { wide_screen_mode: true },
-      header: { title: { tag: 'plain_text', content: '📡 喵喵盘研社 · 实时题材雷达 · ' + DATA.date }, template: 'red' },
+      header: { title: { tag: 'plain_text', content: '📡 观复・研社 · 实时题材雷达 · ' + DATA.date }, template: 'red' },
       elements: els } };
 }
 function buildThemePushText() {
@@ -4894,7 +4894,7 @@ function buildThemePushText() {
     });
     out.push('');
   });
-  out.push((kw ? kw + ' · ' : '') + '喵喵盘研社 · ' + stamp + ' · 东方财富真实数据');
+  out.push((kw ? kw + ' · ' : '') + '观复・研社 · ' + stamp + ' · 东方财富真实数据');
   return out.join('\n');
 }
 function copyThemePushText() {
@@ -6061,7 +6061,7 @@ function exportMarkdown() {
   var tomorrow = document.getElementById('notesTomorrow').value;
   var auction = document.getElementById('notesAuction').value;
   var reflection = document.getElementById('notesReflection').value;
-  var md = '# 喵喵盘研社 · 复盘笔记 ' + date + '\n\n';
+  var md = '# 观复・研社 · 复盘笔记 ' + date + '\n\n';
   md += '## 📅 今日交易\n\n' + today + '\n\n';
   md += '## 📅 明日计划\n\n' + tomorrow + '\n\n';
   md += '## 👀 竞价观察要点\n\n' + auction + '\n\n';
