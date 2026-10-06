@@ -78,3 +78,9 @@
   .miao-wall-grad{height:170px;}
   .miao-wall-foot{display:none;}
 }
+
+/* ---- 邮箱验证码 ---- */
+.miao-code-row{display:flex;gap:8px;align-items:stretch}
+.miao-code-row .miao-in{flex:1;min-width:0}
+.miao-btn.code{flex:0 0 auto;padding:0 14px;background:#eef2f7;color:#1a73e8;font-size:13px;font-weight:600;white-space:nowrap;border:1px solid #d5dde8}
+.miao-btn.code:disabled{background:#f5f7fa;color:#9aa4b2;cursor:not-allowed}

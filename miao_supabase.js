@@ -109,29 +109,84 @@
   }
 
   // ---------------- 登录 / 注册 ----------------
-  function openAuth(tab) {
-    tab = tab || 'login';
-    openModal(
-      '<h3 class="miao-title">喵喵盘研社</h3>' +
-      '<div class="miao-tabs"><span class="miao-tab' + (tab === 'login' ? ' active' : '') + '" data-t="login">登录</span>' +
-      '<span class="miao-tab' + (tab === 'reg' ? ' active' : '') + '" data-t="reg">注册</span></div>' +
+  var CODE_TTL_MIN = 10;
+  function authModalBody(tab) {
+    var isReg = tab === 'reg';
+    return '<h3 class="miao-title">喵喵盘研社</h3>' +
+      '<div class="miao-tabs"><span class="miao-tab' + (isReg ? '' : ' active') + '" data-t="login">登录</span>' +
+      '<span class="miao-tab' + (isReg ? ' active' : '') + '" data-t="reg">注册</span></div>' +
       '<label class="miao-label">邮箱</label><input id="miaoEmail" class="miao-in" type="email" placeholder="you@example.com" autocomplete="email">' +
       '<label class="miao-label">密码（至少 8 位）</label><input id="miaoPwd" class="miao-in" type="password" placeholder="••••••••" autocomplete="current-password">' +
+      (isReg ?
+        '<label class="miao-label">邮箱验证码</label>' +
+        '<div class="miao-code-row">' +
+        '<input id="miaoCode" class="miao-in" type="text" inputmode="numeric" placeholder="6 位数字" maxlength="6" autocomplete="one-time-code">' +
+        '<button class="miao-btn code" id="miaoSendCode">获取验证码</button>' +
+        '</div>' : '') +
       '<div class="miao-err" id="miaoErr"></div>' +
-      '<button class="miao-btn primary" id="miaoSubmit">' + (tab === 'login' ? '登 录' : '注 册') + '</button>' +
-      '<div class="miao-foot"><a href="javascript:void(0)" id="miaoForgot">忘记密码？</a></div>' +
-      '<div class="miao-tip">测试环境已开启「注册即通过」，无需邮件验证。</div>'
-    );
+      '<button class="miao-btn primary" id="miaoSubmit">' + (isReg ? '注 册' : '登 录') + '</button>' +
+      '<div class="miao-foot"><a href="javascript:void(0)" id="miaoForgot">忘记密码？</a></div>';
+  }
+
+  function openAuth(tab) {
+    tab = tab || 'login';
+    openModal(authModalBody(tab));
     document.querySelectorAll('.miao-tab').forEach(function (t) {
       t.addEventListener('click', function () {
+        var to = t.dataset.t;
         document.querySelectorAll('.miao-tab').forEach(function (x) { x.classList.remove('active'); });
         t.classList.add('active');
-        $('miaoSubmit').textContent = t.dataset.t === 'login' ? '登 录' : '注 册';
+        // 切换登录/注册时重建表单（注册态才有验证码行）
+        document.querySelector('.miao-modal-body, .miao-body, #miaoBody') &&
+          (function (host) { host.innerHTML = authModalBody(to); bindAuth(to); })(document.querySelector('.miao-modal-body, .miao-body, #miaoBody'));
       });
     });
+    bindAuth(tab);
+  }
+
+  function bindAuth(tab) {
+    var isReg = tab === 'reg';
+    $('miaoSubmit').textContent = isReg ? '注 册' : '登 录';
     $('miaoSubmit').addEventListener('click', submitAuth);
     $('miaoPwd').addEventListener('keydown', function (e) { if (e.key === 'Enter') submitAuth(); });
     $('miaoForgot').addEventListener('click', openReset);
+    if (isReg && $('miaoSendCode')) $('miaoSendCode').addEventListener('click', sendCode);
+  }
+
+  async function sendCode() {
+    var email = ($('miaoEmail').value || '').trim();
+    var btn = $('miaoSendCode');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      $('miaoErr').textContent = '请先填写正确的邮箱地址'; return;
+    }
+    btn.disabled = true;
+    var left = 0;
+    try {
+      var r = await fetch(SUPABASE_URL + '/functions/v1/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON },
+        body: JSON.stringify({ email: email, purpose: 'signup' })
+      });
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok) {
+        $('miaoErr').textContent = j.message || '验证码发送失败，请稍后重试';
+        btn.disabled = false; btn.textContent = '获取验证码';
+        return;
+      }
+      left = j.cooldownSec || 60;
+      toast('验证码已发送，' + (j.ttlMin || CODE_TTL_MIN) + ' 分钟内有效', 'ok');
+    } catch (e) {
+      $('miaoErr').textContent = '网络错误：' + e.message;
+      btn.disabled = false; btn.textContent = '获取验证码';
+      return;
+    }
+    // 倒计时
+    (function tick() {
+      btn.textContent = left > 0 ? (left + ' 秒后重发') : '重新获取';
+      if (left <= 0) { btn.disabled = false; return; }
+      left--;
+      setTimeout(tick, 1000);
+    })();
   }
 
   async function submitAuth() {
@@ -144,6 +199,15 @@
     err.textContent = '';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = '请输入正确的邮箱地址'; return; }
     if (pwd.length < 8) { err.textContent = '密码至少 8 位'; return; }
+
+    // 注册：先校验邮箱验证码
+    if (isReg) {
+      var code = (($('miaoCode') || {}).value || '').trim();
+      if (!/^\d{6}$/.test(code)) { err.textContent = '请输入 6 位邮箱验证码'; return; }
+      var vr = await sb.rpc('verify_email_code', { p_email: email, p_action: 'signup', p_code: code });
+      if (vr.error) { err.textContent = '验证码校验失败：' + vr.error.message; return; }
+      if (!vr.data) { err.textContent = '验证码无效或已过期，请重新获取'; return; }
+    }
 
     $('miaoSubmit').disabled = true; $('miaoSubmit').textContent = '处理中…';
     var res;
