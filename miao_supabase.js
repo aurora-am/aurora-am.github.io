@@ -1,5 +1,5 @@
 /* ============================================================
- *  观复・研社 · Supabase 会员层
+ *  喵喵盘研社 · Supabase 会员层
  *  依赖：@supabase/supabase-js@2 (UMD, window.supabase)
  *  提供：注册 / 登录 / 退出 / 会话保持 / 会员鉴权 / 购买 / 改密
  * ============================================================ */
@@ -112,7 +112,7 @@
   function openAuth(tab) {
     tab = tab || 'login';
     openModal(
-      '<h3 class="miao-title">观复・研社</h3>' +
+      '<h3 class="miao-title">喵喵盘研社</h3>' +
       '<div class="miao-tabs"><span class="miao-tab' + (tab === 'login' ? ' active' : '') + '" data-t="login">登录</span>' +
       '<span class="miao-tab' + (tab === 'reg' ? ' active' : '') + '" data-t="reg">注册</span></div>' +
       '<label class="miao-label">邮箱</label><input id="miaoEmail" class="miao-in" type="email" placeholder="you@example.com" autocomplete="email">' +
