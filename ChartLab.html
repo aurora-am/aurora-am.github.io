@@ -715,7 +715,7 @@ body {
 <div class="topbar">
   <div class="topbar-left">
     <div class="mobile-menu-btn" onclick="toggleSidebar()" style="margin-right:4px;">☰</div>
-    <div class="topbar-title">🐱 喵喵盘研社</div>
+    <div class="topbar-title">🐱 观复・研社</div>
     <span class="topbar-date-display" id="currentDateDisplay">2026-09-09</span>
     <span class="topbar-update" id="lastUpdateDisplay"></span>
   </div>
@@ -754,6 +754,9 @@ body {
 </div>
 
 <!-- ===== Layout ===== -->
+<script>/* 入口一律落在总览：忽略 URL hash 里的旧页号 */
+  if (location.hash) { history.replaceState(null, "", location.pathname + location.search); }
+</script>
 <div class="app-layout">
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
@@ -3100,7 +3103,9 @@ function generateAISummary() {
     lvlTxt = '上证关注 MA5 ' + ma(5) + ' / MA20 ' + ma(20) + ' 支撑得失';
   }
 
-  var s = '【' + (DATA.date || '') + ' ' + tone + '】';
+  // 休市日/周末不展示：标题只显示最近一个真实开盘日
+  var _dispDay = (typeof LATEST_TRADE_DAY !== 'undefined' && LATEST_TRADE_DAY) || DATA.date || '';
+  var s = '【' + _dispDay + ' ' + tone + '】';
   s += '上证' + (idx.sh ? idx.sh.chgPct : 0) + '%、深证' + (idx.sz ? idx.sz.chgPct : 0) + '%、创业' + (idx.cyb ? idx.cyb.chgPct : 0) + '%，' + volTxt + '。';
   if (hasBreadth) s += '涨' + br.up + '/跌' + br.down + '家，涨跌比' + br.upDownRatio + '。';
   s += '涨停' + (lu.count || 0) + '家（含20CM ' + (lu.count20cm || 0) + '只，板型' + shapeTxt + '），跌停' + (lu.limitDown || 0) + '家，封板率' + sealRate + '，';
@@ -4537,7 +4542,9 @@ function updateLastUpdateLabel() {
     el.textContent = '🟢 最后更新 ' + fmtDateTime(LAST_LIVE_AT);
     el.className = 'topbar-update live';
   } else if (CURRENT_SNAP_AT) {
-    el.textContent = '📦 最后更新 ' + CURRENT_SNAP_AT;
+    // 休市日不显示抓取日；改为标注数据对应的开盘日
+    var _d = (typeof LATEST_TRADE_DAY !== 'undefined' && LATEST_TRADE_DAY) || DATA.date || '';
+    el.textContent = '📦 数据对应 ' + _d;
     el.className = 'topbar-update';
   } else {
     el.textContent = '';
@@ -6669,7 +6676,8 @@ function loadCalendar() {
     }
     CALENDAR_READY = true;
     var disp = document.getElementById('currentDateDisplay');
-    if (disp && DATA.date) disp.textContent = DATA.date;
+    // 只显示真实开盘日：休市/周末自动吸附到上一交易日（LATEST_TRADE_DAY）
+    if (disp) disp.textContent = LATEST_TRADE_DAY || DATA.date;
     return Promise.resolve(TRADE_DAYS);
   } catch (err) {
     CALENDAR_READY = false;
