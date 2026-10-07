@@ -376,10 +376,39 @@ window.Admin = {
     const DUL = { month: '1个月', quarter: '3个月', halfyear: '6个月', year: '12个月', day: '体验日卡' }
     const t = document.getElementById('orderTable')
     if (!list.length) { t.innerHTML = '<tbody><tr><td class="empty">无订单</td></tr></tbody>'; return }
-    t.innerHTML = '<thead><tr><th>订单号</th><th>用户</th><th>金额</th><th>套餐</th><th>时长档</th><th>状态</th><th>支付时间</th><th>创建</th></tr></thead><tbody>' +
-      list.map(o => `<tr><td>${esc(o.order_no)}</td><td>${esc(o.nickname || '')}</td>
+    t.innerHTML = '<thead><tr><th>订单号</th><th>用户</th><th>金额</th><th>套餐</th><th>时长档</th><th>状态</th><th>支付时间</th><th>创建</th><th>操作</th></tr></thead><tbody>' +
+      list.map(o => {
+        const paid = o.status === 'paid'
+        // 用户标识=昵称优先、邮箱次之（前端 orders op 只带 nickname，这里退回订单号前缀）
+        const who = o.nickname || o.email || '(用户 ' + String(o.user_id || '').slice(0, 8) + ')'
+        const act = paid
+          ? '<span class="tag tag-act">已开通</span>'
+          : '<button onclick="Admin.settleOrder(\'' + o.order_no + '\')">确认收款并开通</button> ' +
+            '<button onclick="Admin.cancelOrder(\'' + o.order_no + '\')">作废</button>'
+        return `<tr><td>${esc(o.order_no)}</td><td>${esc(who)}</td>
         <td>¥${o.amount}</td><td>${esc(o.plan)}</td><td>${esc(DUL[o.duration] || o.duration || '')}</td><td>${esc(o.status)}</td>
-        <td>${(o.paid_at || '').slice(0, 19)}</td><td>${(o.created_at || '').slice(0, 19)}</td></tr>`).join('') + '</tbody>'
+        <td>${(o.paid_at || '').slice(0, 19)}</td><td>${(o.created_at || '').slice(0, 19)}</td>
+        <td>${act}</td></tr>`
+      }).join('') + '</tbody>'
+  },
+
+  // 人工核对收款 → 确认收款并开通（幂等：已支付不会重复加时长）
+  async settleOrder(orderNo) {
+    if (!confirm('确认已收到「' + orderNo + '」的款项？\n\n将把该订单标记为已收款，并立即为用户开通对应时长的会员（若已有未到期会员则自动顺延）。\n重复点击不会重复加时长。')) return
+    const r = await api('settle', { method: 'POST', body: { order_no: orderNo } })
+    if (!r) return
+    if (r.alreadyPaid) { toast('该订单已是已收款状态，未重复开通', 'warn'); Admin.loadOrders(); return }
+    const m = r.membership || {}
+    toast('已收款并开通 · 至 ' + String(m.expire_at || '').slice(0, 10), 'ok')
+    Admin.loadOrders(); Admin.loadDashboard()
+  },
+
+  // 作废未付款的挂单
+  async cancelOrder(orderNo) {
+    if (!confirm('确认作废订单「' + orderNo + '」？\n\n仅用于清理未付款的挂单，不可撤销。')) return
+    const r = await api('cancel', { method: 'POST', body: { order_no: orderNo } })
+    if (!r) return
+    toast('订单已作废', 'ok'); Admin.loadOrders()
   },
 
   async loadAnn() {
