@@ -318,37 +318,76 @@ window.Admin = {
     document.getElementById('shell').style.display = 'flex'
   },
   login() { if (window.MiaoSB) MiaoSB.openAuth('login') },
-  logout() { if (window.MiaoSB) MiaoSB.logout() },
+  logout() { Admin._stopWatch(); if (window.MiaoSB) MiaoSB.logout() },
   async bootstrap() {
     // 等待 MiaoSB 就绪
     if (!window.MiaoSB) { setTimeout(() => Admin.bootstrap(), 200); return }
 
     // ⚠️ 登录态监听必须在「未登录就return」之前注册。
-    // MiaoSB 登录成功后只调 refreshState()、不抛任何自定义事件，
+    // MiaoSB 登录成功后只调refreshState()、不抛任何自定义事件，
     // 若未登录时直接 return，就没人再触发 bootstrap → gate 永远不隐藏。
     if (!Admin._authHooked) {
       Admin._authHooked = true;
       MiaoSB.client.auth.onAuthStateChange((ev, s) => {
         // 回调内不可直接 await Supabase 调用（会撞内部请求锁），用 setTimeout 剥离
         setTimeout(() => {
-          if (!s) { Admin.showGate('请先登录管理员账号'); return }
-          if (ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION' || ev === 'USER_UPDATED') Admin.bootstrap();
+          if (!s) { Admin.showGate('请先登录管理员账号'); Admin._stopWatch(); return }
+          if (ev === 'SIGNED_IN' || ev === 'USER_UPDATED') Admin.bootstrap()
         }, 0);
       });
     }
 
     const { data: { session } } = await MiaoSB.client.auth.getSession()
-    if (!session) { Admin.showGate('请先登录管理员账号'); return }
-    const me = await api('me')
-    if (!me) return
-    // 探测数据库能力：settle 分支是否真实存在（不使用 version 字符串做判定，避免误报）
+    if (!session) {
+      Admin.showGate('请先登录管理员账号')
+      Admin._startWatch()      // 开始轮询等登录
+      return
+    }
+    Admin._stopWatch()          // 已登录，停止轮询
+    Admin._enter()         // 登录后的真正入口（幂等）
+  },
+
+  /** 登录后进入后台：校验管理员身份 → 隐藏 gate → 载入仪表盘 */
+  async _enter() {
+    if (Admin._entering) return          // 防并发重复进入
+    Admin._entering = true
     try {
-      const cap = await probeDbCaps()
-      Admin._settleMissing = !(cap && cap.ok)
-    } catch (e) { /* 网络异常不阻塞 */ }
-    document.getElementById('adminName').textContent = (me.nickname || me.email) + '（管理员）'
-    Admin.hideGate()
-    Admin.loadDashboard()
+      const me = await api('me')
+      if (!me) { Admin.showGate('身份校验未通过，请重新登录'); Admin._startWatch(); return }
+      // 探测数据库能力：settle 分支是否真实存在（不用版本号判定，避免误报）
+      try {
+        const cap = await probeDbCaps()
+        Admin._settleMissing = !(cap && cap.ok)
+      } catch (e) { /* 网络异常不阻塞 */ }
+      document.getElementById('adminName').textContent = (me.nickname || me.email) + '（管理员）'
+      Admin.hideGate()
+      Admin.loadDashboard()
+    } catch (e) {
+      toast('进入后台失败：' + ((e && e.message) || '未知错误'), 'error')
+      console.error('enter:', e)
+      Admin._startWatch()   // 失败则恢复轮询，避免永久卡在登录页
+    } finally {
+      Admin._entering = false
+    }
+  },
+
+  /**
+   * 轮询登录态。
+   * 不依赖 onAuthStateChange 的 SIGNED_IN 事件——该事件在客户端已初始化监听器后
+   * 可能不重新派发，导致「登录成功但进不去」。轮询 getSession 是幂等且可靠的。
+   */
+  _startWatch() {
+    if (Admin._watchTimer) return
+    Admin._watchTimer = setInterval(async () => {
+      if (Admin._entering) return
+      try {
+        const { data: { session } } = await MiaoSB.client.auth.getSession()
+        if (session) { Admin._stopWatch(); Admin._enter() }
+      } catch (e) { /* 忽略单次失败 */ }
+    }, 1000)
+  },
+  _stopWatch() {
+    if (Admin._watchTimer) { clearInterval(Admin._watchTimer); Admin._watchTimer = null }
   },
 
   // tab 切换
