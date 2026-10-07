@@ -766,14 +766,13 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
     <div class="nav-item active" data-page="overview" onclick="navigateTo('overview')"><span class="nav-icon">📊</span> 总览</div>
     <div class="nav-item" data-page="market" onclick="navigateTo('market')"><span class="nav-icon">📈</span> 市场环境</div>
     <div class="nav-item" data-page="premarket" onclick="navigateTo('premarket')"><span class="nav-icon">🌅</span> 盘前分析</div>
-    <div class="nav-item" data-page="theme" onclick="navigateTo('theme')"><span class="nav-icon">📡</span> 实时题材</div>
+    <div class="nav-item" data-page="theme" onclick="navigateTo('theme')"><span class="nav-icon">📡</span> 盘中雷达</div>
     <div class="nav-item" data-page="mainline" onclick="navigateTo('mainline')"><span class="nav-icon">🎯</span> 主线板块</div>
     <div class="nav-item" data-page="echelon" onclick="navigateTo('echelon')"><span class="nav-icon">🔥</span> 战法阁</div>
     <div class="nav-item" data-page="stockpool" onclick="navigateTo('stockpool')"><span class="nav-icon">🏊</span> 股票池</div>
     <div class="nav-item" data-page="overnight" onclick="navigateTo('overnight')"><span class="nav-icon">⚡</span> 隔夜判断</div>
     <div class="nav-item" data-page="notes" onclick="navigateTo('notes')"><span class="nav-icon">📝</span> 复盘笔记</div>
     <div class="nav-item" data-page="tthelper" onclick="navigateTo('tthelper')"><span class="nav-icon">💱</span> 做T助手</div>
-    <div class="nav-item" data-page="edge" onclick="navigateTo('edge')"><span class="nav-icon">🚀</span> 盘中雷达</div>
     <div class="nav-item" data-page="verify" onclick="navigateTo('verify')"><span class="nav-icon">🎯</span> 次日回验</div>
   </nav>
 
@@ -880,10 +879,10 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
   </div>
 </div>
 
-<!-- ==================== PAGE 3: 实时题材 ==================== -->
+<!-- ==================== PAGE 3: 盘中雷达 ==================== -->
 <div class="page" id="page-theme">
   <div class="card">
-    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📡 实时题材雷达（涨停梯队 + 后排补涨）</span><span class="card-toggle">▼</span></div>
+    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📡 盘中雷达（涨停梯队 + 后排补涨）</span><span class="card-toggle">▼</span></div>
     <div class="card-body">
       <div class="section-text mb-8" id="themeRadarNote"></div>
       <div id="themeRadarWrap"></div>
@@ -892,7 +891,7 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📤 推送到飞书群</span><span class="card-toggle">▼</span></div>
     <div class="card-body">
-      <div class="section-text mb-8" style="opacity:.75;">把当前「实时题材雷达」（涨停梯队 + 后排补涨）推送到你的飞书群。<strong>webhook 只保存在你本机浏览器</strong>（localStorage），不写进页面代码、不上传，他人查看源码无法获取。</div>
+      <div class="section-text mb-8" style="opacity:.75;">把当前「盘中雷达」（涨停梯队 + 后排补涨）推送到你的飞书群。<strong>webhook 只保存在你本机浏览器</strong>（localStorage），不写进页面代码、不上传，他人查看源码无法获取。</div>
       <div class="push-row">
         <input id="fsWebhook" class="push-input" type="password" placeholder="粘贴飞书群机器人 webhook（https://open.feishu.cn/open-apis/bot/v2/hook/…）" autocomplete="off">
         <button class="push-btn" onclick="saveFsWebhook()">保存</button>
@@ -1066,9 +1065,6 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
   <div class="page" id="page-tthelper">
     <iframe src="tt-helper.html" title="做T助手" loading="lazy"></iframe>
   </div>
-<div class="page" id="page-edge">
-  <div id="edgeWrap"><div class="empty-hint">加载中…</div></div>
-</div>
 <div class="page" id="page-verify">
   <div id="verifyWrap"><div class="empty-hint">加载中…</div></div>
 </div>
@@ -4900,7 +4896,7 @@ function buildThemePushPayload() {
   els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: (kw ? kw + ' · ' : '') + '观复・研社 · ' + stamp + ' · 东方财富真实数据' }] });
   return { msg_type: 'interactive',
     card: { config: { wide_screen_mode: true },
-      header: { title: { tag: 'plain_text', content: '📡 观复・研社 · 实时题材雷达 · ' + DATA.date }, template: 'red' },
+      header: { title: { tag: 'plain_text', content: '📡 观复・研社 · 盘中雷达 · ' + DATA.date }, template: 'red' },
       elements: els } };
 }
 function buildThemePushText() {
@@ -4908,7 +4904,7 @@ function buildThemePushText() {
   if (!themes.length) return '';
   var lu = DATA.limitUp || {}, kw = _lsGet(FS_KEYWORD_KEY);
   var stamp = LAST_LIVE_AT ? fmtDateTime(LAST_LIVE_AT) : (CURRENT_SNAP_AT || DATA.date);
-  var out = ['📡 实时题材雷达 · ' + DATA.date,
+  var out = ['📡 盘中雷达 · ' + DATA.date,
     '涨停 ' + (lu.count || 0) + ' / 跌停 ' + (lu.limitDown || 0) + ' / 最高 ' + (lu.maxStreak || 0) + ' 板', ''];
   themes.slice(0, 5).forEach(function (t, i) {
     out.push((i + 1) + '. ' + (t.name || '') + '（涨停 ' + (t.count || 0) + ' · 最高 ' + (t.lbcMax || 1) + ' 板）');
@@ -6141,8 +6137,6 @@ function renderPageCharts(page) {
     try { notesCalYM = null; renderNotesCal(); } catch(e) { console.error('notesCal:', e.message); }
     try { if (!notesCurDate) loadNotes(notesTodayStr()); } catch(e) {}
   
-  } else if (page === 'edge') {
-    try { EDGE.renderEdge(); } catch(e) { console.error('edge:', e.message); }
   } else if (page === 'verify') {
     try { EDGE.renderVerify(); } catch(e) { console.error('verify:', e.message); }}
 }
@@ -12566,87 +12560,185 @@ function drawEdge(){
   wrap.innerHTML = h;
 }
 
-// =============== 页面2：次日回验（自证胜率，信任护城河）===============
+// =============== 页面2：次日回验（无后端 · 纯客户端真实回测）===============
+// 思路：取当前快照当日(基准日)的涨停/连板票，拉它们真实的「次日」日K，
+// 用收盘涨跌真实结算赚钱率/均涨/续板率。不依赖任何后端，数据全部来自腾讯日K（客户端 JSONP）。
+function r2v(x){ return Math.round((+x)*100)/100; }
+function toTcode(c){ c=String(c||''); if(/^[69]/.test(c)) return 'sh'+c; if(/^[48]/.test(c)) return 'bj'+c; return 'sz'+c; }
+
+// 客户端拉日K（腾讯 JSONP，绕过 CORS）。返回 [{date,open,close,high,low,vol}]
+function jsonpKline(code, days){
+  var v = 'vk_' + code + '_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+  var url = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=' + v
+    + '&param=' + toTcode(code) + ',day,,,'
+    + (days||120) + ',qfq&_t=' + Date.now();
+  return new Promise(function(resolve, reject){
+    var s = document.createElement('script');
+    var done = false;
+    var t = setTimeout(function(){ finish(new Error('timeout')); }, 12000);
+    function finish(err){
+      if(done) return; done = true; clearTimeout(t);
+      try{ s.parentNode && s.parentNode.removeChild(s); }catch(e){}
+      if(err) return reject(err);
+      var j = window[v];
+      if(!j){ return reject(new Error('empty')); }
+      try{ delete window[v]; }catch(e){ window[v]=undefined; }
+      var node = j && j.data && (j.data[toTcode(code)] || j.data[Object.keys(j.data||{})[0]]);
+      var rows = node ? (node.qfqday || node.day || []) : [];
+      var out = rows.map(function(r){
+        return { date:String(r[0]), open:+r[1], close:+r[2], high:+r[3], low:+r[4], vol:+r[5] };
+      }).filter(function(b){ return b.close>0; });
+      resolve(out);
+    }
+    s.onload = function(){ finish(null); };
+    s.onerror = function(){ finish(new Error('net')); };
+    s.src = url; document.head.appendChild(s);
+  });
+}
+// 下一个交易日（优先用工作台已知交易日表，否则跳过周末推算）
+function nextTradeDay(dateStr){
+  if(STATIC_TRADE_DAYS && STATIC_TRADE_DAYS.indexOf(dateStr) >= 0){
+    var i = STATIC_TRADE_DAYS.indexOf(dateStr);
+    if(i >= 0 && i < STATIC_TRADE_DAYS.length-1) return STATIC_TRADE_DAYS[i+1];
+  }
+  var d = new Date(dateStr + 'T00:00:00');
+  do { d.setDate(d.getDate()+1); } while(d.getDay()===0 || d.getDay()===6);
+  return d.toISOString().slice(0,10);
+}
+function collectLimitStocks(){
+  var lu = (DATA && DATA.limitUp) || {};
+  var streaks = lu.streaks || [];
+  var out = [];
+  streaks.forEach(function(g){
+    (g.stocks||[]).forEach(function(st){
+      if(st && st.code) out.push({ code: st.code, name: st.name, streak: st.streak||g.level, reason: st.reason||'' });
+    });
+  });
+  return out;
+}
+
 function renderVerify(){
   var wrap = document.getElementById('verifyWrap');
   if(!wrap) return;
-  if(EDGE.loaded.verify){
-    drawVerify(); return;
+  var base = (DATA && DATA.date) || '';
+  var stocks = collectLimitStocks();
+  if(!base || !stocks.length){
+    wrap.innerHTML = pendingBox('当前快照（'+esc(base||'无日期')+'）未内嵌涨停梯队数据，无法回验。'
+      + '请在含涨停梯队的交易日快照下查看，或经连接器重新内嵌后刷新本页。');
+    return;
   }
-  wrap.innerHTML = '<div class="empty-hint">加载中…</div>';
-  loadJSON('/api/panels/edge/verify').then(function(d){
-    EDGE.verifyData = d; EDGE.loaded.verify = 1; drawVerify();
-  }).catch(function(e){
-    wrap.innerHTML = pendingBox('加载失败：'+e.message);
-    EDGE.loaded.verify = 1;
-  });
+  var nextDay = nextTradeDay(base);
+  var cacheKey = 'tt_verify_' + base + '_' + nextDay;
+  try {
+    var cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if(cached && cached.list){ EDGE.verifyData = cached; drawVerify(base, nextDay); return; }
+  } catch(e){}
+  wrap.innerHTML = '<div class="empty-hint">回验基准日 <b>'+esc(base)+'</b> · 次日 <b>'+esc(nextDay)
+    + '</b><br>正在拉取 '+stocks.length+' 只涨停/连板票的真实次日日K…（0/'+stocks.length+'）</div>';
+
+  var todo = stocks.slice();
+  var results = [];
+  var failed = 0;
+  function step(){
+    if(!todo.length){ finishVerify(); return; }
+    var batch = todo.splice(0, 6);
+    Promise.all(batch.map(function(st){
+      return jsonpKline(st.code, 120).then(function(bars){
+        var pick = null;
+        for(var i=0;i<bars.length;i++){ if(bars[i].date===base){ pick=bars[i]; break; } }
+        var ni = -1;
+        for(var j=0;j<bars.length;j++){ if(bars[j].date===nextDay){ ni=j; break; } }
+        if(!pick || ni<0){ st.skip=1; return; }
+        var prev = bars[ni-1];
+        var next = bars[ni];
+        st.chg = r2v((next.close - pick.close)/pick.close*100);
+        st.nextChg = r2v(prev ? (next.close-prev.close)/prev.close*100 : 0);
+        st.cont = st.nextChg >= 9.5;
+        st.pickClose = pick.close; st.nextClose = next.close;
+        results.push(st);
+      }).catch(function(){ st.skip=1; failed++; });
+    })).then(function(){
+      wrap.innerHTML = '<div class="empty-hint">回验基准日 <b>'+esc(base)+'</b> · 次日 <b>'+esc(nextDay)
+        + '</b><br>已处理 '+(results.length+failed)+'/'+stocks.length+'…</div>';
+      setTimeout(step, 50);
+    });
+  }
+  function finishVerify(){
+    var n = results.length;
+    var win = results.filter(function(s){return s.chg>0;}).length;
+    var sum = results.reduce(function(a,s){return a+s.chg;},0);
+    var cont = results.filter(function(s){return s.cont;}).length;
+    var payload = { base:base, nextDay:nextDay, n:n,
+      winRate: n?Math.round(win/n*1000)/10:0,
+      avgChg: n?Math.round(sum/n*100)/100:0,
+      limitRate: n?Math.round(cont/n*1000)/10:0,
+      failed:failed, list:results.slice().sort(function(a,b){return b.chg-a.chg;}) };
+    try{ localStorage.setItem(cacheKey, JSON.stringify(payload)); }catch(e){}
+    EDGE.verifyData = payload; drawVerify(base, nextDay);
+  }
+  step();
 }
 
-function drawVerify(){
+function drawVerify(base, nextDay){
   var wrap = document.getElementById('verifyWrap');
   if(!wrap) return;
   var d = EDGE.verifyData || {};
+  var list = d.list || [];
   var h = '';
+  h += '<div class="edge-note">回验口径：以 <b>'+esc(base)+'</b> 收盘涨停/连板票为基准池，'
+    + '用腾讯真实日K结算其 <b>'+esc(nextDay)+'</b> 收盘表现。基准日涨幅=次日收盘 vs 基准日收盘；'
+    + '续板=次日涨幅≥9.5%。数据全客户端获取，无后端、不落库（仅本机缓存回验结果）。'
+    + (d.failed?(' 其中 '+d.failed+' 只拉取失败已跳过。'):'')+'</div>';
 
-  if(d.error){
-    wrap.innerHTML = pendingBox('回验数据待补：'+d.error); return;
-  }
-
-  var ov = d.overall || {};
-  // ===== 顶部 KPI =====
   h += '<div class="edge-kpis">';
-  h += '<div class="edge-kpi"><div class="edge-kpi-l">累计验证样本</div><div class="edge-kpi-v big">'+esc(ov.n||0)+'</div><div class="edge-kpi-s">覆盖 '+esc(d.snapCount||0)+' 个交易日候选池</div></div>';
-  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日赚钱率</div><div class="edge-kpi-v big '+(ov.winRate>=50?'up':'down')+'">'+(ov.winRate===null||ov.winRate===undefined?'—':ov.winRate+'%')+'</div><div class="edge-kpi-s">次日收盘为正占比</div></div>';
-  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日平均涨幅</div><div class="edge-kpi-v big '+(ov.avgChg>=0?'up':'down')+'">'+pct(ov.avgChg)+'</div><div class="edge-kpi-s">全样本平均</div></div>';
-  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日涨停率</div><div class="edge-kpi-v big">'+((ov.limitRate===null||ov.limitRate===undefined)?'—':ov.limitRate+'%')+'</div><div class="edge-kpi-s">次日再度涨停</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">回验样本</div><div class="edge-kpi-v big">'+esc(d.n||0)
+    + '</div><div class="edge-kpi-s">'+esc(base)+' 涨停/连板票</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日赚钱率</div><div class="edge-kpi-v big '+(d.winRate>=50?'up':'down')+'">'
+    + (d.winRate==null?'—':d.winRate+'%')+'</div><div class="edge-kpi-s">次日收盘为正占比</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日平均涨幅</div><div class="edge-kpi-v big '+(d.avgChg>=0?'up':'down')+'">'
+    + pct(d.avgChg)+'</div><div class="edge-kpi-s">全样本均值</div></div>';
+  h += '<div class="edge-kpi"><div class="edge-kpi-l">次日续板率</div><div class="edge-kpi-v big">'
+    + (d.limitRate==null?'—':d.limitRate+'%')+'</div><div class="edge-kpi-s">次日再度涨停</div></div>';
   h += '</div>';
 
-  h += '<div class="edge-note">口径：每个交易日收盘生成候选池 → 次日收盘用真实行情结算。'+
-       '数据源腾讯/新浪日K（前复权），未验证样本不计入胜率。'+
-       (d.unverified?('当前未验证 '+d.unverified+' 条。'):'')+'</div>';
-
-  // ===== 分策略胜率 =====
-  if(d.summary && d.summary.length){
-    h += '<div class="edge-card"><h4>分策略次日表现（真实回测）</h4><table class="edge-tb">';
-    h += '<tr><th>策略</th><th>样本</th><th>次日赚钱率</th><th>平均涨幅</th><th>涨停率</th></tr>';
-    d.summary.forEach(function(s){
-      h += '<tr><td>'+esc(s.label||s.key)+'</td><td>'+esc(s.n)+'</td>'+
-           '<td class="'+(s.winRate>=50?'up':'down')+'"><b>'+(s.winRate==null?'—':s.winRate+'%')+'</b></td>'+
-           '<td class="'+(s.avgChg>=0?'up':'down')+'">'+pct(s.avgChg)+'</td>'+
-           '<td>'+(s.limitRate==null?'—':s.limitRate+'%')+'</td></tr>';
+  var byStreak = {};
+  list.forEach(function(s){ var k=s.streak||1; (byStreak[k]=byStreak[k]||[]).push(s); });
+  var keys = Object.keys(byStreak).map(Number).sort(function(a,b){return b-a;});
+  if(keys.length){
+    h += '<div class="edge-card"><h4>分连板层级次日表现</h4><table class="edge-tb">';
+    h += '<tr><th>连板层级</th><th>样本</th><th>赚钱率</th><th>均涨</th><th>续板率</th></tr>';
+    keys.forEach(function(k){
+      var arr = byStreak[k];
+      var w = arr.filter(function(s){return s.chg>0;}).length;
+      var wr = Math.round(w/arr.length*1000)/10;
+      var avg = arr.reduce(function(a,s){return a+s.chg;},0)/arr.length;
+      var lc = arr.filter(function(s){return s.cont;}).length;
+      var lr = Math.round(lc/arr.length*1000)/10;
+      h += '<tr><td>'+k+' 板</td><td>'+arr.length+'</td>'
+        + '<td class="'+(wr>=50?'up':'down')+'"><b>'+wr+'%</b></td>'
+        + '<td class="'+(avg>=0?'up':'down')+'">'+pct(avg)+'</td>'
+        + '<td>'+lr+'%</td></tr>';
     });
     h += '</table></div>';
   }
 
-  // ===== 按日期明细（最近 30 天）=====
-  var recs = (d.records||[]).filter(function(r){ return r.verified; });
-  var byDate = {};
-  recs.forEach(function(r){
-    if(!byDate[r.date]) byDate[r.date] = [];
-    byDate[r.date].push(r);
-  });
-  var dates = Object.keys(byDate).sort().reverse().slice(0,30);
-  if(dates.length){
-    h += '<div class="edge-card"><h4>逐日回验明细（最近 '+dates.length+' 个交易日）</h4><table class="edge-tb">';
-    h += '<tr><th>推荐日</th><th>次日</th><th>样本</th><th>赚钱率</th><th>均涨</th><th>最佳</th><th>最差</th></tr>';
-    dates.forEach(function(dk){
-      var arr = byDate[dk];
-      var win = arr.filter(function(r){return r.win;}).length;
-      var wr = Math.round(win/arr.length*1000)/10;
-      var sum = arr.reduce(function(a,r){return a+r.chgPct;},0)/arr.length;
-      var best = arr.slice().sort(function(a,b){return b.chgPct-a.chgPct;})[0];
-      var worst = arr.slice().sort(function(a,b){return a.chgPct-b.chgPct;})[0];
-      h += '<tr><td class="mono">'+esc(dk)+'</td><td class="mono">'+esc(arr[0].nextDay||'—')+'</td>'+
-           '<td>'+arr.length+'</td>'+
-           '<td class="'+(wr>=50?'up':'down')+'"><b>'+wr+'%</b></td>'+
-           '<td class="'+(sum>=0?'up':'down')+'">'+pct(sum)+'</td>'+
-           '<td class="up">'+esc(best?best.name:'—')+'</td>'+
-           '<td class="down">'+esc(worst?worst.name:'—')+'</td></tr>';
+  if(list.length){
+    h += '<div class="edge-card"><h4>逐票回验明细（按次日涨幅排序）</h4><table class="edge-tb">';
+    h += '<tr><th>名称</th><th>板数</th><th>题材</th><th>基准日收盘</th><th>次日收盘</th><th>次日涨幅</th><th>状态</th></tr>';
+    list.forEach(function(s){
+      var st = s.cont?'<span class="taglhb">续板</span>':(s.chg<0?'<span class="taggray">回落</span>':'<span class="mono">持有</span>');
+      h += '<tr><td>'+esc(s.name)+'</td><td>'+(s.streak?('<b class="streak">'+s.streak+'板</b>'):'首板')+'</td>'
+        + '<td class="reason">'+esc(s.reason||'')+'</td>'
+        + '<td class="mono">'+esc(s.pickClose)+'</td>'
+        + '<td class="mono">'+esc(s.nextClose)+'</td>'
+        + '<td class="'+(s.chg>=0?'up':'down')+'"><b>'+pct(s.chg)+'</b></td>'
+        + '<td>'+st+'</td></tr>';
     });
     h += '</table></div>';
+  } else {
+    h += pendingBox('暂无可用回验样本（或当日快照未含涨停梯队）');
   }
-
-  h += '<div class="edge-note">⚠️ 回测基于历史行情，不代表未来收益。本模块如实呈现，含表现不佳的策略组，不做美化。</div>';
+  h += '<div class="edge-note">⚠️ 历史回测不代表未来收益。本模块如实呈现，含表现不佳的层级，不做美化。切换其它交易日快照可回验不同基准日。</div>';
   wrap.innerHTML = h;
 }
 
