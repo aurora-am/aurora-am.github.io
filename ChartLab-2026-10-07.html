@@ -4859,7 +4859,7 @@ function buildThemePushPayload() {
   els.push({ tag: 'note', elements: [{ tag: 'plain_text', content: (kw ? kw + ' · ' : '') + '观复・研社 · ' + stamp + ' · 东方财富真实数据' }] });
   return { msg_type: 'interactive',
     card: { config: { wide_screen_mode: true },
-      header: { title: { tag: 'plain_text', content: '📡 观复・研社 · 盘中雷达 · ' + DATA.date }, template: 'red' },
+      header: { title: { tag: 'plain_text', content: '📡 观复・研社 · 涨停题材雷达 · ' + DATA.date }, template: 'red' },
       elements: els } };
 }
 function buildThemePushText() {
@@ -4867,7 +4867,7 @@ function buildThemePushText() {
   if (!themes.length) return '';
   var lu = DATA.limitUp || {}, kw = _lsGet(FS_KEYWORD_KEY);
   var stamp = LAST_LIVE_AT ? fmtDateTime(LAST_LIVE_AT) : (CURRENT_SNAP_AT || DATA.date);
-  var out = ['📡 盘中雷达 · ' + DATA.date,
+  var out = ['📡 涨停题材雷达 · ' + DATA.date,
     '涨停 ' + (lu.count || 0) + ' / 跌停 ' + (lu.limitDown || 0) + ' / 最高 ' + (lu.maxStreak || 0) + ' 板', ''];
   themes.slice(0, 5).forEach(function (t, i) {
     out.push((i + 1) + '. ' + (t.name || '') + '（涨停 ' + (t.count || 0) + ' · 最高 ' + (t.lbcMax || 1) + ' 板）');
