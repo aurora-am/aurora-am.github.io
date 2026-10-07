@@ -264,6 +264,21 @@ window.Admin = {
   async bootstrap() {
     // 等待 MiaoSB 就绪
     if (!window.MiaoSB) { setTimeout(() => Admin.bootstrap(), 200); return }
+
+    // ⚠️ 登录态监听必须在「未登录就return」之前注册。
+    // MiaoSB 登录成功后只调 refreshState()、不抛任何自定义事件，
+    // 若未登录时直接 return，就没人再触发 bootstrap → gate 永远不隐藏。
+    if (!Admin._authHooked) {
+      Admin._authHooked = true;
+      MiaoSB.client.auth.onAuthStateChange((ev, s) => {
+        // 回调内不可直接 await Supabase 调用（会撞内部请求锁），用 setTimeout 剥离
+        setTimeout(() => {
+          if (!s) { Admin.showGate('请先登录管理员账号'); return }
+          if (ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION' || ev === 'USER_UPDATED') Admin.bootstrap();
+        }, 0);
+      });
+    }
+
     const { data: { session } } = await MiaoSB.client.auth.getSession()
     if (!session) { Admin.showGate('请先登录管理员账号'); return }
     const me = await api('me')
@@ -271,10 +286,6 @@ window.Admin = {
     document.getElementById('adminName').textContent = (me.nickname || me.email) + '（管理员）'
     Admin.hideGate()
     Admin.loadDashboard()
-    // 监听登录态变化
-    MiaoSB.client.auth.onAuthStateChange((_e, s) => {
-      if (!s) Admin.showGate('请先登录管理员账号')
-    })
   },
 
   // tab 切换
