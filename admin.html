@@ -179,6 +179,7 @@
   <div class="ad-modal">
     <h3>手动开通 / 延期</h3>
     <div id="grantUser"></div>
+    <div id="grantHint" style="font-size:12px;line-height:1.6;margin:6px 0 12px;padding:8px 10px;background:#f6f8fb;border-radius:8px"></div>
     <label>套餐</label>
     <select id="grantPlan"><option value="pro" selected>专业版</option><option value="experience">体验版</option></select>
     <label>时长档位</label>
@@ -319,17 +320,31 @@ window.Admin = {
     const q = document.getElementById('userQ').value.trim()
     const list = await api('users' + (q ? '?q=' + encodeURIComponent(q) : ''))
     if (!list) return
+    Admin._userCache = {}   // 供开通弹窗显示当前会员状态
+    list.forEach(u => { Admin._userCache[u.id] = u })
     const t = document.getElementById('userTable')
     if (!list.length) { t.innerHTML = '<tbody><tr><td class="empty">无匹配用户</td></tr></tbody>'; return }
     t.innerHTML = '<thead><tr><th>ID</th><th>账号</th><th>昵称</th><th>角色</th><th>状态</th><th>会员</th><th>注册时间</th><th>操作</th></tr></thead><tbody>' +
       list.map(u => {
-        const m = u.membership ? `${u.membership.plan}·至${(u.membership.expireAt || '').slice(0, 10)}` : '无'
+        // 会员列：区分「无会员 / 已过期 / 生效中」，并显示剩余天数
+        let m
+        if (!u.membership) {
+          m = '<span class="tag tag-dis">无会员</span>'
+        } else {
+          const exp = u.membership.expireAt ? new Date(u.membership.expireAt) : null
+          const left = exp ? Math.ceil((exp - new Date()) / 864e5) : null
+          if (left !== null && left <= 0) {
+            m = `<span class="tag tag-dis">已过期</span> <span style="font-size:11px;color:#94a3b8">${esc(String(u.membership.expireAt).slice(0, 10))}</span>`
+          } else {
+            m = `<span class="tag tag-act">${esc(u.membership.plan)}</span> <span style="font-size:11px">至${esc(String(u.membership.expireAt).slice(0, 10))}${left !== null ? ` · 剩${left}天` : ''}</span>`
+          }
+        }
         const acc = u.email || ''
         const roleTag = u.role === 'admin' ? '<span class="tag tag-pro">admin</span>' : 'user'
         const stTag = u.status === 'active' ? '<span class="tag tag-act">active</span>' : '<span class="tag tag-dis">disabled</span>'
         return `<tr>
           <td>${esc(u.id ? u.id.slice(0, 8) : '')}</td><td>${esc(acc)}</td><td>${esc(u.nickname || '')}</td>
-          <td>${roleTag}</td><td>${stTag}</td><td>${esc(m)}</td><td>${(u.created_at || '').slice(0, 10)}</td>
+          <td>${roleTag}</td><td>${stTag}</td><td>${m}</td><td>${(u.created_at || '').slice(0, 10)}</td>
           <td>
             <button onclick="Admin.openGrant('${esc(u.id)}','${esc(acc)}')">开通/延期</button>
             <button onclick="Admin.resetPassword('${esc(u.id)}')">重置密码</button>
@@ -341,6 +356,21 @@ window.Admin = {
 
   openGrant(id, acc) {
     document.getElementById('grantUser').textContent = '用户：' + acc + ' (ID ' + id.slice(0, 8) + ')'
+    // 提示当前会员状态，避免分不清「新开」还是「顺延」
+    const hint = document.getElementById('grantHint')
+    const u = Admin._userCache && Admin._userCache[id]
+    if (hint) {
+      if (u && u.membership) {
+        const left = Math.ceil((new Date(u.membership.expireAt) - new Date()) / 864e5)
+        hint.textContent = left > 0
+          ? `当前已有会员：${u.membership.plan} · 至 ${String(u.membership.expireAt).slice(0, 10)}（剩 ${left} 天）。本次将在此基础上顺延。`
+          : `会员已于 ${String(u.membership.expireAt).slice(0, 10)} 过期，本次将重新开始计算。`
+        hint.style.color = left > 0 ? '#b45309' : '#5a6a7e'
+      } else {
+        hint.textContent = '该用户当前无有效会员，本次为首次开通。'
+        hint.style.color = '#5a6a7e'
+      }
+    }
     document.getElementById('grantMask').style.display = 'flex'
     document.getElementById('grantMask').dataset.uid = id
     document.getElementById('grantDurations').innerHTML = DURATION_LIST.map(d =>
@@ -355,9 +385,18 @@ window.Admin = {
     if (!sel) { toast('请选择时长', 'error'); return }
     const btn = document.getElementById('grantSubmit')
     btn.disabled = true; btn.textContent = '开通中…'
-    const r = await api('grant', { method: 'POST', body: { user_id: id, plan, duration: sel.value } })
-    btn.disabled = false; btn.textContent = '确认开通'
-    if (r) { toast('已开通：' + (r.desc || ''), 'ok'); Admin.closeGrant(); Admin.loadUsers() }
+    // ⚠️ 必须 try/finally：任何异常（含网络中断、RPC 抛错）都要恢复按钮，
+    //    否则会永远卡在「开通中…」，用户以为没点上而反复点击。
+    let r = null
+    try {
+      r = await api('grant', { method: 'POST', body: { user_id: id, plan, duration: sel.value } })
+    } catch (e) {
+      toast('开通失败：' + ((e && e.message) || '未知错误'), 'error')
+      console.error('grant error:', e)
+    } finally {
+      btn.disabled = false; btn.textContent = '确认开通'
+    }
+    if (r) { toast('已开通：' + (r.desc || ''), 'ok'); Admin.closeGrant(); Admin.loadUsers(); Admin.loadDashboard() }
   },
   async toggleStatus(id, status) {
     const r = await api('status', { method: 'POST', body: { user_id: id, status } })
@@ -395,7 +434,9 @@ window.Admin = {
   // 人工核对收款 → 确认收款并开通（幂等：已支付不会重复加时长）
   async settleOrder(orderNo) {
     if (!confirm('确认已收到「' + orderNo + '」的款项？\n\n将把该订单标记为已收款，并立即为用户开通对应时长的会员（若已有未到期会员则自动顺延）。\n重复点击不会重复加时长。')) return
-    const r = await api('settle', { method: 'POST', body: { order_no: orderNo } })
+    let r = null
+    try { r = await api('settle', { method: 'POST', body: { order_no: orderNo } }) }
+    catch (e) { toast('操作失败：' + ((e && e.message) || '未知错误'), 'error'); console.error('settle:', e); return }
     if (!r) return
     if (r.alreadyPaid) { toast('该订单已是已收款状态，未重复开通', 'warn'); Admin.loadOrders(); return }
     const m = r.membership || {}
@@ -406,7 +447,9 @@ window.Admin = {
   // 作废未付款的挂单
   async cancelOrder(orderNo) {
     if (!confirm('确认作废订单「' + orderNo + '」？\n\n仅用于清理未付款的挂单，不可撤销。')) return
-    const r = await api('cancel', { method: 'POST', body: { order_no: orderNo } })
+    let r = null
+    try { r = await api('cancel', { method: 'POST', body: { order_no: orderNo } }) }
+    catch (e) { toast('操作失败：' + ((e && e.message) || '未知错误'), 'error'); console.error('cancel:', e); return }
     if (!r) return
     toast('订单已作废', 'ok'); Admin.loadOrders()
   },
