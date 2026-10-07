@@ -1,15 +1,14 @@
 /* ============================================================
- *  观复・研社 · 复盘工作台 权限遮罩
+ *  观复・研社 · 复盘工作台 权限控制
  *  依赖：supabase-js（window.supabase）、miao_supabase.js（window.MiaoSB）
- *  行为：未登录 或 未开通会员(pro) → 显示全屏遮罩、隐藏 .app-layout 全部内容；
- *        已登录且为 pro 会员 → 移除遮罩、显示内容。与主站付费页一致。
- *  说明：内容默认（CSS）即被隐藏，仅当确认 isPro 后才解锁，
- *        因此未登录 / 未会员 / JS 加载前 都看不到任何复盘内容。
+ *  行为：未登录 或 未开通会员(pro) → 直接跳转到主站默认页 https://mimihub.cloud/；
+ *        已登录且为 pro 会员 → 给 body 加 miao-unlocked，显示 .app-layout 内容。
+ *  说明：内容默认（CSS）即被隐藏，仅当确认 isPro 后才解锁。
  * ============================================================ */
 (function () {
   'use strict';
 
-  function $(id) { return document.getElementById(id); }
+  var HOME = 'https://mimihub.cloud/';
 
   function start() {
     var MiaoSB = window.MiaoSB;
@@ -17,46 +16,37 @@
     if (!MiaoSB || !MiaoSB.client) {
       if (start._tries === undefined) start._tries = 0;
       if (start._tries++ < 60) { setTimeout(start, 100); return; }
-      // 超时仍无 MiaoSB：保持遮罩（内容隐藏），避免未授权访问
-      console.warn('[WorkGate] MiaoSB 未就绪，保持权限遮罩');
+      // 超时仍无 MiaoSB：为避免未授权内容外露，跳回主站
+      console.warn('[WorkGate] MiaoSB 未就绪，跳转回主站');
+      location.replace(HOME);
       return;
     }
 
-    var body = document.body;
-    var gate = $('miaoWorkGate');
-    var loginBtn = $('wgateLogin');
-    var vipBtn = $('wgateVip');
-
-    // 根据共享会员态切换遮罩
-    function apply() {
+    function check() {
       var pro = !!(MiaoSB && MiaoSB.state && MiaoSB.state.isPro);
-      body.classList.toggle('miao-unlocked', pro);
-      if (gate) gate.setAttribute('aria-hidden', pro ? 'true' : 'false');
+      if (pro) {
+        document.body.classList.add('miao-unlocked');
+      } else {
+        // 未登录/未会员：直接跳转到主站，不在工作台自己做遮罩
+        location.replace(HOME);
+      }
     }
 
-    if (loginBtn) loginBtn.addEventListener('click', function () {
-      if (window.MiaoSB) window.MiaoSB.openAuth('login');
-    });
-    if (vipBtn) vipBtn.addEventListener('click', function () {
-      if (window.MiaoSB) window.MiaoSB.openPurchase();
-    });
-
-    // 1) 登录 / 登出 → 会话变化（miao_supabase 会随后 refreshState 更新 isPro）
+    // 1) 登录 / 登出 / 购买完成 → miao_supabase 会 refreshState 更新 isPro
     try {
       if (MiaoSB.client.auth && MiaoSB.client.auth.onAuthStateChange) {
-        MiaoSB.client.auth.onAuthStateChange(function () { setTimeout(apply, 60); });
+        MiaoSB.client.auth.onAuthStateChange(function () { setTimeout(check, 60); });
       }
     } catch (e) { /* 忽略 */ }
 
-    // 2) 购买完成后 miao_supabase 会 refreshState 更新 state.isPro；
-    //    轻量轮询共享状态（仅读属性，无网络开销），捕获所有翻转：登录 / 登出 / 开通
-    setInterval(apply, 1500);
+    // 2) 轻量轮询共享状态（仅读属性，无网络开销），捕获所有翻转
+    setInterval(check, 1500);
 
     // 3) 兼容自定义刷新事件
-    window.addEventListener('miao:state', apply);
+    window.addEventListener('miao:state', check);
 
-    // 首次评估（此时 isPro 多为 false → 维持遮罩；待 refreshState 完成后翻转）
-    apply();
+    // 首次评估
+    check();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);

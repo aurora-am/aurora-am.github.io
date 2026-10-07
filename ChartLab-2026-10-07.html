@@ -708,25 +708,8 @@ body {
 .notes-cal-cell.muted { color:#c4cdd8; }
 .notes-date-label { font-size:13px; font-weight:700; margin:4px 0 12px; }
 
-/* ===== 工作台权限遮罩（未登录 / 未会员时隐藏全部内容） ===== */
-#miaoWorkGate{position:fixed;inset:56px 0 0 0;display:none;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);z-index:9000;padding:24px;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;}
-body:not(.miao-unlocked) #miaoWorkGate{display:flex;}
+/* ===== 工作台权限控制：未解锁时隐藏全部内容，解锁后显示 ===== */
 body:not(.miao-unlocked) .app-layout{display:none !important;}
-.wgate-card{max-width:440px;width:100%;text-align:center;color:#e6edf3;padding:8px;}
-.wgate-logo{font-size:42px;margin-bottom:6px;}
-.wgate-title{font-size:22px;font-weight:800;margin-bottom:10px;letter-spacing:1px;}
-.wgate-sub{font-size:14px;color:#94a3b8;line-height:1.7;margin-bottom:22px;}
-.wgate-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
-.wgate-btn{border-radius:10px;padding:12px 26px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
-  border:1.5px solid transparent;transition:.15s;line-height:1.2;}
-.wgate-btn.primary{background:#1a73e8;color:#fff;}
-.wgate-btn.primary:hover{background:#1557b0;}
-.wgate-btn.gold{background:linear-gradient(135deg,#ffe3ae,#f7c46b);color:#6a4a06;box-shadow:0 4px 14px rgba(240,175,60,.3);}
-.wgate-btn.gold:hover{filter:brightness(1.03);}
-.wgate-foot{margin-top:18px;font-size:12px;color:#64748b;line-height:1.6;}
-@media(max-width:768px){.wgate-title{font-size:19px;}.wgate-btn{padding:11px 20px;font-size:14px;}}
 </style>
 </head>
 <body>
@@ -757,20 +740,6 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
     <button class="topbar-btn vip-buy" id="vipBuyBtn" onclick="MiaoSB.openPurchase()">👑 开通会员</button>
     <button class="topbar-btn" id="vipChpwBtn" onclick="MiaoSB.openChangePw()">🔑 修改密码</button>
     <button class="topbar-btn" id="vipLogoutBtn" onclick="MiaoSB.logout()">退出</button>
-  </div>
-</div>
-
-<!-- ===== 权限遮罩（未登录 / 未会员时隐藏全部内容） ===== -->
-<div id="miaoWorkGate" class="miao-work-gate" aria-hidden="false">
-  <div class="wgate-card">
-    <div class="wgate-logo">🐱</div>
-    <div class="wgate-title">观复・研社 · 复盘工作台</div>
-    <div class="wgate-sub">本工作台为会员专属内容。<br>登录并开通会员后，即可查看全部实时复盘与选股数据。</div>
-    <div class="wgate-btns">
-      <button class="wgate-btn primary" id="wgateLogin">登录 / 注册</button>
-      <button class="wgate-btn gold" id="wgateVip">开通会员</button>
-    </div>
-    <div class="wgate-foot">支持一日体验 / 月卡 / 季卡 / 年卡，随时取消</div>
   </div>
 </div>
 
