@@ -164,7 +164,7 @@
     try {
       var r = await fetch(SUPABASE_URL + '/functions/v1/send-code', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON },
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
         body: JSON.stringify({ email: email, purpose: 'signup' })
       });
       var j = await r.json().catch(function () { return {}; });
