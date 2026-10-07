@@ -206,6 +206,24 @@ const DURATION_LIST = [
   { key: 'day', label: '体验日卡', trial: true },
 ]
 
+// 与11_admin_api.sql 里的 'version' 常量保持一致；不一致说明数据库函数是旧版
+const EXPECTED_VERSION = '2026-10-07-settle'
+
+/** 数据库函数版本过旧 → 顶部常驻红条，明确告诉用户要跑哪个 SQL */
+function showStaleBanner(msg) {
+  let el = document.getElementById('staleBanner')
+  if (!el) {
+    el = document.createElement('div')
+    el.id = 'staleBanner'
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;' +
+      'padding:10px 16px;font-size:13px;line-height:1.7;box-shadow:0 2px 12px rgba(0,0,0,.25)'
+    document.body.appendChild(el)
+  }
+  el.innerHTML = '<b>⚠️ 数据库函数版本过旧，操作无法执行</b><br>' + msg +
+    '<br><span style="opacity:.9">操作：Supabase 控制台 → SQL Editor → 全选粘贴执行 ' +
+    '<code>D:\\WorkBuddy\\喵喵的工作台\\_supabase_migrate\\11_admin_api.sql</code> → 点 Run → 回到本页强刷（Ctrl+F5）</span>'
+}
+
 function toast(msg, type) {
   const el = document.createElement('div')
   if (type) el.className = type
@@ -238,12 +256,18 @@ async function api(op, opts) {
     const m = ((error.message || '') + ' ' + (error.details || '')).toUpperCase()
     if (m.includes('FORBIDDEN')) { Admin.showGate('无管理员权限'); return null }
     if (m.includes('NO_AUTH') || m.includes('INVALID_TOKEN') || m.includes('JWT')) { Admin.showGate('登录态已失效，请重新登录'); return null }
-    toast((error.message || '接口错误').trim(), 'error')
-    return null
+    // 同步 catch fetch 层异常（网络中断等），避免按钮永久卡在「开通中…」
+    throw new Error(error.message || '接口错误')
   }
   if (data && data.error) {
     if (data.error === 'FORBIDDEN') { Admin.showGate('无管理员权限'); return null }
     if (data.error === 'NO_AUTH' || data.error === 'INVALID_TOKEN') { Admin.showGate('登录态已失效，请重新登录'); return null }
+    // 旧版函数没有新 op（settle/cancel/version）→ 报「未知 op」＝数据库未升级，给明确指引
+    if (data.error === 'UNKNOWN_OP') {
+      showStaleBanner('当前数据库里还没有 <code>' + esc(String((data.message || '').replace(/^未知 op:\s*/, '')) ) + '</code> 这个操作。')
+      toast('数据库函数版本过旧，请先执行 11_admin_api.sql', 'error')
+      return null
+    }
     toast(data.message || data.error, 'error')
     return null
   }
@@ -284,6 +308,15 @@ window.Admin = {
     if (!session) { Admin.showGate('请先登录管理员账号'); return }
     const me = await api('me')
     if (!me) return
+    // 主动探测数据库函数版本，过旧则常驻提示条（比等点按钮报「未知 op」更早发现）
+    try {
+      const v = await api('version')
+      if (!v) Admin._verStale = true   // api() 里已弹过提示（旧函数无 version op）
+      else if (v.version !== EXPECTED_VERSION) {
+        Admin._verStale = true
+        showStaleBanner('线上函数为 <code>' + esc(v.version) + '</code>，本页要求 <code>' + esc(EXPECTED_VERSION) + '</code>。')
+      }
+    } catch (e) { /* 网络异常不阻塞使用 */ }
     document.getElementById('adminName').textContent = (me.nickname || me.email) + '（管理员）'
     Admin.hideGate()
     Admin.loadDashboard()
