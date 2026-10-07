@@ -219,9 +219,12 @@ const EXPECTED_VERSION = '2026-10-07-settle'
  */
 async function probeDbCaps() {
   try {
-    const { data, error } = await MiaoSB.client.rpc('admin_api', {
-      op: 'settle', payload: { order_no: '__cap_probe_not_exist__' }
-    })
+    const sess = await Admin._getSession()
+    const token = (sess && sess.access_token) || ''
+    const args = { op: 'settle', payload: { order_no: '__cap_probe_not_exist__' } }
+    const r = token
+      ? await MiaoSB.client.rpc('admin_api', args, { headers: { Authorization: 'Bearer ' + token } })
+      : await MiaoSB.client.rpc('admin_api', args)
     if (error) {
       const m = ((error.message || '') + ' ' + (error.details || '')).toUpperCase()
       if (m.includes('UNKNOWN_OP')) return { ok: false, reason: 'missing-settle' }
@@ -264,8 +267,10 @@ function esc(s) {
 async function api(op, opts) {
   opts = opts || {}
   if (!window.MiaoSB || !MiaoSB.client) { toast('登录模块未就绪', 'error'); return null }
-  const { data: { session } } = await MiaoSB.client.auth.getSession()
-  if (!session) { Admin.showGate('登录态已失效，请重新登录'); return null }
+  // ⚠️ 走 _getSession()（含内存态兜底），不能用 getSession()：
+  // Edge 跟踪防护拦截 storage 时 getSession() 恒为 null，会误判「登录态已失效」。
+  const session = await Admin._getSession()
+  if (!session) { Admin.showGate('登录态已失效，请重新登录'); Admin._startWatch(); return null }
 
   // 兼容旧调用：GET 过滤参数以 ?q= / ?status= 形式拼在 op 后面
   let opName = op, payload = opts.body || {}
@@ -276,8 +281,13 @@ async function api(op, opts) {
     sp.forEach((v, k) => { payload[k] = v })
   }
 
-  const { data, error } = await MiaoSB.client.rpc('admin_api', { op: opName, payload })
-  if (error) {
+  // ⚠️ 显式传 access_token：storage 被浏览器跟踪防护拦截时，supabase-js 取不到
+  // 持久化的会话，自动附带鉴权会失败 → 必须用内存态里的 token 兜底。
+  const token = session.access_token || ''
+  const { data, error } = token
+    ? await MiaoSB.client.rpc('admin_api', { op: opName, payload }, { headers: { Authorization: 'Bearer ' + token } })
+    : await MiaoSB.client.rpc('admin_api', { op: opName, payload })
+if (error) {
     const m = ((error.message || '') + ' ' + (error.details || '')).toUpperCase()
     if (m.includes('FORBIDDEN')) { Admin.showGate('无管理员权限'); return null }
     if (m.includes('NO_AUTH') || m.includes('INVALID_TOKEN') || m.includes('JWT')) { Admin.showGate('登录态已失效，请重新登录'); return null }
@@ -337,14 +347,37 @@ window.Admin = {
       });
     }
 
-    const { data: { session } } = await MiaoSB.client.auth.getSession()
-    if (!session) {
+    const sbSess = await Admin._getSession()
+    if (!sbSess) {
       Admin.showGate('请先登录管理员账号')
       Admin._startWatch()      // 开始轮询等登录
       return
     }
     Admin._stopWatch()          // 已登录，停止轮询
-    Admin._enter()         // 登录后的真正入口（幂等）
+    Admin._enter()              // 登录后的真正入口（幂等）
+  },
+
+  /**
+   * 取登录态。⚠️ 必须兼容「浏览器跟踪防护拦截 storage」的情况。
+   * Edge 的 Tracking Prevention 会阻止 cdn.jsdelivr 上的 supabase-js 访问 localStorage
+   * （控制台：Tracking Prevention blocked access to storage）→ 会话写不进去、
+   * getSession() 恒为 null → 登录后进不去。
+   * 此时 MiaoSB 的内存态 state.user 仍是有效登录凭证，用它兜底。
+   */
+  async _getSession() {
+    let sess = null
+    try {
+      const r = await MiaoSB.client.auth.getSession()
+      sess = r && r.data ? r.data.session : null
+    } catch (e) { /* 存储被拦截时可能抛错，走兜底 */ }
+    let fromStorage = !!sess
+    if (!sess && MiaoSB.state && MiaoSB.state.user) {
+      // 用内存态登录用户构造等价会话（access_token 走 RPC 鉴权时由 supabase 内部补）
+      sess = { user: MiaoSB.state.user, access_token: (MiaoSB.state.session || {}).access_token || '' }
+    }
+    // 记下 storage 被拦截（getSession 拿不到、只能靠内存态）
+    Admin._storageBlocked = !!sess && !fromStorage
+    return sess
   },
 
   /** 登录后进入后台：校验管理员身份 → 隐藏 gate → 载入仪表盘 */
@@ -362,6 +395,10 @@ window.Admin = {
       document.getElementById('adminName').textContent = (me.nickname || me.email) + '（管理员）'
       Admin.hideGate()
       Admin.loadDashboard()
+      // 提示浏览器拦截了 storage（Edge 跟踪防护）——会话无法持久化，刷新后需重新登录
+      if (Admin._storageBlocked) {
+        toast('注意：浏览器拦截了本地存储（Edge 跟踪防护），会话无法保持，刷新页面需重新登录。建议改用 Chrome 或在 Edge 中关闭跟踪防护。', 'warn')
+      }
     } catch (e) {
       toast('进入后台失败：' + ((e && e.message) || '未知错误'), 'error')
       console.error('enter:', e)
@@ -381,7 +418,7 @@ window.Admin = {
     Admin._watchTimer = setInterval(async () => {
       if (Admin._entering) return
       try {
-        const { data: { session } } = await MiaoSB.client.auth.getSession()
+        const session = await Admin._getSession()
         if (session) { Admin._stopWatch(); Admin._enter() }
       } catch (e) { /* 忽略单次失败 */ }
     }, 1000)
