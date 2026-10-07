@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 · 观复・研社</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<link rel="stylesheet" href="miao_supabase.css?v=c2cb4c94">
+<style>
+  :root{
+    --bg:#f0f4f8; --card:#fff; --border:#d8e2ee; --primary:#1a73e8; --primary-d:#1557b0;
+    --text:#1a1a2e; --sub:#5a6a7e; --red:#e34d59; --green:#1aad5e; --orange:#f59e0b;
+    --shadow:0 2px 12px rgba(26,115,232,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+  a{color:var(--primary);text-decoration:none}
+  /* 登录门 */
+  #loginGate{position:fixed;inset:0;background:linear-gradient(135deg,#1a73e8,#1557b0);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:50}
+  #loginGate .box{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:36px 40px;text-align:center;backdrop-filter:blur(6px)}
+  #loginGate h1{margin:0 0 6px;font-size:22px}
+  #loginGate p{margin:0 0 20px;opacity:.9;font-size:14px}
+  #loginGate button{background:#fff;color:var(--primary);border:0;border-radius:10px;padding:11px 26px;font-size:15px;font-weight:600;cursor:pointer}
+  #loginGate.err{background:linear-gradient(135deg,#b3261e,#7a1c16)}
+  /* 外壳 */
+  .admin-shell{display:flex;min-height:100vh}
+  .admin-side{width:210px;background:linear-gradient(180deg,#1a73e8,#1557b0);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .admin-logo{padding:22px 18px;font-size:18px;font-weight:700;border-bottom:1px solid rgba(255,255,255,.18)}
+  .admin-side nav{flex:1;padding:10px 0;overflow:auto}
+  .admin-nav{padding:12px 18px;cursor:pointer;font-size:14.5px;opacity:.9;border-left:3px solid transparent}
+  .admin-nav:hover{background:rgba(255,255,255,.1)}
+  .admin-nav.active{background:rgba(255,255,255,.16);border-left-color:#fff;opacity:1;font-weight:600}
+  .admin-side-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.18);font-size:13px;display:flex;flex-direction:column;gap:6px}
+  .admin-side-foot a{cursor:pointer;opacity:.85}
+  .admin-main{flex:1;padding:24px 30px;max-width:1100px}
+  .admin-main h2{margin:0 0 18px;font-size:20px}
+  .av{display:none}
+  .av.show{display:block}
+  /* 卡片 */
+  .ad-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+  .ad-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:var(--shadow)}
+  .ad-card .n{font-size:26px;font-weight:700;color:var(--primary)}
+  .ad-card .l{font-size:13px;color:var(--sub);margin-top:4px}
+  .ad-note{margin-top:16px;color:var(--sub);font-size:13px;background:#eef3fb;border:1px solid #dde7f5;border-radius:10px;padding:12px}
+  /* 工具栏/表格 */
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+  .toolbar input,.toolbar select{padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:14px}
+  .toolbar input[type=text]{min-width:240px}
+  button{padding:9px 16px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:14px}
+  button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  button.danger{background:#fff;color:var(--red);border-color:#f3c6c9}
+  .ad-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:13.5px}
+  .ad-table th,.ad-table td{padding:10px 12px;text-align:left;border-bottom:1px solid #eef1f5}
+  .ad-table th{background:#f5f8fc;color:var(--sub);font-weight:600}
+  .ad-table tr:last-child td{border-bottom:0}
+  .ad-table button{padding:5px 10px;font-size:12.5px;margin-right:4px}
+  .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px}
+  .tag-pro{background:#e8f0fe;color:var(--primary)}
+  .tag-exp{background:#e8f8ef;color:var(--green)}
+  .tag-dis{background:#fdeaea;color:var(--red)}
+  .tag-act{background:#e8f8ef;color:var(--green)}
+  /* 设置 */
+  .set-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;max-width:760px}
+  .set-grid label{display:block;font-size:13px;color:var(--sub);margin-bottom:5px}
+  .set-grid input,.set-grid select{padding:9px 11px;width:100%;border:1px solid var(--border);border-radius:8px}
+  .set-h{font-weight:700;color:var(--text);grid-column:1/-1;margin-top:6px}
+  .set-note{margin:14px 0;color:var(--sub);font-size:13px;background:#eef3fb;border:1px solid #dde7f5;border-radius:10px;padding:12px;max-width:760px}
+  textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit}
+  /* 弹窗 */
+  .ad-modal-mask{position:fixed;inset:0;background:rgba(20,30,48,.45);display:flex;align-items:center;justify-content:center;z-index:60}
+  .ad-modal{background:#fff;border-radius:14px;padding:24px;width:380px;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  .ad-modal h3{margin:0 0 14px}
+  .ad-modal label{display:block;font-size:13px;color:var(--sub);margin:10px 0 5px}
+  .ad-modal select,.ad-modal input{padding:9px 11px;width:100%;border:1px solid var(--border);border-radius:8px}
+  .gr-durs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  .gr-dur{display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:8px;padding:9px 11px;cursor:pointer;font-size:13.5px}
+  .gr-dur.trial{background:#fff8ef;border-color:#f3d9a8}
+  .ad-modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+  /* toast */
+  #toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:99;display:flex;flex-direction:column;gap:8px;align-items:center}
+  #toast div{background:#222;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+  #toast div.ok{background:#1aad5e} #toast div.error{background:#e34d59} #toast div.warn{background:#f59e0b}
+  .empty{padding:30px;text-align:center;color:var(--sub)}
+</style>
+</head>
+<body>
+<!-- 登录门（未登录显示） -->
+<div id="loginGate">
+  <div class="box">
+    <h1>观复・研社 管理后台</h1>
+    <p id="gateTip">请先登录管理员账号</p>
+    <button onclick="Admin.login()">登录 / 注册</button>
+  </div>
+</div>
+
+<div class="admin-shell" id="shell" style="display:none">
+  <aside class="admin-side">
+    <div class="admin-logo">🐱 管理后台</div>
+    <nav>
+      <div class="admin-nav active" data-v="dashboard">📊 仪表盘</div>
+      <div class="admin-nav" data-v="users">👤 用户管理</div>
+      <div class="admin-nav" data-v="orders">🧾 订单管理</div>
+      <div class="admin-nav" data-v="content">📢 内容管理</div>
+      <div class="admin-nav" data-v="settings">⚙️ 参数设置</div>
+      <div class="admin-nav" data-v="audit">🛡️ 审计日志</div>
+    </nav>
+    <div class="admin-side-foot">
+      <span id="adminName"></span>
+      <a onclick="Admin.logout()">退出登录</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <h2 id="adminTitle">仪表盘</h2>
+
+    <section class="av show" data-view="dashboard">
+      <div class="ad-cards" id="dashCards"></div>
+      <div class="ad-note">会员到期每日由定时任务标记 expired；前端在会员到期时同步锁定专属模块。</div>
+    </section>
+
+    <section class="av" data-view="users">
+      <div class="toolbar">
+        <input type="text" id="userQ" placeholder="搜索邮箱 / 昵称">
+        <button onclick="Admin.searchUsers()">搜索</button>
+        <button onclick="Admin.loadUsers()">刷新</button>
+      </div>
+      <table class="ad-table" id="userTable"><thead></thead><tbody></tbody></table>
+    </section>
+
+    <section class="av" data-view="orders">
+      <div class="toolbar">
+        <select id="orderStatus">
+          <option value="">全部</option><option value="pending">待支付</option>
+          <option value="paid">已支付</option><option value="failed">失败</option>
+          <option value="expired">过期</option>
+        </select>
+        <button onclick="Admin.loadOrders()">查询</button>
+      </div>
+      <table class="ad-table" id="orderTable"><thead></thead><tbody></tbody></table>
+    </section>
+
+    <section class="av" data-view="content">
+      <label>全站公告（首页 / 工作台提示）</label>
+      <textarea id="annText" rows="4"></textarea>
+      <div style="margin-top:10px"><button class="primary" onclick="Admin.saveAnn()">保存公告</button></div>
+    </section>
+
+    <section class="av" data-view="settings">
+      <div class="set-grid">
+        <div style="grid-column:1/-1"><label class="set-h">体验版（按时长档位定价，已是最终应收价）</label></div>
+        <div><label>体验版·1个月(元)</label><input id="set_experience_price_month" type="number" min="0" step="0.01"></div>
+        <div><label>体验版·3个月(元)</label><input id="set_experience_price_quarter" type="number" min="0" step="0.01"></div>
+        <div><label>体验版·6个月(元)</label><input id="set_experience_price_halfyear" type="number" min="0" step="0.01"></div>
+        <div><label>体验版·12个月(元)</label><input id="set_experience_price_year" type="number" min="0" step="0.01"></div>
+        <div style="grid-column:1/-1"><label class="set-h">专业版（买得越长越便宜）</label></div>
+        <div><label>专业版·1个月(元)</label><input id="set_pro_price_month" type="number" min="0" step="0.01"></div>
+        <div><label>专业版·3个月(元)</label><input id="set_pro_price_quarter" type="number" min="0" step="0.01"></div>
+        <div><label>专业版·6个月(元)</label><input id="set_pro_price_halfyear" type="number" min="0" step="0.01"></div>
+        <div><label>专业版·12个月(元)</label><input id="set_pro_price_year" type="number" min="0" step="0.01"></div>
+        <div><label>一日体验卡(元)</label><input id="set_pro_price_day" type="number" min="0" step="0.01"></div>
+        <div><label>早鸟截止日期(YYYY-MM-DD)</label><input id="set_early_bird_deadline" type="text" placeholder="留空=已结束"></div>
+        <div><label>试用天数</label><input id="set_trial_days" type="number" min="0" step="1"></div>
+        <div><label>试用套餐</label><select id="set_trial_plan"><option value="experience">体验版</option><option value="pro">专业版</option></select></div>
+        <div style="grid-column:1/-1"><label>体验版免费模块(page key,逗号分隔)</label><input id="set_free_modules"></div>
+      </div>
+      <div class="set-note">价格已是「按折扣算好的最终应收价」，买得越长越便宜；前端下单金额一律由后端按此档位计算。非法 / 空值将整体拒绝保存。</div>
+      <button class="primary" onclick="Admin.saveSettings()">保存设置</button>
+    </section>
+
+    <section class="av" data-view="audit">
+      <table class="ad-table" id="auditTable"><thead></thead><tbody></tbody></table>
+    </section>
+  </main>
+</div>
+
+<!-- 手动开通 / 延期 弹窗 -->
+<div class="ad-modal-mask" id="grantMask" style="display:none">
+  <div class="ad-modal">
+    <h3>手动开通 / 延期</h3>
+    <div id="grantUser"></div>
+    <label>套餐</label>
+    <select id="grantPlan"><option value="pro" selected>专业版</option><option value="experience">体验版</option></select>
+    <label>时长档位</label>
+    <div id="grantDurations" class="gr-durs"><div class="gr-hint">加载中…</div></div>
+    <div class="ad-modal-btns">
+      <button class="primary" id="grantSubmit" onclick="Admin.doGrant()">确认开通</button>
+      <button onclick="Admin.closeGrant()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="miao_supabase.js?v=c2cb4c94"></script>
+<script>
+// ============ 线上管理后台逻辑（复用站点登录态 MiaoSB） ============
+// 后台接口 = Postgres SECURITY DEFINER 函数 public.admin_api(op, payload)
+// 浏览器端只用公开 anon key + 用户自己的登录态 JWT，service_role 仅存于数据库侧，密钥不落公网
+const DURATION_LIST = [
+  { key: 'month', label: '1个月' },
+  { key: 'quarter', label: '3个月' },
+  { key: 'halfyear', label: '6个月' },
+  { key: 'year', label: '12个月' },
+  { key: 'day', label: '体验日卡', trial: true },
+]
+
+function toast(msg, type) {
+  const el = document.createElement('div')
+  if (type) el.className = type
+  el.textContent = msg
+  document.getElementById('toast').appendChild(el)
+  setTimeout(() => el.remove(), 2600)
+}
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+}
+
+// 调用后台：复用登录态，自动带 JWT（无需任何密钥）
+async function api(op, opts) {
+  opts = opts || {}
+  if (!window.MiaoSB || !MiaoSB.client) { toast('登录模块未就绪', 'error'); return null }
+  const { data: { session } } = await MiaoSB.client.auth.getSession()
+  if (!session) { Admin.showGate('登录态已失效，请重新登录'); return null }
+
+  // 兼容旧调用：GET 过滤参数以 ?q= / ?status= 形式拼在 op 后面
+  let opName = op, payload = opts.body || {}
+  const qi = op.indexOf('?')
+  if (qi >= 0) {
+    opName = op.slice(0, qi)
+    const sp = new URLSearchParams(op.slice(qi + 1))
+    sp.forEach((v, k) => { payload[k] = v })
+  }
+
+  const { data, error } = await MiaoSB.client.rpc('admin_api', { op: opName, payload })
+  if (error) {
+    const m = ((error.message || '') + ' ' + (error.details || '')).toUpperCase()
+    if (m.includes('FORBIDDEN')) { Admin.showGate('无管理员权限'); return null }
+    if (m.includes('NO_AUTH') || m.includes('INVALID_TOKEN') || m.includes('JWT')) { Admin.showGate('登录态已失效，请重新登录'); return null }
+    toast((error.message || '接口错误').trim(), 'error')
+    return null
+  }
+  if (data && data.error) {
+    if (data.error === 'FORBIDDEN') { Admin.showGate('无管理员权限'); return null }
+    if (data.error === 'NO_AUTH' || data.error === 'INVALID_TOKEN') { Admin.showGate('登录态已失效，请重新登录'); return null }
+    toast(data.message || data.error, 'error')
+    return null
+  }
+  return data
+}
+
+window.Admin = {
+  showGate(tip) {
+    if (tip) document.getElementById('gateTip').textContent = tip
+    document.getElementById('loginGate').style.display = 'flex'
+    document.getElementById('shell').style.display = 'none'
+  },
+  hideGate() {
+    document.getElementById('loginGate').style.display = 'none'
+    document.getElementById('shell').style.display = 'flex'
+  },
+  login() { if (window.MiaoSB) MiaoSB.openAuth('login') },
+  logout() { if (window.MiaoSB) MiaoSB.logout() },
+  async bootstrap() {
+    // 等待 MiaoSB 就绪
+    if (!window.MiaoSB) { setTimeout(() => Admin.bootstrap(), 200); return }
+    const { data: { session } } = await MiaoSB.client.auth.getSession()
+    if (!session) { Admin.showGate('请先登录管理员账号'); return }
+    const me = await api('me')
+    if (!me) return
+    document.getElementById('adminName').textContent = (me.nickname || me.email) + '（管理员）'
+    Admin.hideGate()
+    Admin.loadDashboard()
+    // 监听登录态变化
+    MiaoSB.client.auth.onAuthStateChange((_e, s) => {
+      if (!s) Admin.showGate('请先登录管理员账号')
+    })
+  },
+
+  // tab 切换
+  switchTab(v) {
+    document.querySelectorAll('.admin-nav').forEach(n => n.classList.toggle('active', n.dataset.v === v))
+    document.getElementById('adminTitle').textContent = document.querySelector('.admin-nav[data-v="' + v + '"]').textContent.trim()
+    document.querySelectorAll('.av').forEach(s => s.classList.toggle('show', s.dataset.view === v))
+    if (v === 'dashboard') Admin.loadDashboard()
+    if (v === 'users') Admin.loadUsers()
+    if (v === 'orders') Admin.loadOrders()
+    if (v === 'settings') Admin.loadSettings()
+    if (v === 'audit') Admin.loadAudit()
+    if (v === 'content') Admin.loadAnn()
+  },
+
+  async loadDashboard() {
+    const d = await api('dashboard')
+    if (!d) return
+    const cards = [
+      { n: d.totalUsers, l: '注册用户总数' },
+      { n: d.paidUsers, l: '付费用户数' },
+      { n: '¥' + (d.monthRevenue || 0), l: '本月营收' },
+      { n: d.activeMembers, l: '有效会员数' },
+      { n: d.expiringSoon, l: '7日内到期' },
+    ]
+    document.getElementById('dashCards').innerHTML = cards.map(c =>
+      `<div class="ad-card"><div class="n">${esc(c.n)}</div><div class="l">${esc(c.l)}</div></div>`).join('')
+  },
+
+  async loadUsers() {
+    const q = document.getElementById('userQ').value.trim()
+    const list = await api('users' + (q ? '?q=' + encodeURIComponent(q) : ''))
+    if (!list) return
+    const t = document.getElementById('userTable')
+    if (!list.length) { t.innerHTML = '<tbody><tr><td class="empty">无匹配用户</td></tr></tbody>'; return }
+    t.innerHTML = '<thead><tr><th>ID</th><th>账号</th><th>昵称</th><th>角色</th><th>状态</th><th>会员</th><th>注册时间</th><th>操作</th></tr></thead><tbody>' +
+      list.map(u => {
+        const m = u.membership ? `${u.membership.plan}·至${(u.membership.expireAt || '').slice(0, 10)}` : '无'
+        const acc = u.email || ''
+        const roleTag = u.role === 'admin' ? '<span class="tag tag-pro">admin</span>' : 'user'
+        const stTag = u.status === 'active' ? '<span class="tag tag-act">active</span>' : '<span class="tag tag-dis">disabled</span>'
+        return `<tr>
+          <td>${esc(u.id ? u.id.slice(0, 8) : '')}</td><td>${esc(acc)}</td><td>${esc(u.nickname || '')}</td>
+          <td>${roleTag}</td><td>${stTag}</td><td>${esc(m)}</td><td>${(u.created_at || '').slice(0, 10)}</td>
+          <td>
+            <button onclick="Admin.openGrant('${esc(u.id)}','${esc(acc)}')">开通/延期</button>
+            <button onclick="Admin.resetPassword('${esc(u.id)}')">重置密码</button>
+            <button class="${u.status === 'active' ? 'danger' : ''}" onclick="Admin.toggleStatus('${esc(u.id)}','${u.status === 'active' ? 'disabled' : 'active'}')">${u.status === 'active' ? '禁用' : '启用'}</button>
+          </td></tr>`
+      }).join('') + '</tbody>'
+  },
+  searchUsers() { Admin.loadUsers() },
+
+  openGrant(id, acc) {
+    document.getElementById('grantUser').textContent = '用户：' + acc + ' (ID ' + id.slice(0, 8) + ')'
+    document.getElementById('grantMask').style.display = 'flex'
+    document.getElementById('grantMask').dataset.uid = id
+    document.getElementById('grantDurations').innerHTML = DURATION_LIST.map(d =>
+      `<label class="gr-dur${d.trial ? ' trial' : ''}"><input type="radio" name="grantDur" value="${d.key}"${d.key === 'year' ? ' checked' : ''}><span>${esc(d.label)}</span></label>`
+    ).join('')
+  },
+  closeGrant() { document.getElementById('grantMask').style.display = 'none' },
+  async doGrant() {
+    const id = document.getElementById('grantMask').dataset.uid
+    const plan = document.getElementById('grantPlan').value
+    const sel = document.querySelector('input[name="grantDur"]:checked')
+    if (!sel) { toast('请选择时长', 'error'); return }
+    const btn = document.getElementById('grantSubmit')
+    btn.disabled = true; btn.textContent = '开通中…'
+    const r = await api('grant', { method: 'POST', body: { user_id: id, plan, duration: sel.value } })
+    btn.disabled = false; btn.textContent = '确认开通'
+    if (r) { toast('已开通：' + (r.desc || ''), 'ok'); Admin.closeGrant(); Admin.loadUsers() }
+  },
+  async toggleStatus(id, status) {
+    const r = await api('status', { method: 'POST', body: { user_id: id, status } })
+    if (r) { toast('已更新', 'ok'); Admin.loadUsers() }
+  },
+  async resetPassword(id) {
+    if (!confirm('确定重置该用户密码吗？将生成一次性临时密码（用户登录后请立即修改）。')) return
+    const r = await api('resetpw', { method: 'POST', body: { user_id: id } })
+    if (r) { alert('已重置。请转告用户以下临时密码：\n\n' + r.tempPassword + '\n\n（用户登录后请立即修改）'); toast('密码已重置', 'ok') }
+  },
+
+  async loadOrders() {
+    const st = document.getElementById('orderStatus').value
+    const list = await api('orders' + (st ? '?status=' + st : ''))
+    if (!list) return
+    const DUL = { month: '1个月', quarter: '3个月', halfyear: '6个月', year: '12个月', day: '体验日卡' }
+    const t = document.getElementById('orderTable')
+    if (!list.length) { t.innerHTML = '<tbody><tr><td class="empty">无订单</td></tr></tbody>'; return }
+    t.innerHTML = '<thead><tr><th>订单号</th><th>用户</th><th>金额</th><th>套餐</th><th>时长档</th><th>状态</th><th>支付时间</th><th>创建</th></tr></thead><tbody>' +
+      list.map(o => `<tr><td>${esc(o.order_no)}</td><td>${esc(o.nickname || '')}</td>
+        <td>¥${o.amount}</td><td>${esc(o.plan)}</td><td>${esc(DUL[o.duration] || o.duration || '')}</td><td>${esc(o.status)}</td>
+        <td>${(o.paid_at || '').slice(0, 19)}</td><td>${(o.created_at || '').slice(0, 19)}</td></tr>`).join('') + '</tbody>'
+  },
+
+  async loadAnn() {
+    const c = await api('announcement')
+    if (c) document.getElementById('annText').value = c.announcement || ''
+  },
+  async saveAnn() {
+    const r = await api('announcement', { method: 'POST', body: { announcement: document.getElementById('annText').value } })
+    if (r) toast('公告已保存', 'ok')
+  },
+
+  async loadSettings() {
+    const s = await api('settings')
+    if (!s) return
+    const set = (k, v) => { const el = document.getElementById('set_' + k); if (el) el.value = (v != null ? v : '') }
+    ;['experience_price_month', 'experience_price_quarter', 'experience_price_halfyear', 'experience_price_year',
+      'pro_price_month', 'pro_price_quarter', 'pro_price_halfyear', 'pro_price_year', 'pro_price_day',
+      'early_bird_deadline', 'trial_days', 'trial_plan', 'free_modules'].forEach(k => set(k, s[k]))
+  },
+  async saveSettings() {
+    const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : '' }
+    const keys = {}
+    const tierKeys = [
+      ['experience_price_month', '体验版·1个月'], ['experience_price_quarter', '体验版·3个月'],
+      ['experience_price_halfyear', '体验版·6个月'], ['experience_price_year', '体验版·12个月'],
+      ['pro_price_month', '专业版·1个月'], ['pro_price_quarter', '专业版·3个月'],
+      ['pro_price_halfyear', '专业版·6个月'], ['pro_price_year', '专业版·12个月'], ['pro_price_day', '一日体验卡'],
+    ]
+    const money = (v, label) => {
+      if (v === '') return 0
+      const n = Number(v)
+      if (!Number.isFinite(n) || n < 0) { toast(label + ' 必须是不小于 0 的数字', 'error'); throw 0 }
+      return Math.round(n * 100) / 100
+    }
+    try {
+      for (const [k, label] of tierKeys) keys[k] = money(val('set_' + k), label)
+      keys.early_bird_deadline = val('set_early_bird_deadline')
+      keys.trial_days = val('set_trial_days')
+      keys.trial_plan = val('set_trial_plan')
+      keys.free_modules = val('set_free_modules')
+      const r = await api('settings', { method: 'POST', body: { keys } })
+      if (r) { toast('设置已保存', 'ok'); Admin.loadSettings() }
+    } catch (e) { if (e !== 0) toast('保存失败', 'error') }
+  },
+
+  async loadAudit() {
+    const list = await api('audit')
+    if (!list) return
+    const t = document.getElementById('auditTable')
+    if (!list.length) { t.innerHTML = '<tbody><tr><td class="empty">暂无审计记录</td></tr></tbody>'; return }
+    t.innerHTML = '<thead><tr><th>时间</th><th>管理员</th><th>动作</th><th>详情</th></tr></thead><tbody>' +
+      list.map(a => `<tr><td>${(a.created_at || '').slice(0, 19)}</td><td>${esc(a.admin_name || '')}</td>
+        <td>${esc(a.action)}</td><td>${esc(a.detail || '')}</td></tr>`).join('') + '</tbody>'
+  },
+}
+
+document.querySelectorAll('.admin-nav').forEach(n => n.onclick = () => Admin.switchTab(n.dataset.v))
+document.addEventListener('DOMContentLoaded', Admin.bootstrap)
+</script>
+</body>
+</html>
