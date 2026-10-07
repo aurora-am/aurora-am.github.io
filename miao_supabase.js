@@ -125,7 +125,7 @@
         '</div>' : '') +
       '<div class="miao-err" id="miaoErr"></div>' +
       '<button class="miao-btn primary" id="miaoSubmit">' + (isReg ? '注 册' : '登 录') + '</button>' +
-      '<div class="miao-foot"><a href="javascript:void(0)" id="miaoForgot">忘记密码？</a></div>';
+      (isReg ? '' : '<div class="miao-foot"><a href="javascript:void(0)" id="miaoForgot">忘记密码？</a></div>');
   }
 
   function openAuth(tab) {
@@ -149,7 +149,7 @@
     $('miaoSubmit').textContent = isReg ? '注 册' : '登 录';
     $('miaoSubmit').addEventListener('click', submitAuth);
     $('miaoPwd').addEventListener('keydown', function (e) { if (e.key === 'Enter') submitAuth(); });
-    $('miaoForgot').addEventListener('click', openReset);
+    var fg = $('miaoForgot'); if (fg) fg.addEventListener('click', openReset);
     if (isReg && $('miaoSendCode')) $('miaoSendCode').addEventListener('click', sendCode);
   }
 
