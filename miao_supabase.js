@@ -212,6 +212,13 @@
     $('miaoSubmit').disabled = true; $('miaoSubmit').textContent = '处理中…';
     var res;
     try {
+      // 注册前清理本地残留会话（幽灵 token 会导致 GoTrue 报 Database error finding user）
+      if (isReg) {
+        try {
+          var st = await sb.auth.getSession();
+          if (st && st.data && st.data.session) await sb.auth.signOut();
+        } catch (e) { /* 忽略清理失败 */ }
+      }
       res = isReg
         ? await sb.auth.signUp({ email: email, password: pwd })
         : await sb.auth.signInWithPassword({ email: email, password: pwd });
