@@ -206,8 +206,33 @@ const DURATION_LIST = [
   { key: 'day', label: '体验日卡', trial: true },
 ]
 
-// 与11_admin_api.sql 里的 'version' 常量保持一致；不一致说明数据库函数是旧版
+// 与11_admin_api.sql 里的 'version' 常量一致（仅用于展示，不作为判定依据）
 const EXPECTED_VERSION = '2026-10-07-settle'
+
+/**
+ * 数据库能力探测（不依赖 version op）。
+ * 用一个必然不存在的订单号调settle：
+ *   - 返回 UNKNOWN_OP        → 库里确实没有 settle 分支，功能真的不可用
+ *   - 返回 ORDER_NOT_FOUND   → settle 分支存在（只是订单不存在），功能可用
+ * 判定必须靠「op 是否存在」，不能靠 version 字符串：用户可能执行了含 settle
+ * 但早于 version 探针的版本，届时会误报「版本过旧」。
+ */
+async function probeDbCaps() {
+  try {
+    const { data, error } = await MiaoSB.client.rpc('admin_api', {
+      op: 'settle', payload: { order_no: '__cap_probe_not_exist__' }
+    })
+    if (error) {
+      const m = ((error.message || '') + ' ' + (error.details || '')).toUpperCase()
+      if (m.includes('UNKNOWN_OP')) return { ok: false, reason: 'missing-settle' }
+      return { ok: true }   // 其他错误（如 FORBIDDEN）说明 op 分支存在，问题在权限/登录态
+    }
+    if (data && data.error === 'UNKNOWN_OP') return { ok: false, reason: 'missing-settle' }
+    return { ok: true, version: (data && data.version) || null }
+  } catch (e) {
+    return { ok: true, silent: true }  // 网络异常不阻塞使用，也不误报
+  }
+}
 
 /** 数据库函数版本过旧 → 顶部常驻红条，明确告诉用户要跑哪个 SQL */
 function showStaleBanner(msg) {
@@ -262,10 +287,18 @@ async function api(op, opts) {
   if (data && data.error) {
     if (data.error === 'FORBIDDEN') { Admin.showGate('无管理员权限'); return null }
     if (data.error === 'NO_AUTH' || data.error === 'INVALID_TOKEN') { Admin.showGate('登录态已失效，请重新登录'); return null }
-    // 旧版函数没有新 op（settle/cancel/version）→ 报「未知 op」＝数据库未升级，给明确指引
+    // 缺 op（如 settle/cancel）→ 可能是数据库未升级。
+    // api 是 async，可直接 await 复核：只有确认库里真没有该 op 才拦，避免误报。
     if (data.error === 'UNKNOWN_OP') {
-      showStaleBanner('当前数据库里还没有 <code>' + esc(String((data.message || '').replace(/^未知 op:\s*/, '')) ) + '</code> 这个操作。')
-      toast('数据库函数版本过旧，请先执行 11_admin_api.sql', 'error')
+      const cap = await probeDbCaps()
+      if (cap && cap.ok === false) {
+        Admin._settleMissing = true
+        showStaleBanner('当前数据库里还没有 <code>' + esc(String(data.message || '').replace(/^未知 op:\s*/, '')) + '</code> 这个操作。')
+        toast('数据库函数版本过旧，请先执行 11_admin_api.sql', 'error')
+      } else {
+        Admin._settleMissing = false
+        toast('接口返回：' + (data.message || data.error), 'error')
+      }
       return null
     }
     toast(data.message || data.error, 'error')
@@ -308,15 +341,11 @@ window.Admin = {
     if (!session) { Admin.showGate('请先登录管理员账号'); return }
     const me = await api('me')
     if (!me) return
-    // 主动探测数据库函数版本，过旧则常驻提示条（比等点按钮报「未知 op」更早发现）
+    // 探测数据库能力：settle 分支是否真实存在（不使用 version 字符串做判定，避免误报）
     try {
-      const v = await api('version')
-      if (!v) Admin._verStale = true   // api() 里已弹过提示（旧函数无 version op）
-      else if (v.version !== EXPECTED_VERSION) {
-        Admin._verStale = true
-        showStaleBanner('线上函数为 <code>' + esc(v.version) + '</code>，本页要求 <code>' + esc(EXPECTED_VERSION) + '</code>。')
-      }
-    } catch (e) { /* 网络异常不阻塞使用 */ }
+      const cap = await probeDbCaps()
+      Admin._settleMissing = !(cap && cap.ok)
+    } catch (e) { /* 网络异常不阻塞 */ }
     document.getElementById('adminName').textContent = (me.nickname || me.email) + '（管理员）'
     Admin.hideGate()
     Admin.loadDashboard()
