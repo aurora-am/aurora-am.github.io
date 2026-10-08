@@ -4413,7 +4413,11 @@ function renderTechAnalysis(targetId) {
     el.innerHTML = '<div class="tech-section" style="color:var(--text-light);">K线数据不足，暂无法生成技术分析（数据加载完成后将自动刷新）。</div>';
     return;
   }
-  var sh = DATA.indices.sh;
+  // 上证价格统一锚定 10:06 盘中快照（marketRegime.shClose），与顶部总览卡一致，消除「数字打架」
+  var _shRaw = DATA.indices.sh || {};
+  var _M = (typeof EMBEDDED_MAINLINE !== 'undefined') ? EMBEDDED_MAINLINE : null;
+  var _shAnchor = (_M && _M.marketRegime && _M.marketRegime.shClose != null) ? _M.marketRegime.shClose : _shRaw.price;
+  var sh = Object.assign({}, _shRaw, { price: _shAnchor });
   // 模拟计算 MA、MACD、BOLL 等关键指标（基于真实价格生成）
   var closes = kl.ohlc.map(function(d) { return d[1]; });
   function ma(arr, n) {
@@ -8201,12 +8205,14 @@ function openManualEntry(date) {
   date = date || DATA.date;
   var lu = DATA.limitUp || {};
   var idx = DATA.indices || {};
+  // 上证价格锚定 10:06 盘中快照（与总览卡一致），避免手动补录页出现冲突数字
+  var _snapSh = (typeof EMBEDDED_MAINLINE !== 'undefined' && EMBEDDED_MAINLINE.marketRegime && EMBEDDED_MAINLINE.marketRegime.shClose != null) ? EMBEDDED_MAINLINE.marketRegime.shClose : (idx.sh ? idx.sh.price : 0);
   var body =
     '<div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">' +
       '接口数据允许手动覆盖。留空表示沿用接口值；修改后随 <strong>' + date + '</strong> 缓存，切回该日期自动生效。' +
     '</div>' +
     '<div class="miao-grid3">' +
-      '<div class="miao-field"><label>上证指数</label><input id="ovShPrice" type="number" step="0.01" placeholder="' + (idx.sh ? idx.sh.price : 0) + '" value="' + ovVal(date, 'shPrice') + '"></div>' +
+      '<div class="miao-field"><label>上证指数</label><input id="ovShPrice" type="number" step="0.01" placeholder="' + _snapSh + '" value="' + ovVal(date, 'shPrice') + '"></div>' +
       '<div class="miao-field"><label>上证涨跌幅%</label><input id="ovShChg" type="number" step="0.01" placeholder="' + (idx.sh ? idx.sh.chgPct : 0) + '" value="' + ovVal(date, 'shChg') + '"></div>' +
       '<div class="miao-field"><label>两市成交额(亿)</label><input id="ovAmount" type="number" step="1" placeholder="' + (DATA.volume.total || 0) + '" value="' + ovVal(date, 'amount') + '"></div>' +
       '<div class="miao-field"><label>涨停家数</label><input id="ovLimitUp" type="number" placeholder="' + (lu.count || 0) + '" value="' + ovVal(date, 'limitUpCount') + '"></div>' +
