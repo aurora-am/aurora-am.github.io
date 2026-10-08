@@ -767,13 +767,13 @@ body {
     <div class="nav-item active" data-page="overview" onclick="navigateTo('overview')"><span class="nav-icon">📊</span> 总览</div>
     <div class="nav-item" data-page="market" onclick="navigateTo('market')"><span class="nav-icon">📈</span> 市场环境</div>
     <div class="nav-item" data-page="premarket" onclick="navigateTo('premarket')"><span class="nav-icon">🌅</span> 盘前分析</div>
-    <div class="nav-item" data-page="mainline" onclick="navigateTo('mainline')"><span class="nav-icon">🎯</span> 主线板块</div>
+
+    <div class="nav-item" data-page="theme" onclick="navigateTo('theme')"><span class="nav-icon">📡</span> 实时题材</div>    <div class="nav-item" data-page="mainline" onclick="navigateTo('mainline')"><span class="nav-icon">🎯</span> 主线板块</div>
     <div class="nav-item" data-page="echelon" onclick="navigateTo('echelon')"><span class="nav-icon">🔥</span> 战法阁</div>
     <div class="nav-item" data-page="stockpool" onclick="navigateTo('stockpool')"><span class="nav-icon">🏊</span> 股票池</div>
     <div class="nav-item" data-page="overnight" onclick="navigateTo('overnight')"><span class="nav-icon">⚡</span> 隔夜判断</div>
     <div class="nav-item" data-page="notes" onclick="navigateTo('notes')"><span class="nav-icon">📝</span> 复盘笔记</div>
     <div class="nav-item" data-page="tthelper" onclick="navigateTo('tthelper')"><span class="nav-icon">💱</span> 做T助手</div>
-    <div class="nav-item" data-page="edge" onclick="navigateTo('edge')"><span class="nav-icon">🚀</span> 盘中雷达</div>
   </nav>
 
   <!-- Main Content -->
@@ -1035,8 +1035,36 @@ body {
   <div class="page" id="page-tthelper">
     <iframe src="tt-helper.html" title="做T助手" loading="lazy"></iframe>
   </div>
-<div class="page" id="page-edge">
-  <div id="edgeWrap"><div class="empty-hint">加载中…</div></div>
+<!-- ==================== PAGE 3: 实时题材 ==================== -->
+<div class="page" id="page-theme">
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📡 实时题材雷达（涨停梯队 + 后排补涨）</span><span class="card-toggle">▼</span></div>
+    <div class="card-body">
+      <div class="section-text mb-8" id="themeRadarNote"></div>
+      <div id="themeRadarWrap"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📤 推送到飞书群</span><span class="card-toggle">▼</span></div>
+    <div class="card-body">
+      <div class="section-text mb-8" style="opacity:.75;">把当前「实时题材雷达」（涨停梯队 + 后排补涨）推送到你的飞书群。<strong>webhook 只保存在你本机浏览器</strong>（localStorage），不写进页面代码、不上传，他人查看源码无法获取。</div>
+      <div class="push-row">
+        <input id="fsWebhook" class="push-input" type="password" placeholder="粘贴飞书群机器人 webhook（https://open.feishu.cn/open-apis/bot/v2/hook/…）" autocomplete="off">
+        <button class="push-btn" onclick="saveFsWebhook()">保存</button>
+        <button class="push-btn ghost" onclick="clearFsWebhook()">清除</button>
+      </div>
+      <div class="push-row">
+        <input id="fsKeyword" class="push-input" type="text" placeholder="（可选）机器人安全关键词，如设置过请填写，消息会带上" autocomplete="off">
+        <button class="push-btn" onclick="saveFsKeyword()">保存关键词</button>
+      </div>
+      <div class="section-text mb-8" id="fsWebhookState" style="opacity:.7;"></div>
+      <div class="push-row">
+        <button class="push-btn primary" onclick="pushThemeToFeishu()">📤 推送当前题材</button>
+        <button class="push-btn ghost" onclick="copyThemePushText()">📋 复制推送内容</button>
+      </div>
+      <div class="section-text mb-8" style="opacity:.6;font-size:11px;">提示：浏览器可直连飞书群机器人（已开启跨域白名单）。若推送失败会显示<strong>飞书返回的精确错误码</strong>（如 code=19021 多为「安全关键词不匹配」或「开启了签名校验」）。也可用「复制推送内容」手动发到群里。<strong>定时自动推送由后台任务完成</strong>，走服务端发送不受浏览器限制。</div>
+    </div>
+  </div>
 </div>
   </div><!-- /main-content -->
 </div><!-- /app-layout -->
