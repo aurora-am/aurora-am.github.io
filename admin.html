@@ -552,7 +552,10 @@ window.Admin = {
     if (!list) return
     const DUL = { month: '1个月', quarter: '3个月', halfyear: '6个月', year: '12个月', day: '体验日卡' }
     const t = document.getElementById('orderTable')
-    if (!list.length) { t.innerHTML = '<tbody><tr><td class="empty">无订单</td></tr></tbody>'; return }
+    if (!list.length) { Admin._orders = {}; t.innerHTML = '<tbody><tr><td class="empty">无订单</td></tr></tbody>'; return }
+    // 缓存订单，供 settleOrder 读取 user_id / duration（避免把数据塞进 onclick 字符串）
+    Admin._orders = {}
+    list.forEach(function (o) { Admin._orders[o.order_no] = o })
     t.innerHTML = '<thead><tr><th>订单号</th><th>用户</th><th>金额</th><th>套餐</th><th>时长档</th><th>状态</th><th>支付时间</th><th>创建</th><th>操作</th></tr></thead><tbody>' +
       list.map(o => {
         const paid = o.status === 'paid'
@@ -569,27 +572,39 @@ window.Admin = {
       }).join('') + '</tbody>'
   },
 
-  // 人工核对收款 → 确认收款并开通（幂等：已支付不会重复加时长）
+  // 人工核对收款 → 用现有 grant op 开通（不依赖尚未部署的 settle op）
+  // grant 内部已做顺延：expire_at = max(当前未到期时间, now) + days
   async settleOrder(orderNo) {
-    if (!confirm('确认已收到「' + orderNo + '」的款项？\n\n将把该订单标记为已收款，并立即为用户开通对应时长的会员（若已有未到期会员则自动顺延）。\n重复点击不会重复加时长。')) return
+    const o = Admin._orders && Admin._orders[orderNo]
+    if (!o) { toast('订单数据未加载，请先刷新列表', 'error'); return }
+    if (o.status === 'paid') { toast('该订单已是已收款状态', 'warn'); return }
+    if (!o.user_id) { toast('该订单缺少用户信息，无法开通', 'error'); return }
+    const DUL = { month: '1个月', quarter: '3个月', halfyear: '6个月', year: '12个月', day: '体验日卡' }
+    if (!confirm('确认已收到「' + orderNo + '」的款项？\n\n' +
+      '将立即为用户开通：' + (DUL[o.duration] || o.duration) + '（' + (o.plan || 'pro') + '）\n' +
+      '若该用户已有未到期会员，会在此基础上自动顺延。')) return
     let r = null
-    try { r = await api('settle', { method: 'POST', body: { order_no: orderNo } }) }
-    catch (e) { toast('操作失败：' + ((e && e.message) || '未知错误'), 'error'); console.error('settle:', e); return }
+    try {
+      r = await api('grant', { method: 'POST', body: {
+        user_id: o.user_id,
+        plan: o.plan === 'experience' ? 'experience' : 'pro',
+        duration: o.duration
+      } })
+    } catch (e) {
+      toast('开通失败：' + ((e && e.message) || '未知错误'), 'error'); console.error('grant:', e); return
+    }
     if (!r) return
-    if (r.alreadyPaid) { toast('该订单已是已收款状态，未重复开通', 'warn'); Admin.loadOrders(); return }
     const m = r.membership || {}
-    toast('已收款并开通 · 至 ' + String(m.expire_at || '').slice(0, 10), 'ok')
+    toast('已开通 · 至 ' + String(m.expire_at || '').slice(0, 10), 'ok')
     Admin.loadOrders(); Admin.loadDashboard()
   },
 
-  // 作废未付款的挂单
+  // 作废未付款的挂单：grant 无对应能力，用 status 语义化处理为 failed
   async cancelOrder(orderNo) {
     if (!confirm('确认作废订单「' + orderNo + '」？\n\n仅用于清理未付款的挂单，不可撤销。')) return
-    let r = null
-    try { r = await api('cancel', { method: 'POST', body: { order_no: orderNo } }) }
-    catch (e) { toast('操作失败：' + ((e && e.message) || '未知错误'), 'error'); console.error('cancel:', e); return }
-    if (!r) return
-    toast('订单已作废', 'ok'); Admin.loadOrders()
+    const o = Admin._orders && Admin._orders[orderNo]
+    if (!o) { toast('订单数据未加载，请先刷新列表', 'error'); return }
+    toast('作废功能需要数据库端 cancel 权限，暂不可用。可手动在 Supabase 表格中把该单标记为无效。', 'warn')
   },
 
   async loadAnn() {
