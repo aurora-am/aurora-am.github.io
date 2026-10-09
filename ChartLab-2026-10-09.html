@@ -7868,14 +7868,23 @@ function forceRefresh() {
   if (_isFetching) { showNotify('⏳ 正在加载中，请稍候…', 2000); return; }
   var picker = document.getElementById('datePicker');
   var date = (picker && picker.value) || DATA.date;
+  // 🚨 防混日：实时接口只能返回「今天」的数据；若用户当前停留在历史日期，自动切到今天
+  var today = fmtDate(new Date());
+  if (date !== today && today > date) {
+    date = today;
+    if (picker) picker.value = date;
+    syncPicker(date);
+    showNotify('📅 已自动切换到今日 ' + today + '（实时接口不提供历史数据，避免把今日数据写入历史日期造成「昨天/今天混在一起」）', 4000);
+  }
   delete _dayCache[date];
   _isFetching = true; setBusy(true);
   showLoading('🔄 强制刷新 ' + date + '（' + weekdayCN(date) + '）：正在向数据源拉取最新数据…');
 
   var settle = function () { _isFetching = false; setBusy(false); hideLoading(); refreshAutoState(); };
   var commit = function (payload) {
-    _dayCache[date] = { res: payload, ts: Date.now() };
-    EMBEDDED_SNAPSHOT[date] = payload;
+    var key = payload.date || date;
+    _dayCache[key] = { res: payload, ts: Date.now() };
+    EMBEDDED_SNAPSHOT[key] = payload;
     applyPayload(payload);
     renderAll();
   };
@@ -7935,10 +7944,18 @@ function forceRefresh() {
 function autoLiveRefreshOnce() {
   if (_isFetching) return;
   var date = DATA.date || LATEST_TRADE_DAY;
+  // 🚨 防混日：若页面停留在历史日期（如缓存旧 HTML），自动切换到今天的真实日期
+  var today = fmtDate(new Date());
+  if (date !== today && today > date) {
+    date = today;
+    syncPicker(date);
+    showNotify('📅 检测到当前展示为历史日期，已自动切换到今日 ' + today + ' 进行实时刷新，避免「昨天/今天数据混在一起」', 5000);
+  }
   showNotify('📡 交易日自动刷新中：正在向实时数据源拉取最新行情…', 3000);
   var commitLive = function (payload, kind) {
-    _dayCache[date] = { res: payload, ts: Date.now() };
-    EMBEDDED_SNAPSHOT[date] = payload;
+    var key = payload.date || date;
+    _dayCache[key] = { res: payload, ts: Date.now() };
+    EMBEDDED_SNAPSHOT[key] = payload;
     applyPayload(payload); renderAll();
     fetchZSForTheme();
     try { fetchThemeQuotes(); } catch (e) {}
@@ -8403,7 +8420,8 @@ function init() {
 
   showLoading('📅 正在加载A股交易日历…');
   loadCalendar().then(function(days) {
-    var target = days && days.length ? LATEST_TRADE_DAY : today;
+    // 🚨 防混日：若 today 是交易日，直接打开 today（避免旧版缓存 HTML 的 STATIC_TRADE_DAYS 停在昨天）
+    var target = (days && days.length && TRADE_DAY_SET[today]) ? today : (days && days.length ? LATEST_TRADE_DAY : today);
     syncPicker(target);
     loadDay(target, false);
     setAutoToggleUI();
