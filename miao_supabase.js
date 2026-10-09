@@ -56,28 +56,38 @@
   function closeModal() { var m = $('miaoMask'); if (m) m.classList.remove('show'); }
 
   // ---------------- 鉴权态刷新 ----------------
-  async function refreshState() {
-    if (!sb) return;
-    var s = await sb.auth.getSession();
-    state.session = s && s.data ? s.data.session : null;
-    state.user = state.session ? state.session.user : null;
+  async function refreshState(retry) {
+    if (!sb) { renderBadge(); applyGate(state.currentPage, true); return; }
+    try {
+      var s = await sb.auth.getSession();
+      state.session = s && s.data ? s.data.session : null;
+      state.user = state.session ? state.session.user : null;
 
-    if (!state.user) {
-      state.isPro = false; state.expireAt = null;
-    } else {
-      var r = await sb.rpc('my_membership');
-      var row = r.data && r.data.length ? r.data[0] : null;
-      state.isPro = !!(row && row.status === 'active' && row.plan === 'pro' && new Date(row.expire_at) > new Date());
-      state.expireAt = row ? row.expire_at : null;
-      // 首次登录补一条 public.users 记录（触发器已建，这里兜底）
-      try {
-        await sb.from('users').upsert({
-          id: state.user.id,
-          email: state.user.email,
-          nickname: (state.user.email || '').split('@')[0],
-          last_login_at: new Date().toISOString()
-        }, { onConflict: 'id', ignoreDuplicates: true });
-      } catch (e) { /* 忽略：RLS 下 upsert 可能无权限，由触发器负责 */ }
+      if (!state.user) {
+        state.isPro = false; state.expireAt = null;
+      } else {
+        var r = await sb.rpc('my_membership');
+        var row = r.data && r.data.length ? r.data[0] : null;
+        state.isPro = !!(row && row.status === 'active' && row.plan === 'pro' && new Date(row.expire_at) > new Date());
+        state.expireAt = row ? row.expire_at : null;
+        // 首次登录补一条 public.users 记录（触发器已建，这里兜底）
+        try {
+          await sb.from('users').upsert({
+            id: state.user.id,
+            email: state.user.email,
+            nickname: (state.user.email || '').split('@')[0],
+            last_login_at: new Date().toISOString()
+          }, { onConflict: 'id', ignoreDuplicates: true });
+        } catch (e) { /* 忽略：RLS 下 upsert 可能无权限，由触发器负责 */ }
+      }
+    } catch (e) {
+      console.error('[MiaoSB] refreshState failed:', e && e.message ? e.message : e);
+      // RPC/网络抖动导致检测失败：静默重试一次，仍失败则降级为未开通，避免界面卡死
+      if (!retry) {
+        setTimeout(function () { refreshState(true); }, 1200);
+        return;
+      }
+      state.isPro = false;
     }
     renderBadge();
     applyGate(state.currentPage, true);
