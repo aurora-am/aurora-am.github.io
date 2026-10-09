@@ -4800,6 +4800,15 @@ function _themeAvgZs(codes) {
   return n ? s / n : null;
 }
 function _themeAttr(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+/* 前排连板整行背景：浅奶油色系，按连板数动态取色（不写死在每行） */
+function frontStreakBg(streak) {
+  var n = (streak == null ? 1 : streak) || 1;
+  if (n <= 1) return '#fdf4d0';   // 1板 浅黄
+  if (n === 2) return '#cfe1f8';  // 2板 柔和蓝
+  if (n === 3) return '#fbe2e2';  // 3板 浅红
+  if (n === 4) return '#f7c6c6';  // 4板 红
+  return '#ef9a9a';               // 5板及以上 深红（最醒目，突出最高板龙头）
+}
 function renderThemeRadar() {
   var wrap = document.getElementById('themeRadarWrap');
   var noteEl = document.getElementById('themeRadarNote');
@@ -4894,18 +4903,16 @@ function renderThemeRadar() {
       nextRank[rKey] = i;
       var qf = THEME_QUOTE_MAP[s.code];
       var fnet = (qf && qf.mainNetFlowYi != null) ? qf.mainNetFlowYi : s.mainNetFlowYi;
-      var zs = ZS_MAP[s.code];
-      var zsTxt = (zs != null && isFinite(zs)) ? ((zs > 0 ? '+' : '') + zs.toFixed(2) + '%') : '封板';
-      var zsColor = (zs != null && isFinite(zs)) ? (zs > 0 ? 'var(--red)' : 'var(--green)') : 'opacity:.55;';
-      return '<tr' + (moved ? ' class="rank-moved"' : '') + '>'
+      var fchg = (qf && isFinite(qf.chgPct)) ? qf.chgPct : (s.chgPct != null ? s.chgPct : null);
+      return '<tr style="background:' + frontStreakBg(s.streak) + ';"' + (moved ? ' class="rank-moved"' : '') + '>'
         + '<td>' + (s.code || '') + '</td>'
         + '<td>' + (s.name || '') + '</td>'
-        + '<td style="color:var(--red);font-weight:700;">' + (s.streak || 1) + '板</td>'
-        + '<td style="color:' + zsColor + ';font-weight:700;">' + zsTxt + '</td>'
+        + '<td style="color:var(--red);font-weight:700;">' + (fchg != null ? (fchg > 0 ? '+' : '') + fchg.toFixed(2) + '%' : '-') + '</td>'
+        + '<td style="color:#1a1a2e;font-weight:700;">' + (s.streak || 1) + '板</td>'
         + '<td>' + (s.time || '-') + '</td>'
         + '<td>' + (s.sealAmount != null ? s.sealAmount + '亿' : '-') + '</td>'
         + '<td>' + (fnet != null ? (fnet > 0 ? '+' : '') + fnet + '亿' : '-') + '</td>'
-        + '<td style="opacity:.7;">' + (s.reason || '') + '</td>'
+        + '<td>' + (s.marketCap != null ? s.marketCap + ' 亿' : '-') + '</td>'
         + '</tr>';
     }).join('');
     /* --- 后排补涨候选：第一排序键 涨速降序，第二排序键 补涨强度降序 --- */
@@ -4919,7 +4926,7 @@ function renderThemeRadar() {
       if (q && isFinite(q.amount) && q.amount > 0 && net != null) {
         strength = Math.round((chg * 0.4 + Math.min(vr || 0, 3) * 2 + (net * 1e8) / q.amount * 15) * 100) / 100;
       }
-      return { code: b.code, name: b.name, chgPct: chg, volRatio: vr, mainNetFlowYi: net, strength: strength, zs: ZS_MAP[b.code] };
+      return { code: b.code, name: b.name, chgPct: chg, volRatio: vr, mainNetFlowYi: net, strength: strength, marketCap: b.marketCap, zs: ZS_MAP[b.code] };
     });
     backArr.sort(function (a, b) {
       if (a.zs != null || b.zs != null) {
@@ -4953,8 +4960,9 @@ function renderThemeRadar() {
         + '<td>' + (b.volRatio != null ? b.volRatio : '-') + '</td>'
         + '<td>' + (b.mainNetFlowYi != null ? (b.mainNetFlowYi > 0 ? '+' : '') + b.mainNetFlowYi + '亿' : '-') + '</td>'
         + '<td style="color:var(--primary);font-weight:700;">' + (b.strength != null ? b.strength : '-') + '</td>'
+        + '<td>' + (b.marketCap != null ? b.marketCap + ' 亿' : '-') + '</td>'
         + '</tr>';
-    }).join('') || '<tr><td colspan="7" style="opacity:.6;">同板块未筛到符合条件（主板·涨幅0.5%~8%·非ST）的后排补涨候选，属正常</td></tr>';
+    }).join('') || '<tr><td colspan="8" style="opacity:.6;">同板块未筛到符合条件（主板·涨幅0.5%~8%·非ST）的后排补涨候选，属正常</td></tr>';
     var stTxt = (t._frontZs == null && t._backZs == null) ? '—' : ((t._strength > 0 ? '+' : '') + t._strength);
     html += '<div class="theme-block" data-k="' + _themeAttr(t.name) + '">'
       + '<div class="theme-head"><span class="theme-name">🀄 ' + t.name + '</span>'
@@ -4962,9 +4970,9 @@ function renderThemeRadar() {
       + ' · 后排 ' + ((t.backRows || []).length) + ' 只'
       + ' · <span class="theme-strength-chip">题材强度 ' + stTxt + '</span></span></div>'
       + '<div class="theme-sub">前排涨停梯队（按涨速降序 → 封单降序）</div>'
-      + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>连板</th><th>涨速</th><th>涨停时间</th><th>封单</th><th>主力净流入</th><th>题材</th></tr></thead><tbody>' + frontRows + '</tbody></table></div>'
+      + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>连板</th><th>涨停时间</th><th>封单</th><th>主力净流入</th><th>市值</th></tr></thead><tbody>' + frontRows + '</tbody></table></div>'
       + '<div class="theme-sub">同板块后排补涨候选（主板·涨幅0.5%~8%·非ST · 涨幅实时更新 · 按涨速降序 → 补涨强度降序）</div>'
-      + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>涨速</th><th>量比</th><th>主力净流入</th><th>补涨强度</th></tr></thead><tbody>' + backRows + '</tbody></table></div>'
+      + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>涨速</th><th>量比</th><th>主力净流入</th><th>补涨强度</th><th>市值</th></tr></thead><tbody>' + backRows + '</tbody></table></div>'
       + '</div>';
   });
   _themePrevRank = nextRank;
