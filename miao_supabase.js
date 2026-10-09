@@ -56,28 +56,36 @@
   function closeModal() { var m = $('miaoMask'); if (m) m.classList.remove('show'); }
 
   // ---------------- 鉴权态刷新 ----------------
+  function race(promise, ms, msg) {
+    return Promise.race([
+      promise,
+      new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error(msg || 'timeout')); }, ms);
+      })
+    ]);
+  }
   async function refreshState(retry) {
     if (!sb) { renderBadge(); applyGate(state.currentPage, true); return; }
     try {
-      var s = await sb.auth.getSession();
+      var s = await race(sb.auth.getSession(), 6000, 'getSession timeout');
       state.session = s && s.data ? s.data.session : null;
       state.user = state.session ? state.session.user : null;
 
       if (!state.user) {
         state.isPro = false; state.expireAt = null;
       } else {
-        var r = await sb.rpc('my_membership');
+        var r = await race(sb.rpc('my_membership'), 6000, 'my_membership timeout');
         var row = r.data && r.data.length ? r.data[0] : null;
         state.isPro = !!(row && row.status === 'active' && row.plan === 'pro' && new Date(row.expire_at) > new Date());
         state.expireAt = row ? row.expire_at : null;
         // 首次登录补一条 public.users 记录（触发器已建，这里兜底）
         try {
-          await sb.from('users').upsert({
+          await race(sb.from('users').upsert({
             id: state.user.id,
             email: state.user.email,
             nickname: (state.user.email || '').split('@')[0],
             last_login_at: new Date().toISOString()
-          }, { onConflict: 'id', ignoreDuplicates: true });
+          }, { onConflict: 'id', ignoreDuplicates: true }), 4000, 'upsert users timeout');
         } catch (e) { /* 忽略：RLS 下 upsert 可能无权限，由触发器负责 */ }
       }
     } catch (e) {
@@ -523,23 +531,32 @@
 
   // ---------------- 启动 ----------------
   function boot() {
-    // 顶栏按钮改绑到 Supabase 层
-    var buy = $('vipBuyBtn'); if (buy) { buy.onclick = null; buy.addEventListener('click', openPurchase); }
-    var cp = $('vipChpwBtn'); if (cp) { cp.onclick = null; cp.addEventListener('click', openChangePw); }
-    var lo = $('vipLogoutBtn'); if (lo) { lo.onclick = null; lo.addEventListener('click', logout); }
+    try {
+      // 顶栏按钮改绑到 Supabase 层
+      var buy = $('vipBuyBtn'); if (buy) { buy.onclick = null; buy.addEventListener('click', openPurchase); }
+      var cp = $('vipChpwBtn'); if (cp) { cp.onclick = null; cp.addEventListener('click', openChangePw); }
+      var lo = $('vipLogoutBtn'); if (lo) { lo.onclick = null; lo.addEventListener('click', logout); }
 
-    wrapNavigate();
-    if (sb) sb.auth.onAuthStateChange(function () { refreshState(); });
-    refreshState();
-    window.addEventListener('resize', syncBottomInset);
+      wrapNavigate();
+      if (sb) sb.auth.onAuthStateChange(function () { refreshState(); });
+      refreshState();
 
-    // 支付完成回跳（?paid=1）→ 自动刷新会员态并提示
-    if (/[?&]paid=1/.test(location.search || '')) {
-      setTimeout(function () {
-        refreshState().then(function () {
-          toast(state.isPro ? '支付成功，会员已开通' : '支付已提交，稍候自动开通', state.isPro ? 'ok' : 'warn');
-        });
-      }, 800);
+      // 兜底：页面完全加载后若状态仍卡住，再刷新一次
+      if (document.readyState === 'complete') refreshState();
+      else window.addEventListener('load', function () { refreshState(); });
+
+      window.addEventListener('resize', syncBottomInset);
+
+      // 支付完成回跳（?paid=1）→ 自动刷新会员态并提示
+      if (/[?&]paid=1/.test(location.search || '')) {
+        setTimeout(function () {
+          refreshState().then(function () {
+            toast(state.isPro ? '支付成功，会员已开通' : '支付已提交，稍候自动开通', state.isPro ? 'ok' : 'warn');
+          });
+        }, 800);
+      }
+    } catch (e) {
+      console.error('[MiaoSB] boot failed:', e && e.message ? e.message : e);
     }
   }
 
