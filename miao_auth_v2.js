@@ -1,7 +1,9 @@
+
+/* ===== module: js/core.js ===== */
 /* ============================================================
- *  观复・研社 · Supabase 会员层
- *  依赖：@supabase/supabase-js@2 (UMD, window.supabase)
- *  提供：注册 / 登录 / 退出 / 会话保持 / 会员鉴权 / 购买 / 改密
+ *  观复・研社 · 核心工具 / Supabase 客户端 / 全局状态
+ *  职责：初始化 Supabase、维护共享 state、提供通用工具函数
+ *  不依赖其他模块；所有模块通过 window.MiaoCore 读取它
  * ============================================================ */
 (function () {
   'use strict';
@@ -9,26 +11,35 @@
   var SUPABASE_URL = 'https://kbajwhtglnmhtyhavpmk.supabase.co';
   var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWp3aHRnbG5taHR5aGF2cG1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjEyMDksImV4cCI6MjEwNjY5NzIwOX0.NglgHEyY45zQoDSLgMoD3QBXislbAhCqn6xv0L9rlGo';
 
-  // 免费模块（未登录也能看）；其余需登录且为 pro
   var FREE_PAGES = ['overview', 'market', 'premarket', 'notes', 'tthelper'];
   var PAID_PAGES = ['theme', 'mainline', 'echelon', 'stockpool', 'overnight', 'edge', 'verify'];
 
   var sb = null;
-  var state = { user: null, session: null, isPro: false, expireAt: null, pricing: null, currentPage: 'overview' };
+  var state = {
+    user: null,
+    session: null,
+    isPro: false,
+    expireAt: null,
+    pricing: null,
+    currentPage: 'overview',
+    lastOrder: null
+  };
 
   try {
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
   } catch (e) {
-    console.error('[MiaoSB] Supabase 初始化失败', e);
+    console.error('[MiaoCore] Supabase 初始化失败', e);
   }
 
-  // ---------------- 工具 ----------------
+  // ---------------- 工具函数 ----------------
   function $(id) { return document.getElementById(id); }
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-  }); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
   function toast(msg, type) {
     var t = document.createElement('div');
     t.className = 'miao-toast ' + (type || 'info');
@@ -37,7 +48,11 @@
     setTimeout(function () { t.classList.add('show'); }, 10);
     setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 300); }, 2600);
   }
-  function fmtDate(s) { if (!s) return '—'; var d = new Date(s); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function fmtDate(s) {
+    if (!s) return '—';
+    var d = new Date(s);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
   function base64urlDecode(s) {
     s += new Array(5 - s.length % 4).join('=');
     s = s.replace(/-/g, '+').replace(/_/g, '/');
@@ -55,7 +70,6 @@
     return payload ? { id: payload.sub, email: payload.email || '' } : null;
   }
   function getStoredSession() {
-    // 兼容 supabase-js v2 默认 key：sb-<project-ref>-auth-token
     var ref = (SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/) || [])[1] || '';
     var keys = ['sb-' + ref + '-auth-token', 'sb:token', 'supabase.auth.token'];
     for (var i = 0; i < keys.length; i++) {
@@ -68,14 +82,56 @@
         var payload = parseJwt(token);
         if (!payload || !payload.sub) continue;
         var now = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < now - 60) continue; // 允许 60s 时钟偏移
+        if (payload.exp && payload.exp < now - 60) continue;
         return { access_token: token, user: userFromJwtPayload(payload), expires_at: payload.exp };
       } catch (e) { /* 忽略单条解析失败 */ }
     }
     return null;
   }
+  function race(promise, ms, msg) {
+    return Promise.race([
+      promise,
+      new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error(msg || 'timeout')); }, ms);
+      })
+    ]);
+  }
 
-  // ---------------- 弹窗骨架 ----------------
+  window.MiaoCore = {
+    SUPABASE_URL: SUPABASE_URL,
+    SUPABASE_ANON: SUPABASE_ANON,
+    FREE_PAGES: FREE_PAGES,
+    PAID_PAGES: PAID_PAGES,
+    sb: sb,
+    state: state,
+    $: $,
+    esc: esc,
+    toast: toast,
+    fmtDate: fmtDate,
+    parseJwt: parseJwt,
+    userFromJwtPayload: userFromJwtPayload,
+    getStoredSession: getStoredSession,
+    race: race
+  };
+})();
+
+/* ===== module: js/auth.js ===== */
+/* ============================================================
+ *  观复・研社 · 登录鉴权模块
+ *  职责：注册 / 登录 / 退出 / 会话保持 / 会员鉴权 / 修改密码 / 重置密码
+ *  依赖：MiaoCore（window.MiaoCore）
+ *  对外暴露：window.MiaoAuth
+ * ============================================================ */
+(function () {
+  'use strict';
+  var C = window.MiaoCore;
+  if (!C) { console.error('[MiaoAuth] MiaoCore 未加载'); return; }
+  var sb = C.sb, state = C.state, $ = C.$, esc = C.esc, toast = C.toast, fmtDate = C.fmtDate;
+  var race = C.race, getStoredSession = C.getStoredSession, parseJwt = C.parseJwt, userFromJwtPayload = C.userFromJwtPayload;
+
+  var CODE_TTL_MIN = 10;
+
+  // ---------------- 弹窗骨架（本模块私有） ----------------
   function ensureMask() {
     var m = $('miaoMask');
     if (m) return m;
@@ -92,25 +148,16 @@
   function closeModal() { var m = $('miaoMask'); if (m) m.classList.remove('show'); }
 
   // ---------------- 鉴权态刷新 ----------------
-  function race(promise, ms, msg) {
-    return Promise.race([
-      promise,
-      new Promise(function (_, reject) {
-        setTimeout(function () { reject(new Error(msg || 'timeout')); }, ms);
-      })
-    ]);
-  }
   async function refreshState(retry, providedSession) {
-    if (!sb) { renderBadge(); applyGate(state.currentPage, true); return; }
+    if (!sb) { renderBadge(); if (window.MiaoPage) window.MiaoPage.applyGate(state.currentPage, true); return; }
     try {
       var sess = providedSession || state.session;
       if (!sess) {
-        // 优先用 Supabase 官方方法恢复会话，但某些环境下 getSession 会永久挂起，加 4s 超时
         try {
           var s = await race(sb.auth.getSession(), 4000, 'getSession timeout');
           sess = s && s.data ? s.data.session : null;
         } catch (e) {
-          console.warn('[MiaoSB] getSession hung, falling back to localStorage');
+          console.warn('[MiaoAuth] getSession hung, falling back to localStorage');
           sess = getStoredSession();
           if (!sess) throw e;
         }
@@ -125,7 +172,6 @@
         var row = r.data && r.data.length ? r.data[0] : null;
         state.isPro = !!(row && row.status === 'active' && row.plan === 'pro' && new Date(row.expire_at) > new Date());
         state.expireAt = row ? row.expire_at : null;
-        // 首次登录补一条 public.users 记录（触发器已建，这里兜底）
         try {
           await race(sb.from('users').upsert({
             id: state.user.id,
@@ -136,17 +182,15 @@
         } catch (e) { /* 忽略：RLS 下 upsert 可能无权限，由触发器负责 */ }
       }
     } catch (e) {
-      console.error('[MiaoSB] refreshState failed:', e && e.message ? e.message : e);
-      // RPC/网络抖动导致检测失败：静默重试一次，仍失败则降级为未开通，避免界面卡死
+      console.error('[MiaoAuth] refreshState failed:', e && e.message ? e.message : e);
       if (!retry) {
         setTimeout(function () { refreshState(true); }, 1200);
         return;
       }
-      // 即便最终失败，也保留已有的 session/user，避免登录成功后因 getSession 挂起而被误判为未登录
       if (!state.user) state.isPro = false;
     }
     renderBadge();
-    applyGate(state.currentPage, true);
+    if (window.MiaoPage) window.MiaoPage.applyGate(state.currentPage, true);
   }
 
   function renderBadge() {
@@ -157,7 +201,6 @@
       if (buy) buy.style.display = '';
       if (chpw) chpw.style.display = 'none';
       if (out) out.style.display = 'none';
-      // 顶栏加一个登录按钮
       if (!$('miaoLoginBtn')) {
         var lb = document.createElement('button');
         lb.id = 'miaoLoginBtn'; lb.className = 'topbar-btn'; lb.textContent = '登录 / 注册';
@@ -175,7 +218,6 @@
   }
 
   // ---------------- 登录 / 注册 ----------------
-  var CODE_TTL_MIN = 10;
   function authModalBody(tab) {
     var isReg = tab === 'reg';
     return '<h3 class="miao-title">观复・研社</h3>' +
@@ -202,9 +244,8 @@
         var to = t.dataset.t;
         document.querySelectorAll('.miao-tab').forEach(function (x) { x.classList.remove('active'); });
         t.classList.add('active');
-        // 切换登录/注册时重建表单（注册态才有验证码行）
-        document.querySelector('.miao-modal-body, .miao-body, #miaoBody') &&
-          (function (host) { host.innerHTML = authModalBody(to); bindAuth(to); })(document.querySelector('.miao-modal-body, .miao-body, #miaoBody'));
+        var host = document.querySelector('.miao-modal-body, .miao-body, #miaoBody');
+        if (host) { host.innerHTML = authModalBody(to); bindAuth(to); }
       });
     });
     bindAuth(tab);
@@ -228,9 +269,9 @@
     btn.disabled = true;
     var left = 0;
     try {
-      var r = await fetch(SUPABASE_URL + '/functions/v1/send-code', {
+      var r = await fetch(C.SUPABASE_URL + '/functions/v1/send-code', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
+        headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON, Authorization: 'Bearer ' + C.SUPABASE_ANON },
         body: JSON.stringify({ email: email, purpose: 'signup' })
       });
       var j = await r.json().catch(function () { return {}; });
@@ -246,12 +287,10 @@
       btn.disabled = false; btn.textContent = '获取验证码';
       return;
     }
-    // 倒计时
     (function tick() {
       btn.textContent = left > 0 ? (left + ' 秒后重发') : '重新获取';
       if (left <= 0) { btn.disabled = false; return; }
-      left--;
-      setTimeout(tick, 1000);
+      left--; setTimeout(tick, 1000);
     })();
   }
 
@@ -266,7 +305,6 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = '请输入正确的邮箱地址'; return; }
     if (pwd.length < 8) { err.textContent = '密码至少 8 位'; return; }
 
-    // 注册：先校验邮箱验证码
     if (isReg) {
       var code = (($('miaoCode') || {}).value || '').trim();
       if (!/^\d{6}$/.test(code)) { err.textContent = '请输入 6 位邮箱验证码'; return; }
@@ -278,7 +316,6 @@
     $('miaoSubmit').disabled = true; $('miaoSubmit').textContent = '处理中…';
     var res;
     try {
-      // 注册前清理本地残留会话（幽灵 token 会导致 GoTrue 报 Database error finding user）
       if (isReg) {
         try {
           var st = await sb.auth.getSession();
@@ -297,9 +334,8 @@
     }
     closeModal();
     toast(isReg ? '注册成功，已自动登录' : '登录成功', 'ok');
-    // 登录成功后直接使用返回的 session，避免再次 getSession 挂起导致状态被误判为未登录
     var sess = res.data && res.data.session ? res.data.session : null;
-    if (sess) { state.session = sess; state.user = sess.user || null; }
+    if (sess) { state.session = sess; state.user = sess.user || null; renderBadge(); }
     await refreshState(null, sess);
   }
 
@@ -330,7 +366,6 @@
     });
   }
 
-  // ---------------- 修改密码 ----------------
   function openChangePw() {
     openModal(
       '<h3 class="miao-title">修改密码</h3>' +
@@ -349,7 +384,50 @@
     });
   }
 
-  // ---------------- 购买 ----------------
+  async function logout() {
+    try { await race(sb.auth.signOut(), 4000, 'signOut timeout'); }
+    catch (e) { console.warn('[MiaoAuth] signOut timeout, force clear local state'); }
+    try {
+      var ref = (C.SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/) || [])[1] || '';
+      localStorage.removeItem('sb-' + ref + '-auth-token');
+    } catch (e) {}
+    state.user = null; state.session = null; state.isPro = false;
+    renderBadge();
+    if (window.MiaoPage) window.MiaoPage.applyGate(state.currentPage, true);
+    toast('已退出登录', 'ok');
+    if (typeof window.navigateTo === 'function') window.navigateTo('overview');
+  }
+
+  window.MiaoAuth = {
+    refreshState: refreshState,
+    renderBadge: renderBadge,
+    openAuth: openAuth,
+    openModal: openModal,
+    closeModal: closeModal,
+    openReset: openReset,
+    openChangePw: openChangePw,
+    logout: logout,
+    submitAuth: submitAuth,
+    sendCode: sendCode,
+    mapErr: mapErr
+  };
+})();
+
+/* ===== module: js/trade.js ===== */
+/* ============================================================
+ *  观复・研社 · 交易 / 监控模块
+ *  职责：会员定价加载、下单、支付跳转、订单状态刷新、改密弹窗
+ *  依赖：MiaoCore、MiaoAuth
+ *  对外暴露：window.MiaoTrade
+ * ============================================================ */
+(function () {
+  'use strict';
+  var C = window.MiaoCore;
+  var A = window.MiaoAuth;
+  if (!C || !A) { console.error('[MiaoTrade] 依赖缺失'); return; }
+  var sb = C.sb, state = C.state, $ = C.$, esc = C.esc, toast = C.toast;
+  var race = C.race;
+
   var DUR_META = [
     { k: 'day', label: '一日体验', tag: '' },
     { k: 'month', label: '月卡', tag: '' },
@@ -365,7 +443,7 @@
   }
 
   async function openPurchase() {
-    if (!state.user) { toast('请先登录', 'warn'); openAuth('login'); return; }
+    if (!state.user) { toast('请先登录', 'warn'); A.openAuth('login'); return; }
     var p;
     try { p = await loadPricing(); } catch (e) { p = null; }
     if (!p || !p.tiers) { toast('定价加载失败，请稍后重试', 'warn'); return; }
@@ -385,7 +463,7 @@
         '</div>';
     }).join('');
 
-    openModal(
+    A.openModal(
       '<h3 class="miao-title">开通会员</h3>' +
       (eb.active ? '<div class="mm-eb">🎁 早鸟价 · 距结束还有 ' + eb.daysLeft + ' 天（' + eb.deadline + '）</div>' : '') +
       '<div class="dur-grid">' + cards + '</div>' +
@@ -415,23 +493,21 @@
     btn.classList.add('busy');
     btn.textContent = '提交中…';
 
-    // 1) 先落一张待支付订单（金额/天数全部由后端定价决定）
     var r = await sb.rpc('create_order', { p_duration: dur });
     if (r.error) {
       btn.classList.remove('busy'); btn.textContent = old;
-      toast(mapErr(r.error.message), 'warn');
+      toast(A.mapErr(r.error.message), 'warn');
       return;
     }
 
     var tip = '';
-    // 2) 向 Edge Function 索取收银台地址（EPAY_KEY 只在服务端）
     if (type !== 'manual') {
       try {
-        var fr = await fetch(SUPABASE_URL + '/functions/v1/epay-create', {
+        var fr = await fetch(C.SUPABASE_URL + '/functions/v1/epay-create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            apikey: SUPABASE_ANON,
+            apikey: C.SUPABASE_ANON,
             Authorization: 'Bearer ' + (state.session && state.session.access_token)
           },
           body: JSON.stringify({ duration: dur, type: type })
@@ -454,13 +530,12 @@
 
     btn.classList.remove('busy'); btn.textContent = old;
     state.lastOrder = r.data;
-    closeModal();
+    A.closeModal();
     if (/尚未开通|未开启/.test(tip)) { toast(tip, 'warn'); setTimeout(function () { location.href = manualUrl(r.data); }, 900); return; }
     openPending(r.data, tip);
-    await refreshState();
+    await A.refreshState();
   }
 
-  // 备用付款页（静态收款码 + 订单号人工核对）
   function manualUrl(ord) {
     if (!ord) return 'pay.html';
     return 'pay.html?order=' + encodeURIComponent(ord.order_no) +
@@ -469,11 +544,10 @@
       '&days=' + encodeURIComponent(ord.days);
   }
 
-  // 订单待支付提示
   function openPending(ord, tip) {
     if (!ord) return;
     var payUrl = manualUrl(ord);
-    openModal(
+    A.openModal(
       '<h3 class="miao-title">订单已创建</h3>' +
       '<div class="miao-sum" style="text-align:left">订单号：<b style="font-size:14px">' + esc(ord.order_no) + '</b></div>' +
       '<div class="miao-sum" style="text-align:left">应付金额：<b>¥' + ord.amount + '</b>（' + esc(ord.duration) + '，' + ord.days + ' 天）</div>' +
@@ -483,15 +557,36 @@
       '<button class="miao-btn primary" id="miaoRefreshOrder" style="margin-top:8px">我已付款，刷新开通状态</button>' +
       '<button class="miao-btn" id="miaoCloseOrder" style="background:#eef2f7;color:#5a6a7e;margin-top:8px">知道了</button>'
     );
-    $('miaoCloseOrder').addEventListener('click', closeModal);
+    $('miaoCloseOrder').addEventListener('click', A.closeModal);
     $('miaoRefreshOrder').addEventListener('click', async function () {
-      await refreshState();
-      if (state.isPro) { toast('会员已开通', 'ok'); closeModal(); }
+      await A.refreshState();
+      if (state.isPro) { toast('会员已开通', 'ok'); A.closeModal(); }
       else toast('仍在等待核对到账', 'warn');
     });
   }
 
-  // ---------------- 付费墙（渐隐遮罩：只展示前 2/3） ----------------
+  window.MiaoTrade = {
+    openPurchase: openPurchase,
+    loadPricing: loadPricing,
+    manualUrl: manualUrl,
+    openPending: openPending
+  };
+})();
+
+/* ===== module: js/page.js ===== */
+/* ============================================================
+ *  观复・研社 · 页面接口模块
+ *  职责：付费墙渲染、页面导航包装、页面级权限应用
+ *  依赖：MiaoCore、MiaoAuth
+ *  对外暴露：window.MiaoPage
+ * ============================================================ */
+(function () {
+  'use strict';
+  var C = window.MiaoCore;
+  var A = window.MiaoAuth;
+  if (!C || !A) { console.error('[MiaoPage] 依赖缺失'); return; }
+  var state = C.state, $ = C.$, esc = C.esc;
+
   var PAGE_CN = {
     theme: '实时题材', mainline: '主线板块', echelon: '战法阁 · 连板梯队',
     stockpool: '股票池', overnight: '隔夜判断', edge: '盘中雷达', verify: '次日回验'
@@ -513,14 +608,13 @@
       '<div class="miao-wall-foot">支持 一日体验 / 月卡 / 季卡 / 年卡，随时取消</div>';
     w.querySelectorAll('.miao-wall-btn').forEach(function (b) {
       b.addEventListener('click', function () {
-        if (!state.user) { toast('请先登录，再开通会员', 'warn'); openAuth('login'); return; }
-        openPurchase();
+        if (!state.user) { C.toast('请先登录，再开通会员', 'warn'); A.openAuth('login'); return; }
+        if (window.MiaoTrade) window.MiaoTrade.openPurchase();
       });
     });
     return w;
   }
 
-  // 移动端侧栏会变成底部 fixed 导航，CTA 需要上移避让
   function syncBottomInset() {
     var inset = 0;
     try {
@@ -551,11 +645,10 @@
   }
 
   function syncWalls() {
-    PAID_PAGES.forEach(function (p) { setWall(p, !state.isPro); });
-    FREE_PAGES.forEach(function (p) { setWall(p, false); });
+    C.PAID_PAGES.forEach(function (p) { setWall(p, !state.isPro); });
+    C.FREE_PAGES.forEach(function (p) { setWall(p, false); });
   }
 
-  // 允许进入所有页面；付费页按会员态决定是否挂遮罩
   function applyGate(page) {
     state.currentPage = page;
     syncWalls();
@@ -566,63 +659,92 @@
     if (typeof window.navigateTo !== 'function') return false;
     var orig = window.navigateTo;
     window.navigateTo = function (page) {
-      if (!applyGate(page, false)) return false;
+      if (!applyGate(page)) return false;
       return orig.apply(this, arguments);
     };
     return true;
   }
 
-  async function logout() {
-    try { await race(sb.auth.signOut(), 4000, 'signOut timeout'); }
-    catch (e) { console.warn('[MiaoSB] signOut timeout, force clear local state'); }
-    // 同时清理本地 token，确保即使服务端 signOut 挂起也退出
-    try {
-      var ref = (SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/) || [])[1] || '';
-      localStorage.removeItem('sb-' + ref + '-auth-token');
-    } catch (e) {}
-    state.user = null; state.session = null; state.isPro = false;
-    renderBadge();
-    applyGate(state.currentPage, true);
-    toast('已退出登录', 'ok');
-    if (typeof window.navigateTo === 'function') window.navigateTo('overview');
-  }
+  window.MiaoPage = {
+    applyGate: applyGate,
+    syncWalls: syncWalls,
+    setWall: setWall,
+    wrapNavigate: wrapNavigate,
+    syncBottomInset: syncBottomInset,
+    PAGE_CN: PAGE_CN
+  };
+})();
 
-  // ---------------- 启动 ----------------
+/* ===== module: js/market.js ===== */
+/* ============================================================
+ *  观复・研社 · 行情数据模块
+ *  职责：行情数据接口封装（实时报价、K线、资金流向等）
+ *  依赖：MiaoCore
+ *  对外暴露：window.MiaoMarket
+ *  说明：当前为接口占位，后续行情类功能统一在此扩展
+ * ============================================================ */
+(function () {
+  'use strict';
+  var C = window.MiaoCore;
+  if (!C) { console.error('[MiaoMarket] MiaoCore 未加载'); return; }
+
+  window.MiaoMarket = {
+    // 行情接口占位
+  };
+})();
+
+/* ===== module: js/main.js ===== */
+/* ============================================================
+ *  观复・研社 · 会员层入口
+ *  职责：绑定顶栏按钮、监听 auth 状态、启动首次状态刷新、导出 window.MiaoSB
+ *  依赖：MiaoCore、MiaoAuth、MiaoTrade、MiaoPage
+ * ============================================================ */
+(function () {
+  'use strict';
+  var C = window.MiaoCore;
+  var A = window.MiaoAuth;
+  var T = window.MiaoTrade;
+  var P = window.MiaoPage;
+  if (!C || !A || !T || !P) { console.error('[MiaoMain] 依赖模块未加载'); return; }
+  var sb = C.sb, state = C.state, $ = C.$;
+
   function boot() {
     try {
-      // 顶栏按钮改绑到 Supabase 层
-      var buy = $('vipBuyBtn'); if (buy) { buy.onclick = null; buy.addEventListener('click', openPurchase); }
-      var cp = $('vipChpwBtn'); if (cp) { cp.onclick = null; cp.addEventListener('click', openChangePw); }
-      var lo = $('vipLogoutBtn'); if (lo) { lo.onclick = null; lo.addEventListener('click', logout); }
+      var buy = $('vipBuyBtn'); if (buy) { buy.onclick = null; buy.addEventListener('click', T.openPurchase); }
+      var cp = $('vipChpwBtn'); if (cp) { cp.onclick = null; cp.addEventListener('click', A.openChangePw); }
+      var lo = $('vipLogoutBtn'); if (lo) { lo.onclick = null; lo.addEventListener('click', A.logout); }
 
-      wrapNavigate();
-      // onAuthStateChange 会携带最新 session，直接复用，避免 getSession 挂起
-      if (sb) sb.auth.onAuthStateChange(function (event, sess) { refreshState(null, sess); });
-      refreshState();
+      P.wrapNavigate();
+      if (sb) sb.auth.onAuthStateChange(function (event, sess) { A.refreshState(null, sess); });
+      A.refreshState();
 
-      // 兜底：页面完全加载后若状态仍卡住，再刷新一次
-      if (document.readyState === 'complete') refreshState();
-      else window.addEventListener('load', function () { refreshState(); });
+      if (document.readyState === 'complete') A.refreshState();
+      else window.addEventListener('load', function () { A.refreshState(); });
 
-      window.addEventListener('resize', syncBottomInset);
+      window.addEventListener('resize', P.syncBottomInset);
 
-      // 支付完成回跳（?paid=1）→ 自动刷新会员态并提示
       if (/[?&]paid=1/.test(location.search || '')) {
         setTimeout(function () {
-          refreshState().then(function () {
-            toast(state.isPro ? '支付成功，会员已开通' : '支付已提交，稍候自动开通', state.isPro ? 'ok' : 'warn');
+          A.refreshState().then(function () {
+            C.toast(state.isPro ? '支付成功，会员已开通' : '支付已提交，稍候自动开通', state.isPro ? 'ok' : 'warn');
           });
         }, 800);
       }
     } catch (e) {
-      console.error('[MiaoSB] boot failed:', e && e.message ? e.message : e);
+      console.error('[MiaoMain] boot failed:', e && e.message ? e.message : e);
     }
   }
 
   window.MiaoSB = {
-    openAuth: openAuth, openPurchase: openPurchase, openChangePw: openChangePw,
-    logout: logout, refreshState: refreshState, state: state, client: sb,
-    FREE_PAGES: FREE_PAGES, PAID_PAGES: PAID_PAGES
+    openAuth: A.openAuth,
+    openPurchase: T.openPurchase,
+    openChangePw: A.openChangePw,
+    logout: A.logout,
+    refreshState: A.refreshState,
+    state: state,
+    client: sb,
+    FREE_PAGES: C.FREE_PAGES,
+    PAID_PAGES: C.PAID_PAGES
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
