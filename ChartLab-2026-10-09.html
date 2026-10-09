@@ -3221,14 +3221,17 @@ function synthIntraday(chgPct) {
 
 /* ===== Render 三大指数卡片（覆盖静态占位值） =====
    诚实口径（P0 数据透明）：本页所有分析基准为 10:06 盘中快照。
-   - 上证：以快照 marketRegime.shClose 为准，与顶部 header 一致，标注「盘中快照 10:06·较MA20」；
+   - 上证：以「当前所选交易日」当日快照 DATA.indices.sh.price 为准（全局 marketRegime.shClose 仅作兜底），较MA20 用全局 MA20，避免历史日误显最新基准；
    - 深证/创业板：快照未含其收盘值，保留东方财富实时接口值并明确标注「实时」，避免与上证快照混淆。 */
 function renderIndexCards() {
   var ids = { sh: 'miniSh', sz: 'miniSz', cyb: 'miniCyb' };
   var M = (typeof EMBEDDED_MAINLINE !== 'undefined') ? EMBEDDED_MAINLINE : null;
   var reg = (M && M.marketRegime) || null;
-  var snapSh = reg ? reg.shClose : null;
   var snapMa20 = reg ? reg.shMa20 : null;
+  // 🚨 防混日：上证卡显示「当前所选交易日」的当日上证值，而非全局基准，避免看历史日误显最新基准
+  var _daySnap = (typeof EMBEDDED_SNAPSHOT !== 'undefined' && EMBEDDED_SNAPSHOT && EMBEDDED_SNAPSHOT[DATA.date]) || null;
+  var _snapHHMM = _daySnap && _daySnap.snapshotAt ? String(_daySnap.snapshotAt).replace(/^\d{4}-\d{2}-\d{2}\s*/, '').slice(0, 5) : '';
+  var _shPrice = (DATA.indices.sh && DATA.indices.sh.price != null) ? DATA.indices.sh.price : (reg ? reg.shClose : null);
   ['sh', 'sz', 'cyb'].forEach(function (k) {
     var chartEl = document.getElementById(ids[k]);
     if (!chartEl || !chartEl.parentNode) return;
@@ -3236,12 +3239,12 @@ function renderIndexCards() {
     var priceEl = card.querySelector('.idx-price');
     var chgEl = card.querySelector('.idx-chg');
     if (!priceEl || !chgEl) return;
-    if (k === 'sh' && snapSh != null) {
-      var vsMa = snapMa20 ? ((snapSh - snapMa20) / snapMa20 * 100) : 0;
+    if (k === 'sh' && _shPrice != null) {
+      var vsMa = snapMa20 ? ((_shPrice - snapMa20) / snapMa20 * 100) : 0;
       var upMa = vsMa >= 0;
-      priceEl.textContent = (+snapSh).toFixed(2);
+      priceEl.textContent = (+_shPrice).toFixed(2);
       priceEl.className = 'idx-price ' + (upMa ? 'text-red' : 'text-green');
-      chgEl.textContent = '盘中快照 10:06 · 较MA20 ' + (upMa ? '+' : '') + vsMa.toFixed(2) + '%';
+      chgEl.textContent = '当日快照' + (_snapHHMM ? ' ' + _snapHHMM : '') + ' · 较MA20 ' + (upMa ? '+' : '') + vsMa.toFixed(2) + '%';
       chgEl.className = 'idx-chg ' + (upMa ? 'text-red' : 'text-green');
       return;
     }
@@ -3256,10 +3259,10 @@ function renderIndexCards() {
   });
   var noteEl = document.getElementById('idxSourceNote');
   if (noteEl) {
-    var cap = (reg && reg.shClose != null) ? ' · 上证以 10:06 盘中快照 ' + (+reg.shClose).toFixed(2) + ' 为基准'
-      : '';
-    noteEl.innerHTML = '数据来源：东方财富实时接口，抓取时点 10:06（盘中临时，详见顶部徽标）'
-      + cap + '。深证/创业板为收盘实时值，仅供参考，不与上证快照混用。';
+    var cap = (_shPrice != null) ? ' · 上证显示「' + DATA.date + '」当日快照 ' + (+_shPrice).toFixed(2)
+      : (reg && reg.shClose != null ? ' · 上证以 ' + (+reg.shClose).toFixed(2) + ' 为基准' : '');
+    noteEl.innerHTML = '数据来源：东方财富实时接口（盘中临时，详见顶部徽标）'
+      + cap + '。深证/创业板为当日实时值，仅供参考，不与上证快照混用。';
   }
 }
 
@@ -4416,7 +4419,7 @@ function renderTechAnalysis(targetId) {
   // 上证价格统一锚定 10:06 盘中快照（marketRegime.shClose），与顶部总览卡一致，消除「数字打架」
   var _shRaw = DATA.indices.sh || {};
   var _M = (typeof EMBEDDED_MAINLINE !== 'undefined') ? EMBEDDED_MAINLINE : null;
-  var _shAnchor = (_M && _M.marketRegime && _M.marketRegime.shClose != null) ? _M.marketRegime.shClose : _shRaw.price;
+  var _shAnchor = (_shRaw && _shRaw.price != null) ? _shRaw.price : (_M && _M.marketRegime && _M.marketRegime.shClose != null ? _M.marketRegime.shClose : 0);
   var sh = Object.assign({}, _shRaw, { price: _shAnchor });
   // 模拟计算 MA、MACD、BOLL 等关键指标（基于真实价格生成）
   var closes = kl.ohlc.map(function(d) { return d[1]; });
@@ -4716,6 +4719,7 @@ function calcZS(trends) {
 function fetchZSForTheme() {
   if (_zsRunning) return;
   if (!DATA.themeRadar || !DATA.themeRadar.themes || !DATA.themeRadar.themes.length) return;
+  if (!CURRENT_IS_LATEST) return;  // 🚨 防混日：仅最新交易日才拉实时涨速，历史日用快照原值
   var codes = [];
   DATA.themeRadar.themes.forEach(function (t) {
     (t.front || []).forEach(function (s) { if (s.code && codes.indexOf(s.code) < 0) codes.push(s.code); });
@@ -4758,6 +4762,7 @@ var UT_THEME = 'b2884a393a59ad64002292a3e90d46a5';
 function fetchThemeQuotes() {
   if (_themeQuoteRunning) return;
   if (!DATA.themeRadar || !DATA.themeRadar.themes || !DATA.themeRadar.themes.length) return;
+  if (!CURRENT_IS_LATEST) return;  // 🚨 防混日：仅最新交易日才拉实时报价，历史日用快照原值
   var codes = [];
   DATA.themeRadar.themes.forEach(function (t) {
     (t.front || []).forEach(function (s) { if (s.code && codes.indexOf(s.code) < 0) codes.push(s.code); });
@@ -7216,6 +7221,9 @@ function applyPayload(res) {
   CURRENT_SOURCE = res.source || 'none';
   CURRENT_IS_LATEST = !!res.isLatest;
   LIVE_LIMITUP = (res.source === 'live');
+  // 🚨 防混日：加载「非最新交易日（历史日）」时，清空实时涨速/实时报价 map，
+  //   避免把「今天」的实时行情泄漏到历史日题材卡片（同日码重叠时尤其会混显）
+  if (!CURRENT_IS_LATEST) { ZS_MAP = {}; THEME_QUOTE_MAP = {}; }
 
   // K线必须先于指数写入：两市成交额前值要用「目标交易日」自身的K线量能推算
   if (d.kline) {
@@ -8223,7 +8231,7 @@ function openManualEntry(date) {
   var lu = DATA.limitUp || {};
   var idx = DATA.indices || {};
   // 上证价格锚定 10:06 盘中快照（与总览卡一致），避免手动补录页出现冲突数字
-  var _snapSh = (typeof EMBEDDED_MAINLINE !== 'undefined' && EMBEDDED_MAINLINE.marketRegime && EMBEDDED_MAINLINE.marketRegime.shClose != null) ? EMBEDDED_MAINLINE.marketRegime.shClose : (idx.sh ? idx.sh.price : 0);
+  var _snapSh = (idx.sh && idx.sh.price != null) ? idx.sh.price : (typeof EMBEDDED_MAINLINE !== 'undefined' && EMBEDDED_MAINLINE.marketRegime && EMBEDDED_MAINLINE.marketRegime.shClose != null ? EMBEDDED_MAINLINE.marketRegime.shClose : 0);
   var body =
     '<div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">' +
       '接口数据允许手动覆盖。留空表示沿用接口值；修改后随 <strong>' + date + '</strong> 缓存，切回该日期自动生效。' +
