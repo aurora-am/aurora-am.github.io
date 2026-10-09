@@ -38,6 +38,42 @@
     setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 300); }, 2600);
   }
   function fmtDate(s) { if (!s) return '—'; var d = new Date(s); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function base64urlDecode(s) {
+    s += new Array(5 - s.length % 4).join('=');
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    try { return atob(s); } catch (e) { return ''; }
+  }
+  function parseJwt(token) {
+    try {
+      var parts = String(token || '').split('.');
+      if (parts.length < 2) return null;
+      var payload = JSON.parse(base64urlDecode(parts[1]));
+      return payload && payload.sub ? payload : null;
+    } catch (e) { return null; }
+  }
+  function userFromJwtPayload(payload) {
+    return payload ? { id: payload.sub, email: payload.email || '' } : null;
+  }
+  function getStoredSession() {
+    // 兼容 supabase-js v2 默认 key：sb-<project-ref>-auth-token
+    var ref = (SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/) || [])[1] || '';
+    var keys = ['sb-' + ref + '-auth-token', 'sb:token', 'supabase.auth.token'];
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        var raw = localStorage.getItem(keys[i]);
+        if (!raw) continue;
+        var data = JSON.parse(raw);
+        var token = data && (data.access_token || (data.currentSession && data.currentSession.access_token));
+        if (!token && typeof data === 'string') token = data;
+        var payload = parseJwt(token);
+        if (!payload || !payload.sub) continue;
+        var now = Math.floor(Date.now() / 1000);
+        if (payload.exp && payload.exp < now - 60) continue; // 允许 60s 时钟偏移
+        return { access_token: token, user: userFromJwtPayload(payload), expires_at: payload.exp };
+      } catch (e) { /* 忽略单条解析失败 */ }
+    }
+    return null;
+  }
 
   // ---------------- 弹窗骨架 ----------------
   function ensureMask() {
@@ -64,12 +100,23 @@
       })
     ]);
   }
-  async function refreshState(retry) {
+  async function refreshState(retry, providedSession) {
     if (!sb) { renderBadge(); applyGate(state.currentPage, true); return; }
     try {
-      var s = await race(sb.auth.getSession(), 6000, 'getSession timeout');
-      state.session = s && s.data ? s.data.session : null;
-      state.user = state.session ? state.session.user : null;
+      var sess = providedSession || state.session;
+      if (!sess) {
+        // 优先用 Supabase 官方方法恢复会话，但某些环境下 getSession 会永久挂起，加 4s 超时
+        try {
+          var s = await race(sb.auth.getSession(), 4000, 'getSession timeout');
+          sess = s && s.data ? s.data.session : null;
+        } catch (e) {
+          console.warn('[MiaoSB] getSession hung, falling back to localStorage');
+          sess = getStoredSession();
+          if (!sess) throw e;
+        }
+      }
+      state.session = sess || null;
+      state.user = sess ? (sess.user || userFromJwtPayload(parseJwt(sess.access_token))) : null;
 
       if (!state.user) {
         state.isPro = false; state.expireAt = null;
@@ -95,7 +142,8 @@
         setTimeout(function () { refreshState(true); }, 1200);
         return;
       }
-      state.isPro = false;
+      // 即便最终失败，也保留已有的 session/user，避免登录成功后因 getSession 挂起而被误判为未登录
+      if (!state.user) state.isPro = false;
     }
     renderBadge();
     applyGate(state.currentPage, true);
@@ -249,7 +297,10 @@
     }
     closeModal();
     toast(isReg ? '注册成功，已自动登录' : '登录成功', 'ok');
-    await refreshState();
+    // 登录成功后直接使用返回的 session，避免再次 getSession 挂起导致状态被误判为未登录
+    var sess = res.data && res.data.session ? res.data.session : null;
+    if (sess) { state.session = sess; state.user = sess.user || null; }
+    await refreshState(null, sess);
   }
 
   function mapErr(m) {
@@ -522,9 +573,16 @@
   }
 
   async function logout() {
-    await sb.auth.signOut();
+    try { await race(sb.auth.signOut(), 4000, 'signOut timeout'); }
+    catch (e) { console.warn('[MiaoSB] signOut timeout, force clear local state'); }
+    // 同时清理本地 token，确保即使服务端 signOut 挂起也退出
+    try {
+      var ref = (SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/) || [])[1] || '';
+      localStorage.removeItem('sb-' + ref + '-auth-token');
+    } catch (e) {}
     state.user = null; state.session = null; state.isPro = false;
     renderBadge();
+    applyGate(state.currentPage, true);
     toast('已退出登录', 'ok');
     if (typeof window.navigateTo === 'function') window.navigateTo('overview');
   }
@@ -538,7 +596,8 @@
       var lo = $('vipLogoutBtn'); if (lo) { lo.onclick = null; lo.addEventListener('click', logout); }
 
       wrapNavigate();
-      if (sb) sb.auth.onAuthStateChange(function () { refreshState(); });
+      // onAuthStateChange 会携带最新 session，直接复用，避免 getSession 挂起
+      if (sb) sb.auth.onAuthStateChange(function (event, sess) { refreshState(null, sess); });
       refreshState();
 
       // 兜底：页面完全加载后若状态仍卡住，再刷新一次
