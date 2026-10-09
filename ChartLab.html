@@ -4821,10 +4821,11 @@ function renderThemeRadar() {
   var themes = tr.themes || [];
   // 仅在「刷新数据」拉到实时涨停池时重算前排（LIVE_LIMITUP）；初始快照加载沿用快照配套 front+back，避免 top16 成员错位导致后排补涨候选丢失
   var liveList = (LIVE_LIMITUP && DATA.limitUp && DATA.limitUp.list && DATA.limitUp.list.length) ? DATA.limitUp.list : null;
+  var liveMode = !!liveList;
   if (liveList) {
     var groups = {};
     liveList.forEach(function (s) {
-      var n = s.board || s.industry || s.reason || '其他';
+      var n = s.mainTag || s.board || s.industry || s.reason || '其他';
       (groups[n] = groups[n] || []).push(s);
     });
     var byName = {};
@@ -4844,9 +4845,15 @@ function renderThemeRadar() {
   var totalBoards = themes.length, weakCount = 0, strong = [];
   themes.forEach(function (t) {
     var f = t.front || [], b = t.backRows || [];
-    if (!f.length || !b.length) { weakCount++; return; }            // 边界：无个股板块直接隐藏
-    if (f.length >= THEME_MIN_FRONT && b.length >= THEME_MIN_BACK) strong.push(t);
-    else weakCount++;
+    if (!f.length) { weakCount++; return; }                         // 边界：无前排涨停直接隐藏
+    if (liveMode) {
+      // 实时模式：前排达标即展示；后排复用快照近似，不足时卡片内占位提示，不因后排缺失而隐藏概念卡
+      if (f.length >= THEME_MIN_FRONT) strong.push(t);
+      else weakCount++;
+    } else {
+      if (f.length >= THEME_MIN_FRONT && b.length >= THEME_MIN_BACK) strong.push(t);
+      else weakCount++;
+    }
   });
   var shownCount = Math.min(strong.length, THEME_MAX_CARDS);
   var hiddenCount = weakCount + Math.max(0, strong.length - THEME_MAX_CARDS);
@@ -6823,6 +6830,34 @@ var LiveFeed = (function () {
     });
   }
 
+  /* 过滤融资融券/沪深股通等无题材辨识度的通用标签，挑出有短线辨识度的概念 */
+  var _GEN_CONCEPT = /(融资融券|融券|转融券|沪股通|深股通|陆股通|北上资金|MSCI|标普|富时|基金重仓|机构重仓|QFII|社保重仓|证金|汇金|国企改革|央企|央国企|地方国资|转债标的|可转债|质押|沪伦通|深成\d*|中证\d*|沪深\d*|上证\d*|央视\d*|科创板|创业板|主板|ST|预盈|预增|预减|扭亏|核准制|注册制|破净|低市盈率|高股息)/;
+  function _pickMainConcept(tags) {
+    if (!tags || !tags.length) return '';
+    var filt = tags.filter(function (t) { return !_GEN_CONCEPT.test(t); });
+    var arr = filt.length ? filt : tags;
+    return arr[0] || '';
+  }
+  /* 汇总 limitUp.list -> limitUp 结构 */
+  function finalizeLimitUp(list, dj, pool) {
+    list.sort(function (a, b) { return (b.streak - a.streak) || (b.sealAmount - a.sealAmount); });
+    var lv = {}, i;
+    for (i = 0; i < list.length; i++) { (lv[list[i].streak] = lv[list[i].streak] || []).push(list[i]); }
+    var keys = Object.keys(lv).map(Number).sort(function (a, b) { return b - a; });
+    var streaks = keys.map(function (k) { return { level: k, stocks: lv[k] }; });
+    var gaps = [];
+    for (i = 0; i < keys.length - 1; i++) {
+      if (keys[i] - keys[i + 1] >= 2) gaps.push({ after: keys[i], before: keys[i + 1], note: keys[i] + '→' + keys[i + 1] + '板断层' });
+    }
+    var n20 = list.filter(function (s) { return s.chgPct >= 19; }).length;
+    var zbc = pool.reduce(function (a, it) { return a + (Number(it.zbc) || 0); }, 0);
+    var down = (dj && dj.data && typeof dj.data.tc === 'number') ? dj.data.tc
+             : ((dj && dj.data && dj.data.pool) ? dj.data.pool.length : 0);
+    return { count: list.length, count20cm: n20, limitDown: down,
+             sealed: list.length, attempted: list.length + zbc,
+             maxStreak: keys.length ? keys[0] : 0, streaks: streaks, gaps: gaps, list: list };
+  }
+
   /* 2) 涨停池 + 3) 跌停池 -> limitUp 结构 */
   function limitPool(date) {
     var d = compact(date);
@@ -6845,24 +6880,27 @@ var LiveFeed = (function () {
         if (chg >= 19) tg.push('20CM');
         return { name: it.n, code: it.c, streak: Number(it.lbc) || 1, time: hhmmss(it.fbt),
                  reason: it.hybk || '', reasonTags: tags, sealAmount: yi(it.fund),
-                 chgPct: chg, onLHB: false, type: typ, tags: tg, sealed: true };
+                 chgPct: chg, onLHB: false, type: typ, tags: tg, sealed: true,
+                 marketCap: it.ltsz ? +(it.ltsz / 1e8).toFixed(0) : null,
+                 hybk: it.hybk || '', conceptTags: [], mainTag: it.hybk || '' };
       });
-      list.sort(function (a, b) { return (b.streak - a.streak) || (b.sealAmount - a.sealAmount); });
-      var lv = {}, i;
-      for (i = 0; i < list.length; i++) { (lv[list[i].streak] = lv[list[i].streak] || []).push(list[i]); }
-      var keys = Object.keys(lv).map(Number).sort(function (a, b) { return b - a; });
-      var streaks = keys.map(function (k) { return { level: k, stocks: lv[k] }; });
-      var gaps = [];
-      for (i = 0; i < keys.length - 1; i++) {
-        if (keys[i] - keys[i + 1] >= 2) gaps.push({ after: keys[i], before: keys[i + 1], note: keys[i] + '→' + keys[i + 1] + '板断层' });
-      }
-      var n20 = list.filter(function (s) { return s.chgPct >= 19; }).length;
-      var zbc = pool.reduce(function (a, it) { return a + (Number(it.zbc) || 0); }, 0);
-      var down = (dj && dj.data && typeof dj.data.tc === 'number') ? dj.data.tc
-               : ((dj && dj.data && dj.data.pool) ? dj.data.pool.length : 0);
-      return { count: list.length, count20cm: n20, limitDown: down,
-               sealed: list.length, attempted: list.length + zbc,
-               maxStreak: keys.length ? keys[0] : 0, streaks: streaks, gaps: gaps, list: list };
+      // 批量补全概念板块标签（东财个股 f100），供题材雷达按概念（而非仅行业）聚类，
+      // 使「网络安全 / 信创 / AI」等概念题材能独立成卡
+      var secids = list.map(function (s) { return (/^(60|68|9)/.test(s.code) ? '1.' : '0.') + s.code; }).join(',');
+      var cu = 'https://push2delay.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&ut=' + UT_Q
+             + '&secids=' + secids + '&fields=f12,f14,f100';
+      return jsonp(cu).then(function (cj) {
+        var arr = (cj && cj.data && cj.data.diff) || [];
+        var cmap = {};
+        arr.forEach(function (it) { if (it && it.f12 != null) cmap[String(it.f12)] = it.f100 || ''; });
+        list.forEach(function (s) {
+          var raw = cmap[String(s.code)] || '';
+          var ctags = raw ? String(raw).split(/[,，\s]+/).map(function (x) { return x.trim(); }).filter(Boolean) : [];
+          s.conceptTags = ctags;
+          s.mainTag = _pickMainConcept(ctags) || s.hybk || '';
+        });
+        return finalizeLimitUp(list, dj, pool);
+      }).catch(function () { return finalizeLimitUp(list, dj, pool); });
     });
   }
 
