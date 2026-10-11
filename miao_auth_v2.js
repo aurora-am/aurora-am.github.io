@@ -134,7 +134,7 @@
   // ===== 为爱发电模式：赞赏二维码 =====
   // 把您的收款码图片命名为 reward-qr.png 放到站点根目录（.pages_repo/），或改成完整图片 URL。
   // 图片缺失时弹窗自动显示配置提示，不会报错。
-  var REWARD_QR_URL = 'reward-qr.png';
+  var REWARD_QR_URL = 'img/reward-qr.png';
   var REWARD_TIP = '如果这个复盘工作台对你有帮助，欢迎赞赏支持～<br>微信 / 支付宝 扫码即可，金额随意 🙏';
 
   // ---------------- 弹窗骨架（本模块私有） ----------------
@@ -417,7 +417,7 @@
         '<img class="miao-reward-qr" src="' + esc(REWARD_QR_URL) + '" alt="赞赏二维码" ' +
           'onload="this.style.display=\'block\';this.nextElementSibling.style.display=\'none\'" ' +
           'onerror="this.style.display=\'none\'" style="display:none">' +
-        '<div class="miao-reward-fallback">赞赏二维码待配置：把您的收款码图片命名为 <b>reward-qr.png</b> 放到站点根目录即可显示。</div>' +
+        '<div class="miao-reward-fallback">赞赏二维码待配置：把您的收款码图片命名为 <b>reward-qr.png</b> 放到 <b>img/</b> 目录即可显示。</div>' +
       '</div>' +
       '<div class="miao-tip">' + REWARD_TIP + '</div>' +
       '<button class="miao-btn primary" id="miaoRewardOk">好的，知道啦</button>'
