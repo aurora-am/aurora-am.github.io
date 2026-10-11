@@ -220,8 +220,9 @@
       }
     } else {
       var lb2 = $('miaoLoginBtn'); if (lb2) lb2.remove();
-      b.textContent = state.isPro ? (state.expireAt ? ('PRO · ' + fmtDate(state.expireAt)) : '会员 · 为爱发电') : '免费版';
+      b.textContent = state.isPro ? (state.expireAt ? ('PRO · ' + fmtDate(state.expireAt)) : '投喂小鱼干') : '免费版';
       b.className = 'vip-badge ' + (state.isPro ? 'pro' : 'free');
+      if (state.isPro) { b.style.cursor = 'pointer'; b.title = '点击投喂小鱼干 🐟'; b.onclick = function () { showRewardModal(); }; }
       if (buy) buy.style.display = state.isPro ? 'none' : '';
       if (chpw) chpw.style.display = '';
       if (out) out.style.display = '';
@@ -348,7 +349,7 @@
     var sess = res.data && res.data.session ? res.data.session : null;
     if (sess) { state.session = sess; state.user = sess.user || null; renderBadge(); }
     await refreshState(null, sess);
-    showRewardModal();
+    // 为爱发电模式：赞赏弹窗改为点击「投喂小鱼干」徽标触发，不再登录自动弹出
   }
 
   function mapErr(m) {
@@ -412,7 +413,7 @@
 
   function showRewardModal() {
     openModal(
-      '<h3 class="miao-title">为爱发电 · 赞赏支持</h3>' +
+      '<h3 class="miao-title">投喂小鱼干 · 赞赏支持</h3>' +
       '<div class="miao-reward">' +
         '<img class="miao-reward-qr" src="' + esc(REWARD_QR_URL) + '" alt="赞赏二维码" ' +
           'onload="this.style.display=\'block\';this.nextElementSibling.style.display=\'none\'" ' +
