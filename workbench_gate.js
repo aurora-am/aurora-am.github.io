@@ -23,6 +23,11 @@
     }
 
     function check() {
+      // ===== 临时模式：为爱发电 —— 注释掉会员跳回，登录用户直接放行 =====
+      // 恢复付费时：删除下面 3 行，取消下方注释即可还原会员鉴权跳回。
+      var loggedIn = !!(MiaoSB && MiaoSB.state && MiaoSB.state.user);
+      if (loggedIn) document.body.classList.add('miao-unlocked');
+      /*
       var pro = !!(MiaoSB && MiaoSB.state && MiaoSB.state.isPro);
       if (pro) {
         document.body.classList.add('miao-unlocked');
@@ -30,6 +35,7 @@
         // 未登录/未会员：直接跳转到主站，不在工作台自己做遮罩
         location.replace(HOME);
       }
+      */
     }
 
     // 1) 登录 / 登出 / 购买完成 → miao_supabase 会 refreshState 更新 isPro

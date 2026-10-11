@@ -131,6 +131,12 @@
 
   var CODE_TTL_MIN = 10;
 
+  // ===== 为爱发电模式：赞赏二维码 =====
+  // 把您的收款码图片命名为 reward-qr.png 放到站点根目录（.pages_repo/），或改成完整图片 URL。
+  // 图片缺失时弹窗自动显示配置提示，不会报错。
+  var REWARD_QR_URL = 'reward-qr.png';
+  var REWARD_TIP = '如果这个复盘工作台对你有帮助，欢迎赞赏支持～<br>微信 / 支付宝 扫码即可，金额随意 🙏';
+
   // ---------------- 弹窗骨架（本模块私有） ----------------
   function ensureMask() {
     var m = $('miaoMask');
@@ -168,10 +174,15 @@
       if (!state.user) {
         state.isPro = false; state.expireAt = null;
       } else {
+        // ===== 临时模式：为爱发电 —— 所有登录用户视作会员 =====
+        // 恢复付费时：删除下面这行，取消下方注释即可还原 my_membership 鉴权。
+        state.isPro = true; state.expireAt = null;
+        /*
         var r = await race(sb.rpc('my_membership'), 6000, 'my_membership timeout');
         var row = r.data && r.data.length ? r.data[0] : null;
         state.isPro = !!(row && row.status === 'active' && row.plan === 'pro' && new Date(row.expire_at) > new Date());
         state.expireAt = row ? row.expire_at : null;
+        */
         try {
           await race(sb.from('users').upsert({
             id: state.user.id,
@@ -209,7 +220,7 @@
       }
     } else {
       var lb2 = $('miaoLoginBtn'); if (lb2) lb2.remove();
-      b.textContent = state.isPro ? ('PRO · ' + fmtDate(state.expireAt)) : '免费版';
+      b.textContent = state.isPro ? (state.expireAt ? ('PRO · ' + fmtDate(state.expireAt)) : '会员 · 为爱发电') : '免费版';
       b.className = 'vip-badge ' + (state.isPro ? 'pro' : 'free');
       if (buy) buy.style.display = state.isPro ? 'none' : '';
       if (chpw) chpw.style.display = '';
@@ -337,6 +348,7 @@
     var sess = res.data && res.data.session ? res.data.session : null;
     if (sess) { state.session = sess; state.user = sess.user || null; renderBadge(); }
     await refreshState(null, sess);
+    showRewardModal();
   }
 
   function mapErr(m) {
@@ -396,6 +408,21 @@
     if (window.MiaoPage) window.MiaoPage.applyGate(state.currentPage, true);
     toast('已退出登录', 'ok');
     if (typeof window.navigateTo === 'function') window.navigateTo('overview');
+  }
+
+  function showRewardModal() {
+    openModal(
+      '<h3 class="miao-title">为爱发电 · 赞赏支持</h3>' +
+      '<div class="miao-reward">' +
+        '<img class="miao-reward-qr" src="' + esc(REWARD_QR_URL) + '" alt="赞赏二维码" ' +
+          'onload="this.style.display=\'block\';this.nextElementSibling.style.display=\'none\'" ' +
+          'onerror="this.style.display=\'none\'" style="display:none">' +
+        '<div class="miao-reward-fallback">赞赏二维码待配置：把您的收款码图片命名为 <b>reward-qr.png</b> 放到站点根目录即可显示。</div>' +
+      '</div>' +
+      '<div class="miao-tip">' + REWARD_TIP + '</div>' +
+      '<button class="miao-btn primary" id="miaoRewardOk">好的，知道啦</button>'
+    );
+    var ok = $('miaoRewardOk'); if (ok) ok.addEventListener('click', closeModal);
   }
 
   window.MiaoAuth = {
