@@ -7446,6 +7446,7 @@ function loadDay(date, force) {
   setBusy(true);
   showLoading((force ? '🔄 强制刷新 ' : '🔄 正在载入 ') + date + '（' + weekdayCN(date) + '）数据…');
   setTimeout(function() {
+   try {
     function _latestSnap() { var ks = Object.keys(EMBEDDED_SNAPSHOT || {}); for (var i = 0; i < ks.length; i++) { if (EMBEDDED_SNAPSHOT[ks[i]] && EMBEDDED_SNAPSHOT[ks[i]].isLatest) return ks[i]; } return null; }
     var _lk = _latestSnap();
     var payload = requestConnectorData(date, 'all', force) || EMBEDDED_SNAPSHOT[date] || (_lk && EMBEDDED_SNAPSHOT[_lk]) || (cached && cached.res);
@@ -7466,8 +7467,14 @@ function loadDay(date, force) {
       showNoDataModal(date, '该交易日暂无内嵌数据；请让智能体经【通达信MCP / 东方财富妙想MCP】重新拉取并内嵌后再查看');
       updateSourceBadge({ source: 'none' });
     }
+   } catch (err) {
+    console.error('[loadDayData] 渲染异常（已兜底隐藏 loading）:', err && err.message ? err.message : err);
+    try { showNotify('⚠️ 数据渲染异常，已降级显示', 4000); } catch (e) {}
+   } finally {
+    hideLoading();
     _isFetching = false;
     setBusy(false);
+   }
   }, 0);
 }
 
@@ -8027,6 +8034,10 @@ function init() {
     } else {
       showNotify('ℹ️ 当前为休市时段；已尝试交易日自动刷新（顶栏可手动开启 5 秒连刷）', 5000);
     }
+  }).catch(function (e) {
+    console.error('[init] 加载链异常（已兜底隐藏 loading）:', e && e.message ? e.message : e);
+    hideLoading();
+    try { showNotify('⚠️ 初始化数据加载异常，已降级显示', 4000); } catch (err) {}
   });
 }
 
