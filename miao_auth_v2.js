@@ -468,7 +468,7 @@
       (eb.active ? '<div class="mm-eb">🎁 早鸟价 · 距结束还有 ' + eb.daysLeft + ' 天（' + eb.deadline + '）</div>' : '') +
       '<div class="dur-grid">' + cards + '</div>' +
       '<div class="miao-sum">应付：<b id="miaoSum">¥' + p.tiers.month.amount + '</b></div>' +
-      '<a class="miao-btn pay" id="miaoPayWx" style="display:block;text-align:center;text-decoration:none;margin-top:14px" href="javascript:void(0)">微信支付</a>' +
+      '<a class="miao-btn pay" id="miaoPayWx" style="display:block;text-align:center;text-decoration:none;margin-top:14px;opacity:.6" href="javascript:void(0)">微信支付（即将上线）</a>' +
       '<a class="miao-btn pay ali" id="miaoPayAli" style="display:block;text-align:center;text-decoration:none;margin-top:8px" href="javascript:void(0)">支付宝支付</a>' +
       '<div class="miao-foot"><a id="miaoGoManual" href="javascript:void(0)">收不到二维码？用备用付款方式</a></div>' +
       '<div class="miao-tip">通过官方备案通道扫码收款，付款成功后自动开通；未支付不会开通。</div>'
@@ -489,6 +489,8 @@
   }
 
   async function doPay(dur, type, btn) {
+    if (type === 'wxpay') { toast('微信支付即将上线，请使用支付宝付款', 'warn'); return; }
+
     var old = btn.textContent;
     btn.classList.add('busy');
     btn.textContent = '提交中…';
@@ -503,22 +505,27 @@
     var tip = '';
     if (type !== 'manual') {
       try {
-        var fr = await fetch(C.SUPABASE_URL + '/functions/v1/epay-create', {
+        var fr = await fetch(C.SUPABASE_URL + '/functions/v1/aipay-create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             apikey: C.SUPABASE_ANON,
             Authorization: 'Bearer ' + (state.session && state.session.access_token)
           },
-          body: JSON.stringify({ duration: dur, type: type })
+          body: JSON.stringify({ duration: dur })
         });
         var fj = await fr.json().catch(function () { return {}; });
-        if (fr.ok && fj.url) {
-          toast('正在跳转' + (type === 'alipay' ? '支付宝' : '微信') + '付款…', 'ok');
+        if (fr.ok && fj.form) {
+          toast('正在跳转支付宝付款…', 'ok');
+          setTimeout(function () { document.write(fj.form); }, 400);  // 渲染自动提交表单跳收银台
+          return;
+        }
+        if (fr.ok && fj.url) {  // 降级兼容
+          toast('正在跳转支付宝付款…', 'ok');
           setTimeout(function () { location.href = fj.url; }, 600);
           return;
         }
-        tip = fj.error === 'EPAY_NOT_CONFIGURED'
+        tip = (fj.error === 'EPAY_NOT_CONFIGURED' || fj.error === 'ALIPAY_NOT_CONFIGURED')
           ? '在线收款通道正在配置中，你的订单已保存。'
           : (fj.message || '创建支付失败，请稍后重试。');
       } catch (e) {
