@@ -131,11 +131,11 @@
 
   var CODE_TTL_MIN = 10;
 
-  // ===== 为爱发电模式：赞赏二维码 =====
-  // 把您的收款码图片命名为 reward-qr.png 放到站点根目录（.pages_repo/），或改成完整图片 URL。
+  // ===== 投喂小鱼干：赞赏二维码 =====
+  // 把微信收款码图片命名为 reward-qr.png 放到 .pages_repo/img/，或改成完整图片 URL。
   // 图片缺失时弹窗自动显示配置提示，不会报错。
   var REWARD_QR_URL = 'img/reward-qr.png';
-  var REWARD_TIP = '如果这个复盘工作台对你有帮助，欢迎赞赏支持～<br>微信 / 支付宝 扫码即可，金额随意 🙏';
+  var REWARD_TIP = '如果这个复盘工作台对你有帮助，欢迎微信扫码投喂小鱼干～<br>金额随意，感谢支持 🐟';
 
   // ---------------- 弹窗骨架（本模块私有） ----------------
   function ensureMask() {
