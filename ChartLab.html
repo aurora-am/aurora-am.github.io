@@ -4802,9 +4802,107 @@ function fetchThemeQuotes() {
   }).catch(function () { _themeQuoteRunning = false; });
 }
 
+/* ===== 实时题材：后排补涨候选盘中实时重算 =====
+   说明：初始快照的后排补涨是按 10:06 时刻涨幅筛的，盘中会失真且易空。
+   本函数在「刷新数据/自动刷新」时，按各题材行业板块代码实时拉取板块成员，
+   按当前涨幅重新筛「主板·非ST·0.5%~9.5%」的真实后排补涨候选（绝不编造）。
+   另对 THEME_FORCE_BOARDS 配置的题材（如冰雪→旅游及景区）即便当日无涨停也强制展示。 */
+var _themeBackRunning = false;
+function resolveBoardCode(name, boardMap) {
+  if (!name || !boardMap) return null;
+  if (boardMap[name]) return boardMap[name];
+  var keys = Object.keys(boardMap);
+  var hit = keys.find(function (k) {
+    return k.indexOf(name) >= 0 || name.indexOf(k) >= 0
+      || THEME_FORCE_BOARDS.some(function (f) { return (f.keywords || []).some(function (kw) { return k.indexOf(kw) >= 0; }); });
+  });
+  return hit ? boardMap[hit] : null;
+}
+function refreshThemeBackRows() {
+  if (_themeBackRunning) return;
+  if (!DATA.themeRadar || !DATA.themeRadar.themes) return;
+  if (!CURRENT_IS_LATEST) return;     // 🚨 防混日：仅最新交易日实时重算
+  _themeBackRunning = true;
+  var UT = UT_THEME;
+  LiveFeed.jsonp('https://push2delay.eastmoney.com/api/qt/clist/get?pn=1&pz=400&np=1&fltt=2&invt=2&ut=' + UT + '&fs=m:90+t:2&fields=f12,f14', 9000)
+    .then(function (bj) {
+      var boardMap = {};
+      ((bj && bj.data && bj.data.diff) || []).forEach(function (x) { if (x.f14 && x.f12) boardMap[x.f14] = x.f12; });
+      var targets = [];
+      DATA.themeRadar.themes.forEach(function (t) {
+        var code = t.boardCode || resolveBoardCode(t.name, boardMap);
+        if (code) targets.push({ name: t.name, code: code, force: !!t.forceShow });
+      });
+      THEME_FORCE_BOARDS.forEach(function (fb) {
+        var code = resolveBoardCode(fb.keywords[0], boardMap)
+          || resolveBoardCode(fb.alias, boardMap)
+          || (function () {
+            var k = Object.keys(boardMap).find(function (kk) { return fb.keywords.some(function (kw) { return kk.indexOf(kw) >= 0; }); });
+            return k ? boardMap[k] : null;
+          })();
+        if (code) targets.push({ name: fb.alias, code: code, aliasOf: fb.keywords.join('/'), force: true });
+      });
+      var seen = {}; targets = targets.filter(function (t) { if (seen[t.name]) return false; seen[t.name] = 1; return true; });
+      var chain = Promise.resolve();
+      targets.forEach(function (tg) {
+        chain = chain.then(function () {
+          return LiveFeed.jsonp('https://push2delay.eastmoney.com/api/qt/clist/get?pn=1&pz=500&np=1&fltt=2&invt=2&ut=' + UT
+            + '&fs=b:' + tg.code + '&fields=f12,f14,f2,f3,f5,f6,f8,f10,f20,f62,f100', 9000)
+            .then(function (mj) {
+              var members = (mj && mj.data && mj.data.diff) || [];
+              var clean = members.filter(function (x) {
+                var code = String(x.f12 || '');
+                if (/^(30|688|4|8|9|43|920)/.test(code)) return false;   // 排除创业/科创/北交
+                if (/ST|退|\*/.test(x.f14 || '')) return false;            // 排除 ST/退市
+                return isFinite(+x.f3);
+              });
+              var back = clean
+                .filter(function (x) { return +x.f3 >= 0.5 && +x.f3 <= THEME_BACK_CHG_MAX; })   // 后排：主板·涨幅 0.5%~9.5%
+                .map(function (x) {
+                  var code = String(x.f12);
+                  var chg = +x.f3, vr = +x.f10 || 0, main = +x.f62 || 0, amount = +x.f6 || 1;
+                  var strength = +(chg * 0.4 + Math.min(vr, 3) * 2 + (main / amount) * 15).toFixed(2);
+                  return { code: code, name: x.f14, chgPct: chg, volRatio: vr, mainNetFlowYi: Math.round(main / 1e8 * 100) / 100,
+                    marketCap: x.f20 ? +(x.f20 / 1e8).toFixed(2) : null, strength: strength };
+                })
+                .sort(function (a, b) { return b.strength - a.strength; })
+                .slice(0, THEME_BACK_MAX);
+              var t = null;
+              DATA.themeRadar.themes.forEach(function (z) { if (z.name === tg.name) t = z; });
+              if (!t) { t = { name: tg.name, count: 0, lbcMax: 1, front: [], backRows: [], forceShow: !!tg.force }; DATA.themeRadar.themes.push(t); }
+              t.backRows = back;
+              if (tg.force) {   // 强制题材：用板块内真实涨停股填充前排，使卡片完整
+                t.front = clean
+                  .filter(function (x) { return +x.f3 >= 9.5; })
+                  .map(function (x) {
+                    return { code: String(x.f12), name: x.f14, streak: 1, time: '', sealAmount: null, chgPct: +x.f3,
+                      mainNetFlowYi: Math.round((+x.f62 || 0) / 1e8 * 100) / 100, marketCap: x.f20 ? +(x.f20 / 1e8).toFixed(2) : null,
+                      reason: '', turnover: null, volRatio: +x.f10 || 0 };
+                  });
+                t.count = t.front.length;
+                t.lbcMax = t.front.length ? Math.max.apply(null, t.front.map(function (s) { return s.streak || 1; })) : 1;
+              }
+              if (tg.aliasOf) t.aliasOf = tg.aliasOf;
+              if (tg.force) t.forceShow = true;
+            })
+            .catch(function () { /* 板块拉取失败：保留原快照后排，不编造 */ });
+        });
+      });
+      return chain;
+    })
+    .then(function () { _themeBackRunning = false; renderThemeRadar(); })
+    .catch(function () { _themeBackRunning = false; renderThemeRadar(); });
+}
+
 var THEME_MIN_FRONT = 2;
 var THEME_MIN_BACK = 2;
 var THEME_MAX_CARDS = 16;
+var THEME_BACK_MAX = 8;          // 后排补涨候选取前 N
+var THEME_BACK_CHG_MAX = 9.5;    // 后排涨幅上限（含接近涨停的强势补涨）
+// 强制展示题材：即使当日无该板块涨停，也按真实板块成员拉取后排补涨（如冰雪→旅游及景区）
+var THEME_FORCE_BOARDS = [
+  { alias: '冰雪', keywords: ['旅游', '景区', '冰雪', '酒店'] }
+];
 var _themePrevRank = {};
 var _themeLastHTML = "";
 function _themeZs(code) { var v = ZS_MAP[code]; return (v != null && isFinite(v)) ? v : null; }
@@ -4832,7 +4930,7 @@ function renderThemeRadar() {
   var tr = DATA.themeRadar || { themes: [], note: '' };
   if (noteEl) noteEl.textContent = tr.note || '';
   var timingEl = document.getElementById('themeTimingNote');
-  if (timingEl) timingEl.innerHTML = '⏱️ 题材雷达为盘中实时题材聚类（点击「刷新数据」实时更新涨速/封单），与全站 10:06 快照基准相互独立；下方龙头/主线/涨停池等模块均以快照为准，二者不混用。';
+  if (timingEl) timingEl.innerHTML = '⏱️ 题材雷达为盘中实时题材聚类：点击「刷新数据」会按各板块代码实时重算前排涨停梯队与后排补涨候选（按当前涨幅 0.5%~9.5% 真实筛选），与全站 10:06 快照基准相互独立；下方龙头/主线/涨停池等模块均以快照为准，二者不混用。';
   var themes = tr.themes || [];
   // 仅在「刷新数据」拉到实时涨停池时重算前排（LIVE_LIMITUP）；初始快照加载沿用快照配套 front+back，避免 top16 成员错位导致后排补涨候选丢失
   var liveList = (LIVE_LIMITUP && DATA.limitUp && DATA.limitUp.list && DATA.limitUp.list.length) ? DATA.limitUp.list : null;
@@ -4856,10 +4954,17 @@ function renderThemeRadar() {
     }).sort(function (a, b) { return b.count - a.count || b.lbcMax - a.lbcMax; }).slice(0, 16);
   }
 
+  // 合并强制展示题材（如冰雪→旅游及景区）：即便当日无涨停，也展示其盘中真实后排补涨
+  (DATA.themeRadar.themes || []).forEach(function (tf) {
+    if (!tf.forceShow) return;
+    if (!themes.some(function (t) { return t.name === tf.name; })) themes.push(tf);
+  });
+
   /* ===== ① 强势板块过滤：前排 ≥2 且 后排 ≥2，否则整卡隐藏（每次刷新自动重新校验）===== */
   var totalBoards = themes.length, weakCount = 0, strong = [];
   themes.forEach(function (t) {
     var f = t.front || [], b = t.backRows || [];
+    if (t.forceShow) { strong.push(t); return; }                    // 强制题材：不卡前后排数量，直接展示
     if (!f.length) { weakCount++; return; }                         // 边界：无前排涨停直接隐藏
     if (liveMode) {
       // 实时模式：前排达标即展示；后排复用快照近似，不足时卡片内占位提示，不因后排缺失而隐藏概念卡
@@ -8077,6 +8182,7 @@ function forceRefresh() {
       commit(bridged);
       fetchZSForTheme();
       try { fetchThemeQuotes(); } catch (e) {}
+      try { refreshThemeBackRows(); } catch (e) {}
       try { fetchCapitalFlow(); } catch (e) {}
       settle();
       var lu0 = DATA.limitUp || {};
@@ -8091,6 +8197,7 @@ function forceRefresh() {
       commit(payload);
       fetchZSForTheme();
       try { fetchThemeQuotes(); } catch (e) {}
+      try { refreshThemeBackRows(); } catch (e) {}
       try { fetchCapitalFlow(); } catch (e) {}
       LAST_LIVE_AT = new Date();
       updateLastUpdateLabel();
@@ -8142,6 +8249,7 @@ function autoLiveRefreshOnce() {
     applyPayload(payload); renderAll();
     fetchZSForTheme();
     try { fetchThemeQuotes(); } catch (e) {}
+    try { refreshThemeBackRows(); } catch (e) {}
     LAST_LIVE_AT = new Date();
     updateLastUpdateLabel();
     var lu = DATA.limitUp || {};
