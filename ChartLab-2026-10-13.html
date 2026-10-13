@@ -4905,6 +4905,20 @@ var THEME_FORCE_BOARDS = [
 ];
 var _themePrevRank = {};
 var _themeLastHTML = "";
+/* 盘中每 60 秒重拉实时涨停池，让下午新涨停的板块（如军工）无需手动刷新也能自动浮现前排梯队 */
+var _lastLimitUpFetch = 0, _limitUpFetching = false;
+function refreshLiveLimitUp() {
+  if (_limitUpFetching || !CURRENT_IS_LATEST) return;
+  _limitUpFetching = true;
+  var date = DATA.date;
+  LiveFeed.limitPool(date).then(function (lu) {
+    _limitUpFetching = false;
+    if (!lu || !lu.list || !lu.list.length) return;
+    DATA.limitUp = lu;
+    LIVE_LIMITUP = true;
+    renderThemeRadar();
+  }).catch(function () { _limitUpFetching = false; });
+}
 function _themeZs(code) { var v = ZS_MAP[code]; return (v != null && isFinite(v)) ? v : null; }
 function _themeAvgZs(codes) {
   if (!codes || !codes.length) return null;
@@ -4936,10 +4950,23 @@ function renderThemeRadar() {
   var liveList = (LIVE_LIMITUP && DATA.limitUp && DATA.limitUp.list && DATA.limitUp.list.length) ? DATA.limitUp.list : null;
   var liveMode = !!liveList;
   if (liveList) {
-    var groups = {};
+    // 实时聚类：以「行业板块 hybk」为主键（与每日快照口径一致），保证军工/传媒/旅游等按行业维度成卡；
+    // 再以「概念板块 conceptTags」补充跨行业题材卡（信创/AI 等），避免按首个概念标签聚类时被切碎到杂乱组而整卡消失。
+    var _genRe = /(融资融券|融券|转融券|沪股通|深股通|陆股通|北上资金|MSCI|标普|富时|基金重仓|机构重仓|QFII|社保重仓|证金|汇金|国企改革|央企|央国企|地方国资|转债标的|可转债|质押|沪伦通|深成\d*|中证\d*|沪深\d*|上证\d*|央视\d*|科创板|创业板|主板|ST|预盈|预增|预减|扭亏|核准制|注册制|破净|低市盈率|高股息)/;
+    var groups = {}, conceptGroups = {};
     liveList.forEach(function (s) {
-      var n = s.mainTag || s.board || s.industry || s.reason || '其他';
-      (groups[n] = groups[n] || []).push(s);
+      var ind = s.hybk || s.mainTag || s.board || s.industry || s.reason || '其他';
+      (groups[ind] = groups[ind] || []).push(s);
+      (s.conceptTags || []).forEach(function (ct) {
+        if (!ct || _genRe.test(ct)) return;
+        (conceptGroups[ct] = conceptGroups[ct] || []).push(s);
+      });
+    });
+    // 概念卡：仅当概念有 ≥2 只涨停、且未被任一行业卡包含时才补充（跨行业题材独立成卡，避免与行业卡重复）
+    Object.keys(conceptGroups).forEach(function (ct) {
+      if (conceptGroups[ct].length < 2) return;
+      var dup = Object.keys(groups).some(function (ind) { return ind.indexOf(ct) >= 0 || ct.indexOf(ind) >= 0; });
+      if (!dup) groups[ct] = conceptGroups[ct];
     });
     var byName = {};
     themes.forEach(function (t) { byName[t.name] = t; });
@@ -8280,6 +8307,11 @@ function fetchQuotes() {
   // 题材成分股实时报价：盘中每 10 秒刷新后排补涨的涨幅/量比/主力净流入（非交易时段跳过）
   if (isMarketOpen() && !_themeQuoteRunning && Date.now() - _lastThemeQuote > 10000) {
     try { fetchThemeQuotes(); } catch (e) {}
+  }
+  // 实时涨停池：盘中每 60 秒重拉一次，使下午新涨停板块（军工/传媒/旅游等）的前排梯队自动浮现（非交易时段跳过）
+  if (isMarketOpen() && Date.now() - _lastLimitUpFetch > 60000) {
+    _lastLimitUpFetch = Date.now();
+    try { refreshLiveLimitUp(); } catch (e) {}
   }
   if (_quoteLiveFail < 3) {
     LiveFeed.quotes().then(function (q) {
