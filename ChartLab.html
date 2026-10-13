@@ -4691,7 +4691,15 @@ function updateLastUpdateLabel() {
   var el = document.getElementById('lastUpdateDisplay');
   if (!el) return;
   if (LAST_LIVE_AT) {
-    el.textContent = '🟢 最后更新 ' + fmtDateTime(LAST_LIVE_AT);
+    // 非交易时段定格为最后有效交易时刻，避免收盘后/午休时时间仍随刷新走动
+    var phase = getTradePhase(new Date());
+    var stamp = new Date(LAST_LIVE_AT);
+    if (phase === 'lunch') {
+      stamp.setHours(11, 30, 0, 0);
+    } else if (phase === 'after' || phase === 'pre') {
+      stamp.setHours(15, 30, 0, 0);
+    }
+    el.textContent = '🟢 最后更新 ' + fmtDateTime(stamp);
     el.className = 'topbar-update live';
   } else if (CURRENT_SNAP_AT) {
     var _d = (typeof LATEST_TRADE_DAY !== 'undefined' && LATEST_TRADE_DAY) || DATA.date || '';
