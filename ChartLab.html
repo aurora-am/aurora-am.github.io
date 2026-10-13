@@ -141,12 +141,6 @@ body {
   .topbar-btn .btn-text { display:none; }
   .topbar-btn { padding:6px 8px; }
 }
-#dataTimeBtn .btn-text-short { display:none; }
-@media (max-width:1100px) {
-  #dataTimeBtn { padding:6px 8px; }
-  #dataTimeBtn .btn-text { display:none; }
-  #dataTimeBtn .btn-text-short { display:inline; }
-}
 .topbar-btn {
   display:flex; align-items:center; gap:4px; padding:6px 10px;
   background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:6px;
@@ -739,15 +733,6 @@ body {
 .notes-date-label { font-size:13px; font-weight:700; margin:4px 0 12px; }
 
 /* ===== P2-2 数据时点全景 ===== */
-#dataTimeBtn { position:relative; }
-#dataTimeBtn.provisional { background:rgba(245,158,11,0.18) !important; border-color:rgba(245,158,11,0.45) !important; color:#fff !important; }
-#dataTimeBtn.provisional #dataTimeDot { background:#f59e0b !important; box-shadow:0 0 6px rgba(245,158,11,0.6); }
-#dataTimeBtn.phase-lunch { background:rgba(240,136,62,0.18) !important; border-color:rgba(240,136,62,0.45) !important; color:#fff !important; }
-#dataTimeBtn.phase-lunch #dataTimeDot { background:#f0883e !important; box-shadow:0 0 6px rgba(240,136,62,0.6); }
-#dataTimeBtn.phase-after { background:rgba(26,115,232,0.18) !important; border-color:rgba(26,115,232,0.45) !important; color:#fff !important; }
-#dataTimeBtn.phase-after #dataTimeDot { background:#60a5fa !important; box-shadow:0 0 6px rgba(96,165,250,0.6); }
-#dataTimeBtn.final { background:rgba(26,115,232,0.18) !important; border-color:rgba(26,115,232,0.45) !important; color:#fff !important; }
-#dataTimeBtn.final #dataTimeDot { background:#60a5fa !important; box-shadow:0 0 6px rgba(96,165,250,0.6); }
 .tl-item { flex:1 1 200px; min-width:160px; border-radius:8px; padding:8px 10px; border:1px solid var(--card-border); background:var(--card-bg,#fff); }
 .tl-k { font-size:12px; font-weight:700; color:var(--text); margin-bottom:3px; }
 .tl-at { font-size:12px; color:var(--text-secondary); }
@@ -800,19 +785,10 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
       ⏱ <span class="btn-text">5秒刷新</span>
       <div class="toggle-switch" id="autoToggle"></div>
     </div>
-    <button class="topbar-btn" onclick="showDataTimeModal()" id="dataTimeBtn" title="点击查看数据时点说明">
-      <span id="dataTimeDot" style="width:8px;height:8px;border-radius:50%;background:#9ca3af;display:inline-block;margin-right:4px;"></span>
-      <span class="btn-text">数据时点</span>
-      <span class="btn-text-short">时点</span>
-    </button>
     <button class="topbar-btn" onclick="forceRefresh()" id="refreshBtn" title="点击向数据源实时拉取最新行情，刷新全部模块">🔄 <span class="btn-text">刷新数据</span></button>
     <button class="topbar-btn" onclick="openManualEntry()" id="manualBtn" title="手动修正/补录当日数据">✏️ <span class="btn-text">手动补录</span></button>
     <button class="topbar-btn" onclick="toggleDark()" id="darkBtn">🌙 <span class="btn-text">关灯</span></button>
     <button class="topbar-btn" onclick="exportPDF()">📄 <span class="btn-text">导出PDF</span></button>
-    <div class="topbar-btn" style="cursor:pointer;" onclick="toggleSync(this)" id="syncBtn">
-      📝 <span class="btn-text">Markdown</span>
-      <div class="toggle-switch" id="syncToggle"></div>
-    </div>
     <button class="topbar-btn" onclick="toggleShare(this)" id="shareBtn">📱 <span class="btn-text">分享</span></button>
     <span id="vipBadge" class="vip-badge">检测中…</span>
     <button class="topbar-btn vip-buy" id="vipBuyBtn" onclick="MiaoSB.openPurchase()">👑 开通会员</button>
