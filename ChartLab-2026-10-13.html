@@ -5837,9 +5837,13 @@ function renderCallAuction() {
   if (!el) return;
   var A = (typeof EMBEDDED_AUCTION !== 'undefined') ? EMBEDDED_AUCTION : null;
   if (!A || (!A.oneWordZT && !A.oneWordDT && !A.sectors && !A.topGaps)) {
-    el.innerHTML = '<div class="ca-empty">暂无集合竞价数据（盘中自动化将在每个交易日 9:26 自动抓取并刷新本页）</div>';
+    el.innerHTML = '<div class="ca-empty">本交易日 9:26 自动化会实时抓取集合竞价数据并刷新本页；当前尚未抓取到任何竞价记录。</div>';
     return;
   }
+  var isBackfill = A.mode === 'backfill';
+  var backfillHint = '（收盘后不可回溯 · 需盘中 9:25 实时抓取）';
+  var noneGapHint = isBackfill ? backfillHint : '（今日竞价无显著高开）';
+  var noneDTHint = isBackfill ? backfillHint : '（今日无一字跌停）';
   var h = '';
   h += '<div class="ca-meta">数据日期 <b>' + (A.date || '-') + '</b> · 抓取于 ' + (A.capturedAt || '-') + ' · 模式：' + (A.mode === 'backfill' ? '收盘回溯' : '盘中实时') + '</div>';
   h += '<div class="ca-sec-h">⬆️ 竞价高开靠前板块（' + (A.sectors || []).length + '）</div>';
@@ -5851,7 +5855,7 @@ function renderCallAuction() {
         + '<span class="ca-net">' + (s.netInflowYi == null ? '-' : (s.netInflowYi >= 0 ? '+' : '') + s.netInflowYi + '亿') + '</span></div>';
     });
     h += '</div>';
-  } else { h += '<div class="ca-empty">（暂缺 · 需 9:25 实时抓取）</div>'; }
+  } else { h += '<div class="ca-empty">' + noneGapHint + '</div>'; }
   h += '<div class="ca-sec-h">🟢 一字涨停标的（' + (A.oneWordZT || []).length + '）</div>';
   if ((A.oneWordZT || []).length) {
     h += '<div class="ca-tags">';
@@ -5860,7 +5864,7 @@ function renderCallAuction() {
         + '<small>' + s.code + ' · ' + (s.lbc || '?') + '板 · 换' + (s.turnover != null ? s.turnover : '?') + '%</small></span>';
     });
     h += '</div>';
-  } else { h += '<div class="ca-empty">（暂缺）</div>'; }
+  } else { h += '<div class="ca-empty">（今日无一字涨停）</div>'; }
   h += '<div class="ca-sec-h">🔴 一字跌停标的（' + (A.oneWordDT || []).length + '）</div>';
   if ((A.oneWordDT || []).length) {
     h += '<div class="ca-tags">';
@@ -5869,7 +5873,7 @@ function renderCallAuction() {
         + '<small>' + s.code + ' · ' + (s.lbc || '?') + '板 · 换' + (s.turnover != null ? s.turnover : '?') + '%</small></span>';
     });
     h += '</div>';
-  } else { h += '<div class="ca-empty">（暂缺 · 需 9:25 实时抓取）</div>'; }
+  } else { h += '<div class="ca-empty">' + noneDTHint + '</div>'; }
   h += '<div class="ca-sec-h">⬆️ 竞价高开靠前个股（' + (A.topGaps || []).length + '）</div>';
   if ((A.topGaps || []).length) {
     h += '<div class="ca-tags">';
@@ -5878,7 +5882,7 @@ function renderCallAuction() {
         + '<small>' + s.code + ' · +' + (s.chgPct || '?') + '% · 市值' + (s.marketCap != null ? s.marketCap : '?') + '亿</small></span>';
     });
     h += '</div>';
-  } else { h += '<div class="ca-empty">（暂缺 · 需 9:25 实时抓取）</div>'; }
+  } else { h += '<div class="ca-empty">' + noneGapHint + '</div>'; }
   if (A.mode === 'backfill') h += '<div class="ca-note">⚠ ' + (A.source || '') + '</div>';
   el.innerHTML = h;
 }
