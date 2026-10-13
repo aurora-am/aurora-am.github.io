@@ -742,6 +742,10 @@ body {
 #dataTimeBtn { position:relative; }
 #dataTimeBtn.provisional { background:rgba(245,158,11,0.18) !important; border-color:rgba(245,158,11,0.45) !important; color:#fff !important; }
 #dataTimeBtn.provisional #dataTimeDot { background:#f59e0b !important; box-shadow:0 0 6px rgba(245,158,11,0.6); }
+#dataTimeBtn.phase-lunch { background:rgba(240,136,62,0.18) !important; border-color:rgba(240,136,62,0.45) !important; color:#fff !important; }
+#dataTimeBtn.phase-lunch #dataTimeDot { background:#f0883e !important; box-shadow:0 0 6px rgba(240,136,62,0.6); }
+#dataTimeBtn.phase-after { background:rgba(26,115,232,0.18) !important; border-color:rgba(26,115,232,0.45) !important; color:#fff !important; }
+#dataTimeBtn.phase-after #dataTimeDot { background:#60a5fa !important; box-shadow:0 0 6px rgba(96,165,250,0.6); }
 #dataTimeBtn.final { background:rgba(26,115,232,0.18) !important; border-color:rgba(26,115,232,0.45) !important; color:#fff !important; }
 #dataTimeBtn.final #dataTimeDot { background:#60a5fa !important; box-shadow:0 0 6px rgba(96,165,250,0.6); }
 .tl-item { flex:1 1 200px; min-width:160px; border-radius:8px; padding:8px 10px; border:1px solid var(--card-border); background:var(--card-bg,#fff); }
@@ -7844,7 +7848,22 @@ function renderAll() {
   renderDataTimeline();
 }
 
-/* 数据时点状态：点击按钮弹出详情，不在 topbar 占空间 */
+/* 数据时点状态：点击按钮弹出详情，不在 topbar 占空间；非交易时段定格为最后交易时间 */
+function getTradePhase(now) {
+  var h = now.getHours(), m = now.getMinutes(), t = h * 60 + m;
+  if (t < 9 * 60 + 15) return 'pre';
+  if (t <= 11 * 60 + 30) return 'am';
+  if (t <= 12 * 60 + 59) return 'lunch';
+  if (t <= 15 * 60) return 'pm';
+  return 'after';
+}
+function formatTime(d) {
+  if (!d || isNaN(d.getTime())) return '';
+  var h = String(d.getHours()).padStart(2, '0');
+  var m = String(d.getMinutes()).padStart(2, '0');
+  var s = String(d.getSeconds()).padStart(2, '0');
+  return h + ':' + m + ':' + s;
+}
 function getDataTimeState() {
   var snap = (typeof EMBEDDED_SNAPSHOT !== 'undefined' && EMBEDDED_SNAPSHOT && EMBEDDED_SNAPSHOT[DATA.date]) || {};
   var L = (typeof EMBEDDED_LEADER !== 'undefined') ? EMBEDDED_LEADER : null;
@@ -7852,21 +7871,38 @@ function getDataTimeState() {
   var K = (typeof EMBEDDED_KLINE_PACK !== 'undefined') ? EMBEDDED_KLINE_PACK : null;
   var A = (typeof EMBEDDED_AUCTION !== 'undefined') ? EMBEDDED_AUCTION : null;
   var provisional = !!(snap.provisional || (L && L.provisional) || (M && M.provisional));
+  var phase = getTradePhase(new Date());
   var at = snap.snapshotAt || (L && L.generatedAt) || '未知';
-  var liveAt = (provisional && typeof LAST_LIVE_AT !== 'undefined' && LAST_LIVE_AT
-                && (typeof CURRENT_IS_LATEST !== 'undefined' && CURRENT_IS_LATEST)) ? LAST_LIVE_AT : null;
-  if (liveAt) {
-    var snapTs = new Date(String(at)).getTime();
-    var liveTs = liveAt.getTime();
-    if (!isNaN(liveTs) && (isNaN(snapTs) || liveTs >= snapTs)) {
-      at = fmtDateTime(liveAt).replace(/^\d{4}-\d{2}-\d{2}\s*/, '');
+  var time = String(at).replace(/^\d{4}-\d{2}-\d{2}\s*/, '');
+  var label = '收盘·最终';
+
+  if (provisional) {
+    if (phase === 'am' || phase === 'pm') {
+      var liveAt = (typeof LAST_LIVE_AT !== 'undefined' && LAST_LIVE_AT
+                    && (typeof CURRENT_IS_LATEST !== 'undefined' && CURRENT_IS_LATEST)) ? LAST_LIVE_AT : null;
+      if (liveAt) {
+        var snapTs = new Date(String(at)).getTime();
+        var liveTs = liveAt.getTime();
+        if (!isNaN(liveTs) && (isNaN(snapTs) || liveTs >= snapTs)) {
+          time = formatTime(liveAt);
+        }
+      }
+      label = (typeof LAST_LIVE_AT !== 'undefined' && LAST_LIVE_AT) ? '盘中·已刷新' : '盘中·临时';
+    } else if (phase === 'lunch') {
+      time = '11:30:00';
+      label = '盘中·午休';
+    } else if (phase === 'after') {
+      time = '15:30:00';
+      label = '收盘·定格';
+    } else {
+      label = '盘中·临时';
     }
   }
-  var time = String(at).replace(/^\d{4}-\d{2}-\d{2}\s*/, '');
+
   if (!time || time === '未知') time = String(at);
-  var label = provisional ? (liveAt ? '盘中·已刷新' : '盘中·临时') : '收盘·最终';
   return {
     provisional: provisional,
+    phase: phase,
     time: time,
     label: label,
     snap: snap,
@@ -7877,10 +7913,19 @@ function renderDataBadge() {
   var btn = document.getElementById('dataTimeBtn');
   if (!btn) return;
   var st = getDataTimeState();
-  btn.className = 'topbar-btn ' + (st.provisional ? 'provisional' : 'final');
-  btn.title = st.provisional
-    ? '数据时点 ' + st.time + ' · ' + st.label + '：盘中快照/已刷新，非收盘结论，点击查看详情'
-    : '数据时点 ' + st.time + ' · ' + st.label + '：已收盘定稿，点击查看详情';
+  var cls = 'final';
+  if (st.provisional) {
+    if (st.phase === 'am' || st.phase === 'pm') cls = 'provisional';
+    else if (st.phase === 'lunch') cls = 'phase-lunch';
+    else if (st.phase === 'after') cls = 'phase-after';
+  }
+  btn.className = 'topbar-btn ' + cls;
+  var tip = '';
+  if (st.phase === 'lunch') tip = '午休时段，盘中数据定格在上午收盘 11:30，下午 13:00 恢复实时刷新';
+  else if (st.phase === 'after') tip = '收盘后，盘中数据定格在 15:30，下次开盘前不再实时刷新';
+  else if (st.provisional) tip = '盘中快照/已刷新，非收盘结论，点击查看详情';
+  else tip = '已收盘定稿，点击查看详情';
+  btn.title = '数据时点 ' + st.time + ' · ' + st.label + '：' + tip;
 }
 function showDataTimeModal() {
   var st = getDataTimeState();
@@ -7891,12 +7936,23 @@ function showDataTimeModal() {
     { k: 'K线结构包', at: st.K && st.K.generatedAt, src: '收盘后回溯', p: false },
     { k: '竞价回溯', at: st.A && st.A.capturedAt, src: st.A && st.A.source, p: false }
   ];
-  var color = st.provisional ? '#f59e0b' : '#1a73e8';
-  var bgLight = st.provisional ? '#fff8e7' : '#e8f0fe';
-  var border = st.provisional ? '#fde3b3' : '#bcd4f5';
-  var statusText = st.provisional
-    ? '<span style="color:#b45309;">' + st.label + '</span>：涨停/封单/题材等为盘中实时值，可能随行情变化，仅供参考，不作为收盘结论。'
-    : '<span style="color:#1a73e8;">' + st.label + '</span>：该交易日数据已收盘定稿。';
+  var colorMap = {
+    'am': '#f59e0b', 'pm': '#f59e0b', 'lunch': '#f0883e', 'after': '#1a73e8', 'pre': '#1a73e8'
+  };
+  var bgMap = {
+    'am': '#fff8e7', 'pm': '#fff8e7', 'lunch': '#fef3e0', 'after': '#e8f0fe', 'pre': '#e8f0fe'
+  };
+  var borderMap = {
+    'am': '#fde3b3', 'pm': '#fde3b3', 'lunch': '#fdd8b3', 'after': '#bcd4f5', 'pre': '#bcd4f5'
+  };
+  var color = colorMap[st.phase] || '#1a73e8';
+  var bgLight = bgMap[st.phase] || '#e8f0fe';
+  var border = borderMap[st.phase] || '#bcd4f5';
+  var statusText = '';
+  if (st.phase === 'lunch') statusText = '<span style="color:#b45309;">' + st.label + '</span>：午休时段，盘中数据定格在上午收盘 11:30，下午 13:00 恢复实时刷新。';
+  else if (st.phase === 'after') statusText = '<span style="color:#1a73e8;">' + st.label + '</span>：收盘后，盘中数据定格在 15:30，下次开盘前不再实时刷新。';
+  else if (st.provisional) statusText = '<span style="color:#b45309;">' + st.label + '</span>：涨停/封单/题材等为盘中实时值，可能随行情变化，仅供参考，不作为收盘结论。';
+  else statusText = '<span style="color:#1a73e8;">' + st.label + '</span>：该交易日数据已收盘定稿。';
   var body =
     '<div style="padding:10px 12px;background:' + bgLight + ';border:1px solid ' + border + ';border-radius:8px;margin-bottom:14px;line-height:1.7;">' +
       '<div style="font-size:15px;font-weight:700;color:' + color + ';margin-bottom:4px;">🕐 数据时点 ' + st.time + ' · ' + st.label + '</div>' +
