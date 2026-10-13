@@ -821,13 +821,12 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
     <div class="nav-item active" data-page="overview" onclick="navigateTo('overview')"><span class="nav-icon">📊</span> 总览</div>
     <div class="nav-item" data-page="market" onclick="navigateTo('market')"><span class="nav-icon">📈</span> 市场环境</div>
     <div class="nav-item" data-page="premarket" onclick="navigateTo('premarket')"><span class="nav-icon">🌅</span> 盘前分析</div>
-    <div class="nav-item" data-page="mainline" onclick="navigateTo('mainline')"><span class="nav-icon">🎯</span> 主线板块</div>
+    <div class="nav-item" data-page="theme" onclick="navigateTo('theme')"><span class="nav-icon">📡</span> 实时题材</div>
     <div class="nav-item" data-page="echelon" onclick="navigateTo('echelon')"><span class="nav-icon">🔥</span> 战法阁</div>
     <div class="nav-item" data-page="stockpool" onclick="navigateTo('stockpool')"><span class="nav-icon">🏊</span> 股票池</div>
     <div class="nav-item" data-page="overnight" onclick="navigateTo('overnight')"><span class="nav-icon">⚡</span> 隔夜判断</div>
     <div class="nav-item" data-page="notes" onclick="navigateTo('notes')"><span class="nav-icon">📝</span> 复盘笔记</div>
     <div class="nav-item" data-page="tthelper" onclick="navigateTo('tthelper')"><span class="nav-icon">💱</span> 做T助手</div>
-    <div class="nav-item" data-page="theme" onclick="navigateTo('theme')"><span class="nav-icon">📡</span> 实时题材</div>
     <div class="nav-item" data-page="earlyboard" onclick="navigateTo('earlyboard')"><span class="nav-icon">⏰</span> 早板榜</div>
   </nav>
 
@@ -1101,6 +1100,18 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
 
 <!-- ==================== PAGE: 实时题材雷达 ==================== -->
 <div class="page" id="page-theme">
+  <!-- 早板榜内容固定置顶 -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">⏰ 早板榜 · 补涨映射</span><span class="card-toggle">▼</span></div>
+    <div class="card-body">
+      <div class="section-text mb-8" id="themeEarlyBoardNote"></div>
+      <div class="ml2-sec-h" style="margin-top:4px">📋 早盘封板时间分桶（按封板时间排序，桶内按连板高度 → 封单强度）</div>
+      <div id="themeEarlyBoardBuckets"></div>
+      <div class="ml2-sec-h" style="margin-top:14px">🔗 补涨映射表（取各板块空间龙封板时间 T，列同板块封板 > T 的低位补涨标的）</div>
+      <div id="themeEarlyBoardMap"></div>
+      <div class="disclaimer">早板榜与补涨映射由当日涨停池真实字段（封板时间 / 连板 / 板块 / 封单）现算，未做任何模拟填充。盘中数据为临时快照，封板时间以抓取时点为准。</div>
+    </div>
+  </div>
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📡 实时题材雷达</span><span class="card-toggle">▼</span></div>
     <div class="card-body">
@@ -6099,19 +6110,21 @@ function renderLimitUpDetail() {
 
 /* ===== Render 早板榜 + 补涨映射 (P1-1) ===== */
 function renderEarlyBoard() {
-  var bEl = document.getElementById('earlyBoardBuckets');
-  var mEl = document.getElementById('earlyBoardMap');
-  var nEl = document.getElementById('earlyBoardNote');
-  if (!bEl || !mEl) return;
   var list = (DATA.limitUp && DATA.limitUp.list) ? DATA.limitUp.list.slice() : [];
-  if (!list.length) {
-    var msg = '<div class="section-text">当前交易日暂无涨停个股，早板榜暂空缺。</div>';
-    bEl.innerHTML = msg; mEl.innerHTML = ''; if (nEl) nEl.textContent = '';
-    return;
-  }
-  if (nEl) nEl.innerHTML = '数据时点：<b>' + (EMBEDDED_LEADER && EMBEDDED_LEADER.snapshotAt ? EMBEDDED_LEADER.snapshotAt : (DATA.date || '')) + '</b>'
-    + (EMBEDDED_LEADER && EMBEDDED_LEADER.provisional ? ' <b style="color:#c0392b;">（盘中·临时快照，封板时间为抓取时点）</b>' : '')
-    + ' · 涨停总数 <b>' + list.length + '</b> 只';
+
+  function renderOne(bId, mId, nId) {
+    var bEl = document.getElementById(bId);
+    var mEl = document.getElementById(mId);
+    var nEl = document.getElementById(nId);
+    if (!bEl || !mEl) return;
+    if (!list.length) {
+      var msg = '<div class="section-text">当前交易日暂无涨停个股，早板榜暂空缺。</div>';
+      bEl.innerHTML = msg; mEl.innerHTML = ''; if (nEl) nEl.textContent = '';
+      return;
+    }
+    if (nEl) nEl.innerHTML = '数据时点：<b>' + (EMBEDDED_LEADER && EMBEDDED_LEADER.snapshotAt ? EMBEDDED_LEADER.snapshotAt : (DATA.date || '')) + '</b>'
+      + (EMBEDDED_LEADER && EMBEDDED_LEADER.provisional ? ' <b style="color:#c0392b;">（盘中·临时快照，封板时间为抓取时点）</b>' : '')
+      + ' · 涨停总数 <b>' + list.length + '</b> 只';
 
   // 封板时间分桶
   function bucketOf(t) {
@@ -6182,10 +6195,14 @@ function renderEarlyBoard() {
       + '<td style="color:var(--orange);font-weight:600;">' + intensity + '（' + supplements.length + ' 只补涨）</td>'
       + '</tr>';
   });
-  var mh = '<div class="table-wrap"><table class="data-table"><thead><tr><th>板块</th><th>空间龙(封板时间)</th><th>补涨标的(封板时间)</th><th>补涨窗口</th><th>补涨强度</th></tr></thead><tbody>'
-    + (rowsHtml || '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);">无同板块多票共振，暂无可映射补涨（每只票独占板块）。</td></tr>')
-    + '</tbody></table></div>';
-  mEl.innerHTML = mh;
+    var mh = '<div class="table-wrap"><table class="data-table"><thead><tr><th>板块</th><th>空间龙(封板时间)</th><th>补涨标的(封板时间)</th><th>补涨窗口</th><th>补涨强度</th></tr></thead><tbody>'
+      + (rowsHtml || '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);">无同板块多票共振，暂无可映射补涨（每只票独占板块）。</td></tr>')
+      + '</tbody></table></div>';
+    mEl.innerHTML = mh;
+  }
+
+  renderOne('earlyBoardBuckets', 'earlyBoardMap', 'earlyBoardNote');
+  renderOne('themeEarlyBoardBuckets', 'themeEarlyBoardMap', 'themeEarlyBoardNote');
 }
 
 /* ===== Render 跌停明细 / 昨涨停今溢价 / 晋级率历史 (P1-4：缺失即诚实占位，不伪造名单与数字) ===== */
