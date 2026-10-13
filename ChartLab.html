@@ -4698,6 +4698,8 @@ function updateLastUpdateLabel() {
   } else {
     el.textContent = '';
   }
+  // 实时刷新后同步更新数据时点徽标
+  renderDataBadge();
 }
 /* ===== 实时题材：1分钟涨速（确定性计算，不依赖字段猜测） ===== */
 var ZS_MAP = {};            // code -> 涨速(%)，仅盘中实时刷新时填充
@@ -7831,17 +7833,26 @@ function renderDataBadge() {
   var L = (typeof EMBEDDED_LEADER !== 'undefined') ? EMBEDDED_LEADER : null;
   var provisional = !!(snap.provisional || (L && L.provisional));
   var at = snap.snapshotAt || (L && L.generatedAt) || '未知';
+  // 盘中快照 + 当日最新 + 触发过实时刷新（刷新数据/5秒刷新）=> 用最后实时拉取时间替代静态注入快照时间
+  var liveAt = (provisional && typeof LAST_LIVE_AT !== 'undefined' && LAST_LIVE_AT
+                && (typeof CURRENT_IS_LATEST !== 'undefined' && CURRENT_IS_LATEST)) ? LAST_LIVE_AT : null;
+  if (liveAt) {
+    var snapTs = new Date(String(at)).getTime();
+    var liveTs = liveAt.getTime();
+    if (!isNaN(liveTs) && (isNaN(snapTs) || liveTs >= snapTs)) {
+      at = fmtDateTime(liveAt).replace(/^\d{4}-\d{2}-\d{2}\s*/, '');
+    }
+  }
   var time = String(at).replace(/^\d{4}-\d{2}-\d{2}\s*/, '');
   if (!time || time === '未知') time = String(at);
-  el.textContent = provisional
-    ? '🕐 数据时点 ' + time + '（盘中·临时）'
-    : '🕐 数据时点 ' + time + '（收盘·最终）';
+  var label = provisional ? (liveAt ? '（盘中·已刷新）' : '（盘中·临时）') : '（收盘·最终）';
+  el.textContent = '🕐 数据时点 ' + time + label;
   el.style.display = 'inline-block';
   el.style.background = provisional ? '#fde8e8' : '#e6f4ea';
   el.style.color = provisional ? '#c0392b' : '#1e7e34';
   el.style.border = '1px solid ' + (provisional ? '#f5c6c6' : '#b7e0c2');
   el.title = provisional
-    ? '该数据为盘中抓取快照，涨停/封单为盘中值，非收盘结论，仅供参考'
+    ? '该数据为盘中抓取快照或已手动/自动刷新，涨停/封单/题材等为实时盘中值，非收盘结论，仅供参考'
     : '该数据已收盘定稿';
 }
 
