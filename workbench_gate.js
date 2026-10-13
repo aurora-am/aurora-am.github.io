@@ -23,10 +23,9 @@
     }
 
     function check() {
-      // ===== 临时模式：为爱发电 —— 注释掉会员跳回，登录用户直接放行 =====
-      // 恢复付费时：删除下面 3 行，取消下方注释即可还原会员鉴权跳回。
-      var loggedIn = !!(MiaoSB && MiaoSB.state && MiaoSB.state.user);
-      if (loggedIn) document.body.classList.add('miao-unlocked');
+      // ===== 临时模式：为爱发电 —— 直接解锁显示内容，不鉴权 =====
+      // 恢复付费时：删除下面 1 行，取消下方注释即可还原会员鉴权跳回。
+      document.body.classList.add('miao-unlocked');
       /*
       var pro = !!(MiaoSB && MiaoSB.state && MiaoSB.state.isPro);
       if (pro) {
