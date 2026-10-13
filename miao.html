@@ -4815,7 +4815,7 @@ function fetchThemeQuotes() {
 /* ===== 实时题材：后排补涨候选盘中实时重算 =====
    说明：初始快照的后排补涨是按 10:06 时刻涨幅筛的，盘中会失真且易空。
    本函数在「刷新数据/自动刷新」时，按各题材行业板块代码实时拉取板块成员，
-   按当前涨幅重新筛「主板·非ST·0.5%~9.5%」的真实后排补涨候选（绝不编造）。
+   按当前涨幅重新筛「全板块·非ST·0.5%~9.5%」的真实后排补涨候选（绝不编造；创业板/科创板已放开）。
    另对 THEME_FORCE_BOARDS 配置的题材（如冰雪→旅游及景区）即便当日无涨停也强制展示。 */
 var _themeBackRunning = false;
 function resolveBoardCode(name, boardMap) {
@@ -4863,12 +4863,12 @@ function refreshThemeBackRows() {
               var members = (mj && mj.data && mj.data.diff) || [];
               var clean = members.filter(function (x) {
                 var code = String(x.f12 || '');
-                if (/^(30|688|4|8|9|43|920)/.test(code)) return false;   // 排除创业/科创/北交
+                if (/^(4|8|9|43|920)/.test(code)) return false;   // 排除北交所(需单独权限)；创业板300/科创板688已放开
                 if (/ST|退|\*/.test(x.f14 || '')) return false;            // 排除 ST/退市
                 return isFinite(+x.f3);
               });
               var back = clean
-                .filter(function (x) { return +x.f3 >= 0.5 && +x.f3 <= THEME_BACK_CHG_MAX; })   // 后排：主板·涨幅 0.5%~9.5%
+                .filter(function (x) { return +x.f3 >= 0.5 && +x.f3 <= THEME_BACK_CHG_MAX; })   // 后排：全板块·涨幅 0.5%~9.5%（含创业板/科创板）
                 .map(function (x) {
                   var code = String(x.f12);
                   var chg = +x.f3, vr = +x.f10 || 0, main = +x.f62 || 0, amount = +x.f6 || 1;
@@ -5082,7 +5082,7 @@ function renderThemeRadar() {
         + '</tr>';
     }).join('');
     /* --- 后排补涨候选：第一排序键 涨速降序，第二排序键 补涨强度降序 --- */
-    // 后排补涨筛选不变：主板、涨幅 0.5%~8%、剔除 ST（数据在抓取端完成，此处只做展示与排序）
+    // 后排补涨筛选不变：全板块、涨幅 0.5%~9.5%、剔除 ST（数据在抓取端完成，此处只做展示与排序）
     var backArr = (t.backRows || []).map(function (b) {
       var q = THEME_QUOTE_MAP[b.code];
       var chg = (q && isFinite(q.chgPct)) ? q.chgPct : (b.chgPct != null ? b.chgPct : 0);
@@ -5128,7 +5128,7 @@ function renderThemeRadar() {
         + '<td style="color:var(--primary);font-weight:700;">' + (b.strength != null ? b.strength : '-') + '</td>'
         + '<td>' + (b.marketCap != null ? b.marketCap + ' 亿' : '-') + '</td>'
         + '</tr>';
-    }).join('') || '<tr><td colspan="8" style="opacity:.6;">同板块未筛到符合条件（主板·涨幅0.5%~8%·非ST）的后排补涨候选，属正常</td></tr>';
+    }).join('') || '<tr><td colspan="8" style="opacity:.6;">同板块未筛到符合条件（全板块·涨幅0.5%~9.5%·非ST）的后排补涨候选，属正常</td></tr>';
     var stTxt = (t._frontZs == null && t._backZs == null) ? '—' : ((t._strength > 0 ? '+' : '') + t._strength);
     html += '<div class="theme-block" data-k="' + _themeAttr(t.name) + '">'
       + '<div class="theme-head"><span class="theme-name">🀄 ' + t.name + '</span>'
@@ -5137,7 +5137,7 @@ function renderThemeRadar() {
       + ' · <span class="theme-strength-chip">题材强度 ' + stTxt + '</span></span></div>'
       + '<div class="theme-sub">前排涨停梯队（按涨速降序 → 封单降序）</div>'
       + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>连板</th><th>涨停时间</th><th>封单</th><th>主力净流入</th><th>市值</th></tr></thead><tbody>' + frontRows + '</tbody></table></div>'
-      + '<div class="theme-sub">同板块后排补涨候选（主板·涨幅0.5%~8%·非ST · 涨幅实时更新 · 按涨速降序 → 补涨强度降序）</div>'
+      + '<div class="theme-sub">同板块后排补涨候选（全板块·涨幅0.5%~9.5%·非ST · 涨幅实时更新 · 按涨速降序 → 补涨强度降序）</div>'
       + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>涨速</th><th>量比</th><th>主力净流入</th><th>补涨强度</th><th>市值</th></tr></thead><tbody>' + backRows + '</tbody></table></div>'
       + '</div>';
   });
