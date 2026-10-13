@@ -4557,6 +4557,9 @@ function renderCapitalPage() {
   var posData = revData.map(function (d) { return d.netInflow >= 0 ? +d.netInflow : '-'; });
   var negData = revData.map(function (d) { return d.netInflow < 0 ? +d.netInflow : '-'; });
   var lblFmt = function (p) { return (p.value > 0 ? '+' : '') + p.value + '亿'; };
+  var cw = el.clientWidth || 600;
+  var narrow = cw < 480;
+  var grid = narrow ? { left: '28%', right: '6%', top: '4%', bottom: '14%' } : { left: '24%', right: '16%', top: '6%', bottom: '10%' };
   charts.capitalIndex.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (ps) {
       var d = revData[ps[0].dataIndex];
@@ -4566,16 +4569,16 @@ function renderCapitalPage() {
         + '<br/><span style="color:' + TC.green + '">中单净流入: ' + (d.zd > 0 ? '+' : '') + d.zd + '亿</span>'
         + '<br/><span style="color:' + TC.green + '">小单净流入: ' + (d.xd > 0 ? '+' : '') + d.xd + '亿</span>';
     } },
-    grid: { left: '24%', right: '16%', top: '6%', bottom: '6%' },
-    xAxis: { type: 'value', axisLabel: { color: TC.textSecondary, fontSize: 10, formatter: '{value}亿' }, splitLine: { lineStyle: { color: TC.splitLine } } },
-    yAxis: { type: 'category', data: cats, axisLabel: { color: TC.text, fontSize: 12 }, axisLine: { lineStyle: { color: TC.border } } },
+    grid: grid,
+    xAxis: { type: 'value', axisLabel: { color: TC.textSecondary, fontSize: narrow ? 9 : 10, formatter: '{value}亿' }, splitLine: { lineStyle: { color: TC.splitLine } } },
+    yAxis: { type: 'category', data: cats, axisLabel: { color: TC.text, fontSize: narrow ? 10 : 12 }, axisLine: { lineStyle: { color: TC.border } } },
     series: [
-      { name: '主力净流入', type: 'bar', stack: 'flow', data: posData, barWidth: '34%',
+      { name: '主力净流入', type: 'bar', stack: 'flow', data: posData, barWidth: narrow ? '46%' : '34%',
         itemStyle: { color: TC.red, borderRadius: [0, 4, 4, 0] },
-        label: { show: true, position: 'right', color: TC.text, fontSize: 11, fontWeight: 'bold', formatter: lblFmt } },
-      { name: '主力净流出', type: 'bar', stack: 'flow', data: negData, barWidth: '34%',
+        label: { show: true, position: narrow ? 'insideRight' : 'right', color: narrow ? '#fff' : TC.text, fontSize: narrow ? 10 : 11, fontWeight: 'bold', formatter: lblFmt } },
+      { name: '主力净流出', type: 'bar', stack: 'flow', data: negData, barWidth: narrow ? '46%' : '34%',
         itemStyle: { color: TC.green, borderRadius: [4, 0, 0, 4] },
-        label: { show: true, position: 'left', color: TC.text, fontSize: 11, fontWeight: 'bold', formatter: lblFmt } }
+        label: { show: true, position: narrow ? 'insideLeft' : 'left', color: narrow ? '#fff' : TC.text, fontSize: narrow ? 10 : 11, fontWeight: 'bold', formatter: lblFmt } }
     ]
   });
   if (charts.capitalIndex) charts.capitalIndex.resize();
@@ -4602,6 +4605,9 @@ function renderCapitalPage() {
     fitChartBox(el2, items.length, { fill: true, min: 160 });
     if (charts[cid]) charts[cid].dispose();
     charts[cid] = echarts.init(el2);
+    var cw2 = el2.clientWidth || 300;
+    var narrow2 = cw2 < 360;
+    var grid2 = narrow2 ? { left: '32%', right: '4%', top: '4%', bottom: '14%' } : { left: '26%', right: '14%', top: '5%', bottom: '10%' };
     charts[cid].setOption({
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function(p) {
         if (realSF) return p[0].name + '<br/>主力' + (p[0].value >= 0 ? '净流入' : '净流出') + ': '
@@ -4609,13 +4615,13 @@ function renderCapitalPage() {
         return p[0].name + '<br/>涨停封单金额: ' + Math.abs(p[0].value)
           + '亿<br/><span style="font-size:11px;opacity:.7">涨停封单衍生，非交易所板块主力净流</span>';
       } },
-      grid: { left: '26%', right: '14%', top: '5%', bottom: '5%' },
-      xAxis: { type: 'value', axisLabel: { color: TC.textSecondary, fontSize: 10, formatter: '{value}亿' }, splitLine: { lineStyle: { color: TC.splitLine } } },
-      yAxis: { type: 'category', data: items.map(function(d) { return d.name; }).reverse(), axisLabel: { color: TC.text, fontSize: 11 }, axisLine: { lineStyle: { color: TC.border } } },
+      grid: grid2,
+      xAxis: { type: 'value', axisLabel: { color: TC.textSecondary, fontSize: narrow2 ? 9 : 10, formatter: '{value}亿' }, splitLine: { lineStyle: { color: TC.splitLine } } },
+      yAxis: { type: 'category', data: items.map(function(d) { return d.name; }).reverse(), axisLabel: { color: TC.text, fontSize: narrow2 ? 9 : 11 }, axisLine: { lineStyle: { color: TC.border } } },
       series: [{
         type: 'bar', data: items.map(function(d) { return { value: d.netInflow, itemStyle: { color: d.netInflow >= 0 ? TC.red : TC.green, borderRadius: [0,4,4,0] } }; }).reverse(),
-        barWidth: '50%',
-        label: { show: true, position: 'right', color: TC.text, fontSize: 11, fontWeight: 'bold', formatter: function(p) { return (p.value > 0 ? '+' : '') + p.value + '亿'; } }
+        barWidth: narrow2 ? '56%' : '50%',
+        label: { show: true, position: narrow2 ? 'insideRight' : 'right', color: narrow2 ? '#fff' : TC.text, fontSize: narrow2 ? 9 : 11, fontWeight: 'bold', formatter: function(p) { return (p.value > 0 ? '+' : '') + p.value + '亿'; } }
       }]
     });
     if (charts[cid]) charts[cid].resize();
