@@ -8453,7 +8453,8 @@ function isMarketOpen() {
   var day = now.getDay();
   if (day === 0 || day === 6) return false;
   var hm = now.getHours() * 60 + now.getMinutes();
-  return (hm >= 9 * 60 + 15 && hm <= 11 * 60 + 35) || (hm >= 12 * 60 + 55 && hm <= 15 * 60 + 10);
+  // 严格交易时段：9:15-11:30、13:00-15:00；午休/收盘后均不自动刷新
+  return (hm >= 9 * 60 + 15 && hm <= 11 * 60 + 30) || (hm >= 13 * 60 && hm <= 15 * 60);
 }
 function setAutoToggleUI() {
   var sw = document.getElementById('autoToggle');
