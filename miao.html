@@ -5068,6 +5068,14 @@ var _lastLimitUpFetch = 0, _limitUpFetching = false;
 function refreshLiveLimitUp() {
   if (!isMarketOpen()) return; // 收盘后/午休不重拉涨停池
   if (_limitUpFetching || !CURRENT_IS_LATEST) return;
+  // 🚨 防混日：涨停池接口按 date 参数返回数据，跨天必须切到今天
+  var today = fmtDate(new Date());
+  if (DATA.date !== today && today > DATA.date && isTradeDay(today)) {
+    DATA.date = today;
+    syncPicker(today);
+    CURRENT_IS_LATEST = true;
+    showNotify('📅 涨停池刷新前已自动切换到 ' + today + '，避免混入昨日数据', 4000);
+  }
   _limitUpFetching = true;
   var date = DATA.date;
   LiveFeed.limitPool(date).then(function (lu) {
@@ -8481,6 +8489,14 @@ function autoLiveRefreshOnce() {
 var _quoteLiveFail = 0;
 function fetchQuotes() {
   if (!CURRENT_IS_LATEST) return;
+  // 🚨 防混日：若页面跨天仍开着，自动切到今天，避免把今日行情写入昨天日期
+  var today = fmtDate(new Date());
+  if (DATA.date !== today && today > DATA.date && isTradeDay(today)) {
+    DATA.date = today;
+    syncPicker(today);
+    CURRENT_IS_LATEST = true;
+    showNotify('📅 检测到新的一天，已自动切换到 ' + today + ' 继续实时刷新', 4000);
+  }
   try { renderThemeRadar(); } catch (e) {}   // 每 5 秒刷新自动重新校验强势板块过滤 + 综合涨速动态重排
   // 涨速动态重算：盘中每 90 秒重排一次后排补涨候选（非交易时段跳过）
   if (isMarketOpen() && !_zsRunning && Date.now() - _lastZS > 90000) {
@@ -8923,6 +8939,23 @@ function init() {
     resizeAllCharts();
     if (window._miaoResizeT) clearTimeout(window._miaoResizeT);
     window._miaoResizeT = setTimeout(function() { renderPageCharts(getCurrentPage()); }, 260);
+  });
+
+  /* 页面从后台切回前台时，若跨天则自动切到今天，避免用户隔夜/午休后仍看到昨天数据 */
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible') return;
+    var today = fmtDate(new Date());
+    if (DATA.date !== today && today > DATA.date && isTradeDay(today)) {
+      DATA.date = today;
+      syncPicker(today);
+      CURRENT_IS_LATEST = true;
+      showNotify('📅 新的一天，已自动切换到 ' + today, 4000);
+      loadDay(today, false);
+      if (isMarketOpen()) {
+        setTimeout(function () { autoLiveRefreshOnce(); }, 800);
+        setTimeout(function () { toggleAutoRefresh(true); }, 1600);
+      }
+    }
   });
 
   showLoading('📅 正在加载A股交易日历…');
