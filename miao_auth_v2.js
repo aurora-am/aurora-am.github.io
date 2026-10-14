@@ -130,6 +130,7 @@
   var race = C.race, getStoredSession = C.getStoredSession, parseJwt = C.parseJwt, userFromJwtPayload = C.userFromJwtPayload;
 
   var CODE_TTL_MIN = 10;
+  var usingNativeOtp = false; // 注册验证码通道：false=自建send-code云函数, true=兜底走Supabase原生OTP
 
   // ===== 投喂小鱼干：赞赏二维码 =====
   // 把微信收款码图片命名为 reward-qr.png 放到 .pages_repo/img/，或改成完整图片 URL。
@@ -272,6 +273,7 @@
     if (isReg && $('miaoSendCode')) $('miaoSendCode').addEventListener('click', sendCode);
   }
 
+  // 注册验证码发送：优先走自建 send-code 云函数；失败（Resend 密钥失效/502/网络）兜底走 Supabase 原生 OTP
   async function sendCode() {
     var email = ($('miaoEmail').value || '').trim();
     var btn = $('miaoSendCode');
@@ -280,6 +282,7 @@
     }
     btn.disabled = true;
     var left = 0;
+    usingNativeOtp = false;
     try {
       var r = await fetch(C.SUPABASE_URL + '/functions/v1/send-code', {
         method: 'POST',
@@ -287,18 +290,33 @@
         body: JSON.stringify({ email: email, purpose: 'signup' })
       });
       var j = await r.json().catch(function () { return {}; });
-      if (!r.ok) {
-        $('miaoErr').textContent = j.message || '验证码发送失败，请稍后重试';
-        btn.disabled = false; btn.textContent = '获取验证码';
+      if (r.ok && j && j.ok) {
+        left = j.cooldownSec || 60;
+        toast('验证码已发送，' + (j.ttlMin || CODE_TTL_MIN) + ' 分钟内有效', 'ok');
+        startCooldown(btn, left);
         return;
       }
-      left = j.cooldownSec || 60;
-      toast('验证码已发送，' + (j.ttlMin || CODE_TTL_MIN) + ' 分钟内有效', 'ok');
+      console.warn('[MiaoAuth] send-code 自建函数不可用（' + r.status + '/' + (j && j.error) + '），转原生 OTP 兜底');
     } catch (e) {
-      $('miaoErr').textContent = '网络错误：' + e.message;
-      btn.disabled = false; btn.textContent = '获取验证码';
-      return;
+      console.warn('[MiaoAuth] send-code 网络异常，转原生 OTP 兜底', e && e.message);
     }
+    // ===== 兜底：Supabase 原生邮箱 OTP（复用项目 Auth 邮件通道，重置密码同链路，不依赖自建函数）=====
+    try {
+      var otpR = await sb.auth.signInWithOtp({
+        email: email,
+        options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname }
+      });
+      if (otpR.error) { $('miaoErr').textContent = mapErr(otpR.error.message); btn.disabled = false; btn.textContent = '获取验证码'; return; }
+      usingNativeOtp = true;
+      toast('验证码/登录链接已发送，请查收邮箱（收到 6 位码请填入上方；收到登录链接请直接点击）', 'ok');
+      startCooldown(btn, 60);
+    } catch (e) {
+      $('miaoErr').textContent = '邮件发送失败：' + (e && e.message ? e.message : '未知错误');
+      btn.disabled = false; btn.textContent = '获取验证码';
+    }
+  }
+
+  function startCooldown(btn, left) {
     (function tick() {
       btn.textContent = left > 0 ? (left + ' 秒后重发') : '重新获取';
       if (left <= 0) { btn.disabled = false; return; }
@@ -313,12 +331,27 @@
     var actTab = document.querySelector('.miao-tab.active');
     if (!actTab) { actTab = document.querySelector('.miao-tab'); if (actTab) actTab.classList.add('active'); }
     var isReg = !!(actTab && actTab.dataset.t === 'reg');
+    if (!isReg) usingNativeOtp = false;
     err.textContent = '';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = '请输入正确的邮箱地址'; return; }
     if (pwd.length < 8) { err.textContent = '密码至少 8 位'; return; }
 
     if (isReg) {
       var code = (($('miaoCode') || {}).value || '').trim();
+      if (usingNativeOtp) {
+        // 兜底路径：Supabase 原生 OTP —— verifyOtp 校验并落密码，确保后续可用密码登录
+        if (!/^\d{6}$/.test(code)) { err.textContent = '请输入 6 位邮箱验证码（若收到的是登录链接，请直接点击链接完成注册）'; return; }
+        var vo = await sb.auth.verifyOtp({ email: email, token: code, type: 'email' });
+        if (vo.error) { err.textContent = '验证码校验失败：' + vo.error.message; return; }
+        var up = await sb.auth.updateUser({ password: pwd });
+        if (up.error) { err.textContent = '账户已验证，但设置密码失败：' + up.error.message; return; }
+        closeModal();
+        toast('注册成功，已自动登录', 'ok');
+        var vSess = vo.data && vo.data.session ? vo.data.session : null;
+        if (vSess) { state.session = vSess; state.user = vSess.user || null; renderBadge(); }
+        await refreshState(null, vSess);
+        return;
+      }
       if (!/^\d{6}$/.test(code)) { err.textContent = '请输入 6 位邮箱验证码'; return; }
       var vr = await sb.rpc('verify_email_code', { p_email: email, p_action: 'signup', p_code: code });
       if (vr.error) { err.textContent = '验证码校验失败：' + vr.error.message; return; }
