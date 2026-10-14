@@ -7368,8 +7368,14 @@ function mergeLivePayload(date, live) {
     });
     data.capitalIndexNotes = buildCapitalNotes(live);
   }
+  var now = new Date();
+  var pad2 = function (n) { return n < 10 ? '0' + n : '' + n; };
+  var hh = pad2(now.getHours()), mm = pad2(now.getMinutes()), ss = pad2(now.getSeconds());
+  var snapshotAt = date + ' ' + hh + ':' + mm + ':' + ss;
+  var note = date + ' 实时刷新中（' + hh + ':' + mm + ':' + ss + '），涨停池/题材雷达为盘中实时数据；收盘后将重抓全量收盘结论。';
   return { date: date, isLatest: date === LATEST_TRADE_DAY, source: 'live',
-           elapsed: 0, cached: false, live: true, liveAt: new Date(), data: data };
+           elapsed: 0, cached: false, live: true, liveAt: now, snapshotAt: snapshotAt, note: note,
+           data: data };
 }
 
 function buildCapitalNotes(live) {
