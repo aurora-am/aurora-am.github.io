@@ -1,0 +1,2399 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>缠论每日学习看板 · 老K</title>
+<style>
+:root{--bg:#0f1115;--card:#1a1d24;--line:#2a2f3a;--txt:#e6e9ef;--sub:#9aa4b2;--accent:#f5c542;--green:#3fb950;--blue:#58a6ff;--purple:#bc8cff;--red:#f85149}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;padding:20px;max-width:900px;margin:0 auto}
+h1{font-size:22px;color:var(--accent);margin-bottom:4px}
+.sub{color:var(--sub);font-size:13px;margin-bottom:14px}
+.bar{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:12px 0}
+.bar .p{flex:1;height:10px;background:#22262f;border-radius:6px;overflow:hidden}
+.bar .p i{display:block;height:100%;background:var(--green);width:0;transition:.3s}
+.bar .pt{font-size:13px;color:var(--sub)}.bar .pt b{color:var(--green)}
+.today{background:rgba(245,197,66,.12);border:1px solid var(--accent);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:14px}
+.today b{color:var(--accent)}
+.day{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:8px 0;overflow:hidden}
+.dh{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none}
+.dn{background:var(--accent);color:#000;font-weight:700;font-size:12px;padding:3px 8px;border-radius:6px;min-width:38px;text-align:center}
+.dt{flex:1;font-size:14.5px}
+.arrow{color:var(--sub);transition:.2s}
+.day.open .arrow{transform:rotate(90deg)}
+.day.open .dh{border-bottom:1px solid var(--line)}
+.db{display:none;padding:14px 16px}
+.day.open .db{display:block}
+.blk{background:#161922;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:10px}
+.blk h4{font-size:13px;margin-bottom:6px}
+.blk.def h4{color:#fff} .blk.dia h4{color:var(--purple)} .blk.study h4{color:var(--blue)}
+.blk.ex h4{color:var(--accent)} .blk.practice h4{color:var(--accent)} .blk.quiz h4{color:var(--green)} .blk.assess h4{color:var(--green)}
+.blk p{font-size:13.5px;color:var(--txt)}
+.blk ul{margin-left:18px;font-size:13.5px}
+.blk li{margin:3px 0}
+.dia svg{width:100%;height:auto;background:#0f1115;border-radius:6px;margin:4px 0}
+.dmis{color:var(--sub);font-size:12px}
+.qz{background:#0f1115;border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin:6px 0;font-size:13px}
+.qq{color:var(--txt);margin-bottom:4px}
+.opts{display:flex;flex-direction:column;gap:4px;margin:4px 0}
+.opt{display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:13px;transition:.15s}
+.opt:hover{border-color:var(--blue)}
+.opt input{accent-color:var(--blue)}
+.opt.right{background:rgba(63,185,80,.18);border-color:var(--green)}
+.opt.wrong{background:rgba(248,81,73,.18);border-color:var(--red)}
+.opt.right input{accent-color:var(--green)} .opt.wrong input{accent-color:var(--red)}
+.qfb{font-size:13px;font-weight:700;margin-top:2px}
+.qfb.ok{color:var(--green)} .qfb.bad{color:var(--red)}
+.qexp{font-size:12.5px;color:var(--sub);margin-top:4px;padding:6px 8px;background:#161922;border-radius:6px}
+.done{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--sub);margin-top:4px}
+.done input{accent-color:var(--green)}
+.day.done-day .dn{background:var(--green);color:#000}
+.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--sub);text-align:center}
+</style></head><body>
+<h1>缠论每日学习看板（教材版）</h1>
+<div class="sub">老K专用 · 8周48天 · 每天45-60分钟 · 含定义/图示/案例/选择题考核 · 答不准必须重学</div>
+<div class="bar"><span class="pt">总进度 <b id="pc">0</b>/48</span><span class="p"><i id="pbar"></i></span></div>
+<div class="today" id="today"></div>
+
+<div class="day" data-day="1">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D1</span>
+    <span class="dt">W1·Day1 ｜ 分型与包含关系</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>分型是缠论最底层构件。顶分型=由3根K线组成、中间一根最高且左右两根都更低；底分型=中间一根最低且左右都更高。相邻K线若出现『包含关系』（一根完全被另一根高低区间覆盖，或高低重叠），须按趋势方向合并为一根后再判分型：向上趋势取『高高』(高点取高、低点取高)，向下取『低低』。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="20" fill="#f5c542" font-size="13" text-anchor="middle">顶分型：中间K线最高，左右都更低</text>
+<line x1="63.0" y1="70" x2="63.0" y2="135" stroke="#f85149" stroke-width="2"/><rect x="50" y="88" width="26" height="24" fill="#f85149"/><line x1="183.0" y1="38" x2="183.0" y2="140" stroke="#f85149" stroke-width="2"/><rect x="170" y="56" width="26" height="64" fill="#f85149"/><line x1="303.0" y1="74" x2="303.0" y2="132" stroke="#f85149" stroke-width="2"/><rect x="290" y="92" width="26" height="24" fill="#f85149"/>
+<line x1="183" y1="38" x2="330" y2="38" stroke="#f5c542" stroke-dasharray="4" stroke-width="1.5"/>
+<text x="335" y="42" fill="#f5c542" font-size="11">顶</text>
+<text x="183" y="158" fill="#9aa4b2" font-size="11" text-anchor="middle">中>左 且 中>右 → 顶分型成立</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="20" fill="#3fb950" font-size="13" text-anchor="middle">底分型：中间K线最低，左右都更高</text>
+<line x1="63.0" y1="60" x2="63.0" y2="120" stroke="#3fb950" stroke-width="2"/><rect x="50" y="75" width="26" height="23" fill="#3fb950"/><line x1="183.0" y1="95" x2="183.0" y2="150" stroke="#3fb950" stroke-width="2"/><rect x="170" y="110" width="26" height="25" fill="#3fb950"/><line x1="303.0" y1="64" x2="303.0" y2="124" stroke="#3fb950" stroke-width="2"/><rect x="290" y="80" width="26" height="22" fill="#3fb950"/>
+<line x1="183" y1="135" x2="330" y2="135" stroke="#3fb950" stroke-dasharray="4" stroke-width="1.5"/>
+<text x="335" y="139" fill="#3fb950" font-size="11">底</text>
+<text x="183" y="158" fill="#9aa4b2" font-size="11" text-anchor="middle">中<左 且 中<右 → 底分型成立</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">包含关系处理</text>
+<text x="95" y="40" fill="#f85149" font-size="11" text-anchor="middle">↑趋势：取「高高」</text>
+<line x1="53.0" y1="70" x2="53.0" y2="120" stroke="#f85149" stroke-width="2"/><rect x="40" y="85" width="26" height="23" fill="#f85149"/><line x1="103.0" y1="60" x2="103.0" y2="115" stroke="#888" stroke-width="2"/><rect x="90" y="78" width="26" height="22" fill="#888"/>
+<rect x="40" y="60" width="76" height="60" fill="none" stroke="#f5c542" stroke-dasharray="3"/>
+<text x="78" y="150" fill="#9aa4b2" font-size="10" text-anchor="middle">合并后高点取高、低点取高</text>
+<text x="285" y="40" fill="#3fb950" font-size="11" text-anchor="middle">↓趋势：取「低低」</text>
+<line x1="243.0" y1="60" x2="243.0" y2="115" stroke="#3fb950" stroke-width="2"/><rect x="230" y="75" width="26" height="23" fill="#3fb950"/><line x1="293.0" y1="55" x2="293.0" y2="125" stroke="#888" stroke-width="2"/><rect x="280" y="70" width="26" height="35" fill="#888"/>
+<rect x="230" y="55" width="76" height="70" fill="none" stroke="#f5c542" stroke-dasharray="3"/>
+<text x="268" y="150" fill="#9aa4b2" font-size="10" text-anchor="middle">合并后高点取低、低点取低</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>顶分型中间最高、底分型中间最低，这是硬性规则</li>
+<li>包含处理：向上『高高』、向下『低低』，从左到右逐根合并</li>
+<li>未处理包含直接判分型=错笔的根源</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：一根K线高点15.2低点14.8，下一根高点15.0低点14.6（完全被前一根覆盖=包含）。当前为↑趋势，合并后取高高→高点15.2、低点14.8，再与后一根组合判分型。</li>
+<li>反例：若直接把被包含的K线当独立分型，会凭空多出一个假顶/底，后续笔全错。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>MA 5分图找10个顶分型、EG 5分图找10个底分型，标注并处理含包含的K线</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 向上趋势中两根K线出现包含关系，合并后高低点怎么取？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 取『高高』：高点取两根中较高者，低点也取较高者（向上取高）</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 取『低低』：高点取较低者，低点也取较低者（向下取低）</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 保留两根独立K线，不合并</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>向上趋势包含按『高高』合并，高点取两K线中较高、低点也取较高，处理后才能判分型。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 顶分型的判定条件是什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 中间K线最低、左右更高</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 中间K线最高、左右都更低</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 只要出现新高就算</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>顶分型=中间最高、左右更低；底分型反之（中间最低、左右更高）。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 为什么必须处理包含关系才能画笔？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 为了图表好看</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 不处理会凭空产生假分型，导致后续笔、段、中枢全部画错</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 包含关系对画笔没有任何影响</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>未处理包含直接判分型是错笔的根源，会凭空多出假顶/底，后续结构全部失真。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 能口述顶/底分型定义</li>
+<li>✅ 20个分型含包含处理准确率≥85%</li>
+<li>✅ 能区分独立K线与被包含K线</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(1,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="2">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D2</span>
+    <span class="dt">W1·Day2 ｜ 笔的定义</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>一笔=一顶分型与一底分型相连，且两者之间至少有一根独立K线（不被任何分型包含的K线）。实践中一笔至少由5根K线构成。顶分型+底分型成向下笔，底分型+顶分型成向上笔。笔有方向：向上笔由底到顶，向下笔由顶到底。相邻笔必须顶底交替、共用端点。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>一笔最少5根K线，顶底分型+独立K线</li>
+<li>顶+底=向下笔；底+顶=向上笔</li>
+<li>相邻笔顶底交替、共用端点，不能两顶直接相连</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：日线一根底分型(价10.0)→中间3根独立K线→顶分型(价12.5)，这是一笔向上笔，幅度+2.5。其后顶(12.5)→底(11.0)构成向下笔，两笔共用12.5端点。</li>
+<li>易错：若两段之间只有1根K线且无独立K线，不算完成一笔，笔仍在延伸。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>BU 日线连续画笔≥10笔，每笔标方向(上/下)</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 一笔最少由几根K线构成？为什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 3根（一个分型就够）</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 至少5根：两分型各3根共用1根，且中间需≥1根独立K线</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 2根K线即可</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>顶/底分型各需3根K线，共用1根，中间还需≥1根独立K线，故一笔至少5根。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 向上笔和向下笔分别由什么分型顺序构成？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 向上笔=底分型→顶分型；向下笔=顶分型→底分型</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 向上笔=顶分型→底分型；向下笔=底分型→顶分型</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 都从顶分型开始</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>底到顶是向上笔，顶到底才是向下笔，方向由分型顺序决定。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 相邻两笔如何连接？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 两根顶分型直接相连</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 顶底交替、共用端点，不能两顶直接相连</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 两根底分型直接相连</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>相邻笔必须顶底交替且共用端点，两顶或两底直接相连说明笔没画对。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 能说出一笔最少几根K线</li>
+<li>✅ 画出的笔连续无矛盾</li>
+<li>✅ 方向标注无误</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(2,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="3">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D3</span>
+    <span class="dt">W1·Day3 ｜ 笔的延续与结束</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>笔一旦开始就延续，直到出现反向分型破坏其端点才结束。向上笔延续=出现比原顶更高的新高；向下笔延续=出现比原底更低的新低。笔结束的标志是：反向分型成立，且该分型的高/低点击穿了原笔的端点（顶笔被底分型破、底笔被顶分型破）。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>笔延续：出现更新高/新低，原笔不结束</li>
+<li>笔结束：反向分型成立且破坏原笔端点</li>
+<li>顶笔结束于顶分型，底笔结束于底分型</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：向上笔顶在12.5，之后回调底11.0再弹到12.8(新高)→笔延伸，顶更新为12.8。若回调跌破11.0到10.8→向下笔成立，原向上笔结束于12.5。</li>
+<li>陷阱：回调没破前低只是笔内正常回撤，笔未结束，别提前反向画笔。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>历史图找10案例：5个笔延伸中 + 5个笔已结束，分别判定</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 什么情况下一笔算结束？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 出现任意一根新K线就结束</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 反向分型成立，且该分型击穿原笔的端点</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 只要成交量放大就结束</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>笔结束的硬标准：反向分型成立，且其高/低点击穿原笔端点。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 向上笔出现新高说明什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 原向上笔已经结束</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 原向上笔仍在延续，顶端点上移，尚未结束</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 已经出现了底分型</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>向上笔出现比原顶更高的新高=笔在延伸，顶端点上移，没结束。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 笔内正常回撤与笔结束如何区分？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 看成交量大小</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 看是否击穿原笔端点；未破只是延伸中的回撤</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 看时间长短</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>区分关键在是否击穿原笔端点，未破只是延伸中的正常回撤。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 能区分延伸vs结束</li>
+<li>✅ 5/5延伸案例判对</li>
+<li>✅ 5/5结束案例判对</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(3,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="4">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D4</span>
+    <span class="dt">W1·Day4 ｜ 不同周期笔的嵌套</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>缠论是分级别的，大级别的一笔约等于小级别的一段(≥3笔)。标准级别链：日 &gt; 60分 &gt; 15分 &gt; 5分 &gt; 1分。『看大做小』：大级别笔的方向等于小级别段的方向。交易时要先定大级别笔方向，再下钻小级别找精确买卖点。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>大级别1笔≈小级别1段(≥3笔)</li>
+<li>级别链：日&gt;60分&gt;15分&gt;5分&gt;1分</li>
+<li>看大做小：大级别笔方向=小级别段方向</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：MA日线一笔向上(10→13)，展开到15分图内部是『下-上-下-上』多笔构成的向上段，日线这一笔≈15分一个完整线段。</li>
+<li>应用：日线笔向上=只在15分找买点(二类/三类)，不找卖点。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>对比 MA 日线笔 与 15分笔，画出4级笔嵌套链</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 大级别一笔约等于小级别什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 一根独立K线</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 一段(至少3笔)</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 一个分型</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>大级别1笔≈小级别1段（至少3笔），这是级别嵌套的基本对应。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 标准级别链从高到低是什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 日 &gt; 60分 &gt; 15分 &gt; 5分 &gt; 1分</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 1分 &gt; 5分 &gt; 15分 &gt; 60分 &gt; 日</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 15分 &gt; 60分 &gt; 日 &gt; 5分 &gt; 1分</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>标准五级：日&gt;60分&gt;15分&gt;5分&gt;1分，由上到下级别递减。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 『看大做小』怎么用？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 大级别笔方向定多空，只在小级别顺该方向找买卖点</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 小级别方向决定大级别方向</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 大小级别各自独立看，互不相关</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>看大做小：大级别定方向（多/空），小级别只顺该方向找进出点。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 能画出4级笔嵌套</li>
+<li>✅ 说清大级别1笔≈小级别几笔</li>
+<li>✅ 理解级别嵌套不混用</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(4,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="5">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D5</span>
+    <span class="dt">W1·Day5 ｜ 笔的常见坑</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>初学者80%的笔错在三类坑：①假分型——未处理包含就把被包含K线当分型；②跳空——缺口视为合并处理(向上取高、向下取低)，不单独算独立K线；③顶底不交替——出现两顶或两底直接相连。养成习惯：画笔前先处理全部包含关系。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">包含关系处理</text>
+<text x="95" y="40" fill="#f85149" font-size="11" text-anchor="middle">↑趋势：取「高高」</text>
+<line x1="53.0" y1="70" x2="53.0" y2="120" stroke="#f85149" stroke-width="2"/><rect x="40" y="85" width="26" height="23" fill="#f85149"/><line x1="103.0" y1="60" x2="103.0" y2="115" stroke="#888" stroke-width="2"/><rect x="90" y="78" width="26" height="22" fill="#888"/>
+<rect x="40" y="60" width="76" height="60" fill="none" stroke="#f5c542" stroke-dasharray="3"/>
+<text x="78" y="150" fill="#9aa4b2" font-size="10" text-anchor="middle">合并后高点取高、低点取高</text>
+<text x="285" y="40" fill="#3fb950" font-size="11" text-anchor="middle">↓趋势：取「低低」</text>
+<line x1="243.0" y1="60" x2="243.0" y2="115" stroke="#3fb950" stroke-width="2"/><rect x="230" y="75" width="26" height="23" fill="#3fb950"/><line x1="293.0" y1="55" x2="293.0" y2="125" stroke="#888" stroke-width="2"/><rect x="280" y="70" width="26" height="35" fill="#888"/>
+<rect x="230" y="55" width="76" height="70" fill="none" stroke="#f5c542" stroke-dasharray="3"/>
+<text x="268" y="150" fill="#9aa4b2" font-size="10" text-anchor="middle">合并后高点取低、低点取低</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>假分型：未处理包含就当分型→错笔</li>
+<li>跳空处理：缺口视为合并(向上取高/向下取低)</li>
+<li>笔必须顶底交替，不能两顶/两底相连</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：日线出现跳空高开缺口，中间无成交K线。向上趋势中缺口按『高高』合并到相邻K线，不单独成笔，避免多画一笔。</li>
+<li>错题模板：错因=未处理包含；正确=先合并再判，分型数从N减为N-1。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>重做W1错样本 + 新找10笔，全部按规则复核</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 跳空缺口在画笔时怎么处理？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 直接当独立K线成一笔</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 视为合并：向上取高、向下取低，不单独作为独立K线成笔</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 直接忽略不计</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>跳空缺口按包含合并处理（向上取高/向下取低），不单独成笔。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 出现两根顶分型直接相连可能说明什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 趋势非常强</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 说明中间包含关系没处理，或笔未真正结束，是常见画错</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 说明画得正确</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>两顶直接相连几乎都是包含没处理或笔未结束导致的画错。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 减少笔错的首要习惯是什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 直接从上一级别画笔</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 画笔前先从左到右处理全部包含关系</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 只看大级别笔忽略小级别</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>画笔前先处理全部包含关系是避免假分型、错笔的首要习惯。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 本周笔识别命中率≥80%</li>
+<li>✅ 错题本新增≥3条(错因+正确画法)</li>
+<li>✅ 能复述3个常见坑</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(5,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="6">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D6</span>
+    <span class="dt">W1·Day6 ｜ W1 周复盘</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>复盘不是新课，是把本周分型与笔从『看懂』变成『画对』。统计所有标注样本命中率，相同错误归零才算过关。建议对照壹缠网页15分教学或《缠论解析》补薄弱点。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>无新知识点——复盘巩固</li>
+<li>回顾错题本，相同错误归零才算过关</li>
+<li>对照教材补薄弱点</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>周报模板：样本总数__、画对__、命中率__%；错因Top3；下周改进1条。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>统计本周所有标注样本，算出分型/笔命中率，写1页周报</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 本周过关的硬指标是什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 分型+笔命中率≥60%</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 分型+笔命中率≥80%，否则下周重练W1</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 没有硬指标，随意</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>W1过关线：分型+笔命中率≥80%，不达标下周重练，不进W2。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 错题本怎么用才有效？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 只记正确答案</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 每条记『错因+正确画法』，相同错误归零才算掌握</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不用错题本</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>错题本条『错因+正确画法』，同一错误归零才算真正掌握。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 周报：分型+笔命中率≥80%才进W2</li>
+<li>✅ 未达标则下周重练W1</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(6,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="7">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D7</span>
+    <span class="dt">W2·Day1 ｜ 线段定义</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>线段由至少3笔组成，且第3笔必须破坏第1笔的终点(端点)。线段有方向：所含笔的方向序列决定(如↑↑↑为向上线段)。线段端点=该段中最高笔或最低笔的端点。线段是笔之上、中枢之下的核心结构。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>线段=至少3笔，第3笔破坏第1笔端点</li>
+<li>线段方向由所含笔方向序列决定</li>
+<li>线段端点=最高/最低笔的端点</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：15分图 底(10)→顶(12)→底(11)→顶(13)→底(11.5)。第3笔(顶13)新高破坏第1笔顶(12)端点→向上线段成立，端点为底10、顶13。</li>
+<li>注意：仅2笔不算线段，必须第3笔确认破坏。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>MA 15分图划分线段≥3段，标端点</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 线段最少由几笔构成？为什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 2笔即可构成线段</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 至少3笔；第3笔需破坏第1笔端点来确认线段成立</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 至少5笔</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>线段至少3笔，第3笔破坏第1笔端点才确认线段成立，2笔只是笔的延伸。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 如何判断一段是向上线段？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 任意3笔都算</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 所含笔呈向上序列(底-顶-底-顶…)且高点递增，第3笔破第1笔端点</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 只有1笔也是线段</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>向上线段笔序列向上且高点递增，且第3笔破坏第1笔端点。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 线段端点怎么取？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 取中间那笔的端点</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 取该段中最高笔的高点/最低笔的低点</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 取第一笔的端点</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>线段端点=该段最高笔的高点（上端点）与最低笔的低点（下端点）。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 线段端点标注无误</li>
+<li>✅ 能判定一段含几笔</li>
+<li>✅ 方向标示正确</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(7,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="8">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D8</span>
+    <span class="dt">W2·Day2 ｜ 线段破坏判定</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>线段破坏的严格判定用特征序列(向上线段被向下线段的特征序列顶分型破坏)。实用判定：当出现反向线段且反向线段的端点跌破/突破原线段端点，原线段破坏；若未破端点，原线段延续。宁可晚判不可早判。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>特征序列：向上线段被向下线段特征序列顶分型破坏(了解)</li>
+<li>实用判定：反向线段成立且破前线段端点=破坏</li>
+<li>未破端点=原线段延续，不提前判结束</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：向上线段端点在13。之后走出 顶13→底11→顶12，新顶12&lt;13未破原端点→原向上线段延续(仍在延伸)。若新底破11且新顶&gt;13→破坏成立。</li>
+<li>陷阱：小级别一根K线刺穿就喊破坏，常常假破，需反向线段完成确认。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>10案例：5个线段被破坏 + 5个未被破坏，逐一判定</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 实用上怎么判线段破坏？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 一根K线刺穿就算破坏</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 出现反向线段且其端点击穿原线段端点</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 成交量放大即破坏</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>实用判定：反向线段成立且端点击穿原线段端点，原线段才破坏。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 未破端点意味着什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 原线段已经结束</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 原线段延续，不提前判结束</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 进入横盘</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>未破端点=原线段延续，应继续持有原方向判断，不提前判结束。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 为什么线段破坏不能早判？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 早点判断省事</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 早判会被假突破骗，需反向线段完成确认</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 早判更准</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>一根K线的假刺穿常骗线，必须等反向线段完成确认才判破坏。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 10/10正确判定破坏与否</li>
+<li>✅ 能说出破坏/未破坏的依据</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(8,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="9">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D9</span>
+    <span class="dt">W2·Day3 ｜ 中枢定义</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>中枢是缠论的核心平衡区，由至少3段重叠构成。中枢区间=[三段中max(低点), min(高点)]，即三段重叠的最低上界与最高下界。上升中枢形态为下-上-下，下降中枢为上-下-上。中枢有级别(由段级别决定，如15分中枢)。中枢上沿ZG、下沿ZD是后续三类买卖点的关键参考。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>中枢=至少3段重叠，区间=[max低, min高]</li>
+<li>上升中枢=下上下；下降中枢=上下上</li>
+<li>中枢有级别，ZG上沿/ZD下沿是三类点参考</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：三段 下(低10高12)、上(低11高13)、下(低10.5高12.5)。重叠区：max低=11，min高=12 → 中枢[11,12]，ZG=12、ZD=11，为上升中枢。</li>
+<li>错法：直接取三段最高最低当中枢(变成[10,13])，会把中枢区间放大一倍，三类点全错。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>15分图标3个中枢，区分升/降并写ZG/ZD</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 中枢区间怎么算？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> [max低, min高]（三段低点的最大值 ~ 三段高点的最小值）</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> [min低, max高]（三段最低到最高）</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> [最高价, 最低价]</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>中枢区间=三段重叠区：下界=三段低点的最大值，上界=三段高点的最小值。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 上升中枢和下降中枢形态分别是什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 上升=下上下；下降=上下上</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 上升=上下上；下降=下上下</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 都是下上下</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>上升中枢由『下-上-下』三段构成，下降中枢由『上-下-上』构成。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. ZG和ZD分别指什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> ZG=中枢上沿、ZD=中枢下沿</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> ZG=中枢下沿、ZD=中枢上沿</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> ZG和ZD都是同一点</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>ZG=中枢上沿（三段高点最小值），ZD=中枢下沿（三段低点最大值）。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 中枢区间算对(不取错高低)</li>
+<li>✅ 上升/下降判断正确</li>
+<li>✅ 能写出ZG/ZD</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(9,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="10">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D10</span>
+    <span class="dt">W2·Day4 ｜ 中枢震荡</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>价格进入中枢区间后来回运动，称为中枢震荡。震荡中不存在趋势背驰，只有盘整背驰(中枢内一次力度减弱)。震荡的出路是出中枢：向上出=三类买点信号，向下出=三类卖点信号。震荡期不做反转单，只做高抛低吸(顺大级别方向)。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="95" y="18" fill="#f5c542" font-size="11" text-anchor="middle">盘整(1中枢)</text>
+<polyline points="20,120 70,80 120,110 170,70 220,100 270,80" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="120" y="85" width="100" height="25" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="285" y="18" fill="#f5c542" font-size="11" text-anchor="middle">趋势(≥2不重叠中枢)</text>
+<polyline points="210,150 260,110 300,135 350,70 380,110" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="255" y="115" width="55" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<rect x="345" y="80" width="45" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">没有趋势(≥2中枢)就没有趋势背驰</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>中枢震荡=价格在区间内来回</li>
+<li>震荡中无趋势背驰，只有盘整背驰</li>
+<li>出中枢方向=三类买卖点信号</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：15分某品种在[11,12]中枢内震荡5笔，每次触ZD反弹、触ZG回落。第6笔放量突破ZG且不回，出中枢向上→三类买点。</li>
+<li>纪律：震荡中若出现『底背驰』只是盘整背驰，别当反转猛干，容易被甩。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>标注1段完整盘整走势，画中枢上下轨ZG/ZD</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 中枢震荡中能产生趋势背驰吗？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 能，随时都有</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 不能，只有盘整背驰；趋势背驰需发生在趋势(≥2中枢)末端</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 一定会产生</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>震荡只有一个中枢，无趋势，故只有盘整背驰，趋势背驰只发生在趋势末端。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 出中枢向上意味着什么信号？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 三类卖点</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 三类买点信号(突破后回踩不回中枢)</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 横盘信号</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>向上出中枢且不回=三类买点信号，是趋势延续的确认。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 震荡期该怎么做？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 做反转单抄底摸顶</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 顺大级别方向高抛低吸，不做反转单</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 满仓持有</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>震荡期只顺大级别方向高抛低吸，严禁做反转单。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 能标出ZG/ZD</li>
+<li>✅ 能识别当前处于震荡中</li>
+<li>✅ 理解震荡中不做反转单</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(10,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="11">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D11</span>
+    <span class="dt">W2·Day5 ｜ 笔→段→中枢 全链路</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>完整分析流程：分型→笔→线段→中枢，任一级别都从分型开始，不可跳步。同图中可存在多级中枢(大中枢含小中枢)，级别不同互不包含。训练目标是对一张图能一气呵成完成全链路标注。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>完整流程：分型→笔→线段→中枢</li>
+<li>同图可多级：大中枢含小中枢(级别不同)</li>
+<li>任一级别都从分型开始，不可跳步</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：BU日线 分型→画笔(10笔)→划分3线段→发现2个重叠中枢→判定为向上趋势。全链路自洽，无跳步。</li>
+<li>检查点：每一级笔的端点是否对齐、中枢三段是否确实重叠。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>BU 日线做笔→段→中枢全链路标注，≥2个中枢</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 完整分析流程顺序是什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 中枢→线段→笔→分型</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 分型→笔→线段→中枢</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 笔→分型→中枢</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>任一级别都从分型起，逐级 分型→笔→线段→中枢，不可跳步。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 同图出现大小中枢说明什么？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 一定是画错了</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 不同级别的中枢共存，大级别中枢可包含小级别走势</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 大小中枢不能同时存在</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>不同级别中枢可以共存，大级别中枢可包含小级别走势，这是多级别联立的基础。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 为什么不能跳步直接画中枢？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 跳步更省时间</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 跳步会导致笔段画错，中枢区间失真</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 跳步没有影响</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>跳步直接画中枢会让笔段错、重叠判断失真，三类点全错。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 全链路不卡壳</li>
+<li>✅ 各级别对应正确</li>
+<li>✅ 中枢区间无误</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(11,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="12">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D12</span>
+    <span class="dt">W2·Day6 ｜ W2 周复盘</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>本周把线段与中枢从『懂概念』变成『画得准』。若中枢区间常算错，回头重练Day3。整理『线段/中枢』速记卡。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>无新知识点——复盘巩固</li>
+<li>中枢区间常错则重练Day3</li>
+<li>整理线段/中枢速记卡</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>周报模板：线段端点准确率__%、中枢区间准确率__%、错因Top2。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>统计本周线段端点、中枢区间命中率，写周报</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 本周过关硬指标？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 线段+中枢命中率≥70%</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 线段+中枢命中率(端点/区间无误率)≥85%</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 没有指标</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>W2过关线：线段端点与中枢区间无误率≥85%。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 中枢区间老算错怎么办？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 放弃这类题</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 回Day3重练区间算法，用『max低/min高』公式核对</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 凭感觉估</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>老算错就回Day3用『max低/min高』公式逐项核对中枢区间。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 线段+中枢命中率≥85%</li>
+<li>✅ 未达标重练对应日</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(12,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="13">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D13</span>
+    <span class="dt">W3·Day1 ｜ 走势类型：盘整 vs 趋势</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>走势类型分两类：盘整=只有1个中枢的走势；趋势=至少2个同方向且不重叠的中枢(两中枢之间由一段离开且不回到前一中枢)。核心铁律：没有趋势就没有背驰——背驰只发生在趋势末端(或盘整背驰)中。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="95" y="18" fill="#f5c542" font-size="11" text-anchor="middle">盘整(1中枢)</text>
+<polyline points="20,120 70,80 120,110 170,70 220,100 270,80" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="120" y="85" width="100" height="25" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="285" y="18" fill="#f5c542" font-size="11" text-anchor="middle">趋势(≥2不重叠中枢)</text>
+<polyline points="210,150 260,110 300,135 350,70 380,110" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="255" y="115" width="55" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<rect x="345" y="80" width="45" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">没有趋势(≥2中枢)就没有趋势背驰</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>盘整=1个中枢的走势</li>
+<li>趋势=≥2个同方向且不重叠中枢</li>
+<li>没有趋势就没有背驰</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例A：一涨一跌一涨但只有1个中枢→盘整。案例B：上涨中中枢1[11,12]→离开→中枢2[13,14]→趋势成立，可谈背驰。</li>
+<li>错判：把单中枢内的来回当趋势，会错误期待『趋势背驰』反转。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>10段历史走势，区分盘整/趋势并写理由</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 盘整和趋势的区别？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 盘整只有1个中枢；趋势≥2个同方向不重叠中枢</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 盘整≥2个中枢；趋势只有1个中枢</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 两者完全一样</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>盘整=1中枢走势；趋势=≥2个同方向且不重叠中枢。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 为什么说没有趋势就没有背驰？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 背驰只发生在趋势末端(或盘整背驰)，盘整中只有盘整背驰</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 背驰在任何走势里都到处有</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 中枢越多背驰越强</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>背驰特指趋势末端力度衰竭，盘整内只有盘整背驰，所以无趋势则无趋势背驰。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 两个中枢『不重叠』指什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 两中枢区间无交集，中间由一段离开且未回前一中枢</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 两中枢区间完全一样</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 两中枢上下排列即可</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>不重叠=区间无交集，且中间由一段离开并未回到前一中枢区间。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 10/10正确区分盘整/趋势</li>
+<li>✅ 能说明为什么这是趋势(几个中枢)</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(13,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="14">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D14</span>
+    <span class="dt">W3·Day2 ｜ 背驰的前提</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>背驰只发生在趋势末端(趋势背驰)或中枢内部(盘整背驰)。趋势背驰=最后一个中枢之后走势力度明显减弱；盘整背驰=中枢内一次力度减弱。关键能力：把『延伸(无背驰的继续)』与『背驰』区分开，延伸中追反转单是亏损主源。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="95" y="18" fill="#f5c542" font-size="11" text-anchor="middle">盘整(1中枢)</text>
+<polyline points="20,120 70,80 120,110 170,70 220,100 270,80" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="120" y="85" width="100" height="25" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="285" y="18" fill="#f5c542" font-size="11" text-anchor="middle">趋势(≥2不重叠中枢)</text>
+<polyline points="210,150 260,110 300,135 350,70 380,110" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="255" y="115" width="55" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<rect x="345" y="80" width="45" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">没有趋势(≥2中枢)就没有趋势背驰</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>背驰只在趋势末端或中枢内发生</li>
+<li>趋势背驰：最后中枢后力度减弱</li>
+<li>延伸≠背驰，别把加速段当背驰</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：上涨末中枢后，价格新高但MACD红柱面积仅前段一半→趋势背驰。对比：价格新高且红柱更大→延伸，非背驰。</li>
+<li>纪律：未见背驰信号前，不预设顶部。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>10段：5个有背驰趋势 + 5个无背驰延伸</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 背驰可能出现在哪两种结构？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 趋势末端(趋势背驰)和中枢内部(盘整背驰)</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 只有均线和指标交叉处</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 只有放量大阳线处</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>背驰只出现在趋势末端（趋势背驰）或中枢内部（盘整背驰）。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 趋势背驰的特征？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 最后中枢后走势力度明显增强</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 最后中枢之后走势力度(面积/高度)明显减弱</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 价格横盘不动</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>趋势背驰=最后中枢之后走势力度（面积/高度）明显减弱。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 延伸和背驰怎么区分？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 看K线颜色</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 延伸是力度未减的继续(新高伴随更大力度)，背驰是力度衰竭</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 两者没有区别</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>延伸力度未减（新高伴随更大力度），背驰是力度衰竭，这是本质区别。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 不把延伸当背驰 10/10判对</li>
+<li>✅ 能指出背驰段力度减弱证据</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(14,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="15">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D15</span>
+    <span class="dt">W3·Day3 ｜ 背驰量化①：面积法</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>背驰量化首选MACD红/绿柱面积比较。上涨中比较两段红柱面积，下跌中比较绿柱面积。经验阈值：最后中枢后柱子面积≤前段约70%→背驰成立。可用软件测面积，或目测相对大小排序。面积法最稳健，优先使用。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>用MACD红/绿柱面积比较两段力度</li>
+<li>最后段面积≤前段约70%→背驰成立</li>
+<li>面积法最稳健，优先使用</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：趋势上涨，中枢后第一段红柱面积合计120，第二段(新高)仅65，65/120≈54%&lt;70%→趋势背驰成立，可等一类买点(下跌后)。</li>
+<li>注意：面积比在60-70%临界区，需结合高度法/柱子法确认，不单凭一项。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>3段上涨趋势，量出最后中枢后红柱面积和并与前段比</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 背驰量化最优先用哪种方法？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 面积法(MACD红绿柱面积比较)，最稳健</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 看财经新闻</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 数K线根数</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>面积法（MACD柱面积比较）最稳健，是背驰量化首选。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 面积法背驰的经验阈值？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 最后段面积≤前段约70%视为背驰成立</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 最后段面积≥前段100%</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> ≥50%随便算</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>经验阈值：最后中枢后柱面积≤前段约70%判背驰成立。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 面积比在临界区(60-70%)怎么办？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 直接判背驰</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 结合高度法、柱子法交叉确认，不单凭一项</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 直接忽略</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>临界区需结合黄白线/柱子高度交叉确认，单凭面积一项不可靠。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 会算面积比</li>
+<li>✅ 能判断≤70%是否成立</li>
+<li>✅ 背驰方向(顶/底)判断对</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(15,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="16">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D16</span>
+    <span class="dt">W3·Day4 ｜ 背驰量化②：高度法 + 柱子法</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>除面积外还有两项：①黄白线(DIFF/DEA)高点/低点高度——后段低于前段=背驰；②柱子峰值高度——最后一段峰值低于前段峰值。铁律：面积/黄白线/柱子三项至少两项同向才最终判背驰，单项不成立不轻易下单。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>黄白线(DIFF/DEA)高/低点高度：后段低于前段=背驰</li>
+<li>柱子峰值高度：最后段峰值低于前段峰值</li>
+<li>三项≥2项同向才判背驰，单项不成立不下单</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：面积法显示背驰，但黄白线高点未降低(仅柱子略缩)→仅1项同向，不判背驰，后续价格再新高验证为延伸。三项中两项确认才出手。</li>
+<li>纪律卡：背驰判定检查单 = 面积□ 黄白线□ 柱子□(≥2项✓才认)。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>用黄白线+柱子高度验证Day3的3个样本</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 黄白线高度法怎么判背驰？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 后段DIFF/DEA高(低)点低于前段对应高(低)点</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 后段高于前段</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 看成交量</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>黄白线高度法：后段DIFF/DEA的高(低)点低于前段对应高(低)点=背驰。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 柱子高度法怎么判？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 最后一段的MACD柱子峰值高度低于前段峰值</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 最后一段柱子峰值更高</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 前后完全一样</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>柱子高度法：最后一段柱子峰值低于前段峰值=背驰表现。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 三项指标如何综合？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q3" value="A"> 任一单项即可判背驰</label><label class="opt" data-correct="1"><input type="radio" name="q3" value="B"> 面积/黄白线/柱子三项至少两项同向才判背驰</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 三项都不用看</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>三项至少两项同向才最终判背驰，单项不成立不轻易下单。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 三项指标会逐一查看</li>
+<li>✅ 坚持≥2项同向才判背驰</li>
+<li>✅ 单项不成立不下单</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(16,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="17">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D17</span>
+    <span class="dt">W3·Day5 ｜ 盘整背驰 vs 趋势背驰</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>盘整背驰发生在中枢内，力度减弱后大概率回拉中枢，不必然反转，常做高抛；趋势背驰发生在趋势末端，反转概率大，应等一类买卖点。操作差异极大：把盘整背驰当反转猛干，容易被甩出后又延续原趋势。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="95" y="18" fill="#f5c542" font-size="11" text-anchor="middle">盘整(1中枢)</text>
+<polyline points="20,120 70,80 120,110 170,70 220,100 270,80" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="120" y="85" width="100" height="25" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="285" y="18" fill="#f5c542" font-size="11" text-anchor="middle">趋势(≥2不重叠中枢)</text>
+<polyline points="210,150 260,110 300,135 350,70 380,110" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="255" y="115" width="55" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<rect x="345" y="80" width="45" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">没有趋势(≥2中枢)就没有趋势背驰</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>盘整背驰：回拉中枢概率大，不必然反转，常做高抛</li>
+<li>趋势背驰：反转概率大，等一类买卖点</li>
+<li>操作差异：盘整背驰谨慎、趋势背驰等转折</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：上升中枢内一段上冲出现盘整背驰→价格回落回中枢ZD，未反转。若这是第二个不重叠中枢后的趋势背驰→下跌转折。</li>
+<li>口诀：单中枢内背驰=盘整背驰(高抛)；多中枢末端背驰=趋势背驰(转折)。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>找5个盘整背驰点，预判后续(回中枢/反转)并验证逻辑</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 盘整背驰后通常怎么走？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 一定立刻反转</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 大概率回拉中枢，不必然反转，宜高抛</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 立刻暴涨</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>盘整背驰后多回拉中枢，不必然反转，适合高抛而非追反转。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 趋势背驰后怎么操作？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 等一类买卖点再动</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 直接追涨</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 什么都不做</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>趋势背驰反转概率大，应等一类买卖点确认后再布局。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 两者操作核心差异？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 盘整背驰谨慎高抛；趋势背驰可等转折布局</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 完全一样</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 都去追反转</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>盘整背驰以高抛为主、不轻易反转；趋势背驰可等转折布局。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 不误判盘整背驰为反转</li>
+<li>✅ 能说清两种背驰操作差别</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(17,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="18">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D18</span>
+    <span class="dt">W3·Day6 ｜ W3 周复盘</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>背驰是买卖点的根基，此处不过关严禁进W4。整理『背驰量化三项标准』速记卡。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>无新知识点——复盘巩固</li>
+<li>背驰不过关严禁进W4</li>
+<li>整理背驰量化三项速记卡</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>周报：背驰识别准确率__%；面积/黄白线/柱子三项使用是否规范；错例1条。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>统计本周背驰识别命中率，写周报</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 本周过关硬指标？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 背驰识别准确率≥60%</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 背驰识别准确率≥70%，否则重练W3</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 没有指标</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>W3过关线：背驰识别准确率≥70%，不达标严禁进W4。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 为什么背驰是买卖点根基？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 两者没关系</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 一/二/三类买卖点都依赖背驰或其后结构确认</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 买卖点完全独立</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>一二三类买卖点都依赖背驰或其后结构确认，所以背驰是根基。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 背驰识别准确率≥70%</li>
+<li>✅ 未达标重练W3，不进W4</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(18,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="19">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D19</span>
+    <span class="dt">W4·Day1 ｜ 一类买卖点</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>一类买卖点是趋势背驰的端点：上涨趋势背驰点在最后一个中枢下方(下跌反向则在最后中枢上方)。一类是『跌透/涨透』后的第一次转折，常伴底/顶背驰。一类点空间最大但风险也最大(可能背驰失败继续延伸)。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>一类买点=趋势背驰端点，在最后中枢下方(涨反之上)</li>
+<li>一类是跌透后第一次转折，常伴底背驰</li>
+<li>一类空间大但风险大，可能背驰失败</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：下跌趋势两中枢后，最后中枢下方价格新低但MACD面积仅前段40%→一类买点。其后回升验证转折。</li>
+<li>陷阱：盘整中找一类=错，一类只在趋势背驰末端。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>15分图找10个一类买卖点，逐个验证背驰成立</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 一类买点出现在什么位置？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 趋势背驰端点，上涨在最后中枢下方、下跌在最后中枢上方</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 在中枢正中间</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 任意位置都行</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>一类买点=趋势背驰端点：上涨在最后中枢下方、下跌在最后中枢上方。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 一类点为什么风险大？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 背驰可能失败、趋势继续延伸，转折未必成立</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 一类点一定反转</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 一类点零风险</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>一类是第一次转折，背驰可能失败、趋势继续延伸，所以风险最大。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 一类点必须验证什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 必须验证背驰成立(面积/高度/柱子≥2项)</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 不用验证，直接进</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 看新闻判断</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>一类点必须验证背驰成立（三项≥2项同向），否则是裸抄底。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 一类点定位准确</li>
+<li>✅ 每个一类点验证背驰成立</li>
+<li>✅ 不在盘整中乱找一类</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(19,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="20">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D20</span>
+    <span class="dt">W4·Day2 ｜ 二类买卖点</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>二类买卖点出现在一类之后，是回抽不破前低(买点情形)/不破前高(卖点情形)的位置。二类是『确认』买点，比一类安全，因为趋势已初步转折。二类不能跌破一类低点，若跌破说明背驰失败，必须止损。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>二类=一类之后回抽不破前低(买)/前高(卖)</li>
+<li>二类是确认买点，比一类安全</li>
+<li>二类不破一类低点，破则背驰失败</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：一类买点10.0，回升至11.5后回抽最低10.3不破10.0→二类买点10.3，比一类稳健。若回抽破10.0→背驰失败，平仓。</li>
+<li>配对：每个一类都应有二类确认，二类是实战最常用入场点。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>为Day1每个一类点找对应二类点并配对</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 二类买点怎么形成？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 一类买点后回升，回抽不破一类低点</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 回抽直接跌破一类低点</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 直接追高</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>二类买点=一类后回升，回抽不破一类低点（确认转折）。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 二类比一类好在哪？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 趋势已初步转折，确认度高、风险小</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 空间比一类更大</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 和一类一样风险</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>二类有趋势初步转折确认，风险比一类小、确认度更高。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 二类破一类低点说明什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 背驰失败，原趋势延续，应止损</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 可以加仓</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 没有影响</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>二类跌破一类低点=背驰失败、原趋势延续，必须止损。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 一二类正确配对</li>
+<li>✅ 二类不破一类低点</li>
+<li>✅ 理解二类比一类稳妥</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(20,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="21">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D21</span>
+    <span class="dt">W4·Day3 ｜ 三类买卖点</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>三类买卖点是突破中枢后回抽不进中枢的确认点：上涨三类买点=突破中枢后回抽不进ZG(上沿)；下跌三类卖点=跌破后回抽不进ZD。三类是『趋势延续』信号(不是转折)，需次级别回抽确认，非本级别一根K线。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>三类=突破中枢后回抽不进ZG(买)/ZD(卖)</li>
+<li>三类是趋势延续信号，非转折</li>
+<li>需次级别回抽确认，非本级别一根K线</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：15分中枢[11,12]，价格放量突破12，回踩至11.6(&gt;11即不进ZD的下沿? 注意买点看ZG=12，回踩不破12=三类买)。实际买点回踩≥12不回中枢→三类买。</li>
+<li>澄清：上涨三类买点看是否回进ZG之下；回抽不进中枢(仍在ZG之上)才成立。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>15分图找10个三类买卖点(突破+回踩不回中枢)</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 三类买点的条件？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 突破中枢后回抽不进ZG(上沿)</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 回抽进中枢内部</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 直接跌破ZD</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>上涨三类买点=突破中枢后回抽不进ZG（上沿），仍在中枢之上。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 三类点是转折还是延续信号？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 趋势延续信号，不是转折</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 趋势转折信号</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 既可转折也可延续</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>三类是趋势延续信号（突破回踩确认），不是转折信号。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 三类点为什么需次级别确认？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 防止一根K线假突破，需次级别回抽结构完成</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 没必要确认</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 看心情</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>需次级别回抽结构完成，防止一根K线假突破骗线。</div>
+</div>
+<div class="qz">
+<div class="qq">Q4. 三类买点回抽的最低要求？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q4" value="A"> 回抽低点不进入中枢区间(不低于ZG)</label><label class="opt" data-correct="0"><input type="radio" name="q4" value="B"> 回抽进入中枢内部</label><label class="opt" data-correct="0"><input type="radio" name="q4" value="C"> 跌破ZD才算</label></div>
+<div class="qfb" id="fb4"></div>
+<div class="qexp" id="exp4" style="display:none"><b>解析：</b>三类买点回抽低点不能进入中枢区间（不低于ZG），否则不成立。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 三类点定位准确</li>
+<li>✅ 回抽确实未进中枢</li>
+<li>✅ 区分三类(延续)与一二类(转折)</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(21,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="22">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D22</span>
+    <span class="dt">W4·Day4 ｜ 假三类分辨</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>假三类常见两种：①回抽进中枢(回到震荡)——不是三类；②次级别回抽未完成就提前算三类——未确认；③无量/消息驱动的假突破。分辨关键：回抽是否真正不进中枢区间，且次级别回抽结构完成。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>回抽进中枢=非三类(回到震荡)</li>
+<li>次级别回抽未完成=未确认，不提前算三类</li>
+<li>无量/假突破易出假三类，需次级别确认</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：中枢[11,12]，价格突破12后回踩到10.8(&lt;11=进中枢)→假三类，回到震荡。真三类应回踩≥11(不进ZD)再上。</li>
+<li>纪律：假突破常伴随成交量未放大，回抽快速进中枢即证伪。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>10案例：5个真三类 + 5个假三类(回抽进中枢)</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 回抽进中枢说明什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 不是三类买卖点，价格回到震荡</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 是标准三类买点</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 是反转信号</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>回抽进中枢=价格回到震荡，不是三类买卖点。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 为什么不能提前算三类？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 需次级别回抽结构完成确认，一根K线不可靠</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 随便提前算</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不需要确认</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>三类需次级别回抽结构完成确认，一根K线假突破不可靠。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 假三类常伴什么特征？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 无量/消息驱动的假突破，回抽快速进中枢</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 明显放量突破</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 无特征</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>假三类常伴随无量假突破、回抽快速进中枢证伪。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 10/10区分真假三类</li>
+<li>✅ 能说明每个假三类的破绽</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(22,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="23">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D23</span>
+    <span class="dt">W4·Day5 ｜ 三类同图综合</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>一段完整走势同时含一二三类：上涨中一类最低、二类次低、三类最高；下跌反之。同图标注训练整体观，避免只盯某一级别。三类相对位置是检验标注是否自洽的标尺。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>一段完整走势含一二三类：一类最低、二类次低、三类最高(涨)</li>
+<li>下跌反之：一类最高、二类次高、三类最低</li>
+<li>同图标注训练整体观</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：EG下跌趋势，一类买点10(最后中枢下背驰)→回升→二类10.3(回抽不破)→横盘出中枢→三类10.8(突破回踩不回)→主升。三类位置递增验证自洽。</li>
+<li>检查：若三类低于二类，说明标注或背驰判断有误，回头查。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>EG 一段完整走势做一二三类全标注</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 上涨中一二三类相对高低？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 一类最低、二类次低、三类最高</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 一类最高、二类次高、三类最低</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 三者一样高</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>上涨中：一类最低、二类次低、三类最高，位置递增。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 三类位置异常(如三类低于二类)说明什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 标注或背驰判断有误，需回查</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 完全正常</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 可以加仓</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>三类低于二类说明标注或背驰判断有误，需回头核查。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 同图标注的意义？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 训练整体观，验证各级别自洽</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 没有意义</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 只盯一类即可</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>同图标注训练整体观，并验证各级别标注是否自洽。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 三类同图不混淆</li>
+<li>✅ 相对高低位置正确</li>
+<li>✅ 能讲清每段逻辑</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(23,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="24">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D24</span>
+    <span class="dt">W4·Day6 ｜ W4 周复盘</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>本周把三类买卖点从『能认』到『能配对、能辨假』。回顾错题本，相同错误归零。整理『三类买卖点』速记卡。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>无新知识点——复盘巩固</li>
+<li>回顾错题本，相同错误归零</li>
+<li>整理三类买卖点速记卡</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>周报：买卖点识别准确率__%；真假三类分辨错例__条。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>统计本周买卖点识别命中率，写周报</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 本周过关硬指标？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 买卖点识别准确率≥60%</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 买卖点识别准确率≥65%</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 没有指标</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>W4过关线：买卖点识别准确率≥65%。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 哪类点实战最常用？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 二类(确认度高、风险可控)，一类博空间、三类跟趋势</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 一类最常用</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 三类最常用</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>实战最常用二类（确认度高、风险可控），一类博空间、三类跟趋势。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 买卖点识别准确率≥65%</li>
+<li>✅ 未达标重练对应日</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(24,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="25">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D25</span>
+    <span class="dt">W5·Day1 ｜ 级别体系与你的配置</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>标准五级链：日→60分→15分→5分→1分。你的实战配置：日/60分定方向，15分操作主级别，5分/1分精确进场。铁律：每标注一笔/段/点都必须写清『这是X分级的Y点』，杜绝跨级混用。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>标准五级链：日→60分→15分→5分→1分</li>
+<li>老K配置：日/60定方向，15操作，5/1进场</li>
+<li>每标注必写『X分级的Y点』，不跨级混用</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：日线定多→60分回踩不破→15分找二类买点→5分背驰精确进场。四级各司其职，不把5分点当15分点用。</li>
+<li>错用：把1分背驰当15分二类信号重仓，止损空间算错→爆单。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>画出你的级别关系图，标清实际使用的4个级别</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 你的级别配置是什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 日/60定方向，15操作，5/1精确进场</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 只看1分</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 只看日线</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>老K配置：日/60分定方向，15分主操作，5/1分精确进场。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 为什么每标注要写级别？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 防止跨级混用导致止损/信号错位</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 为了好看</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 没必要写</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>写清级别防止跨级混用，避免出现止损/信号错位。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 标准五级链顺序？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 日&gt;60分&gt;15分&gt;5分&gt;1分</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 1分&gt;5分&gt;15分&gt;60分&gt;日</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 15分&gt;60分&gt;日&gt;5分&gt;1分</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>标准五级链：日&gt;60分&gt;15分&gt;5分&gt;1分。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 级别链清晰</li>
+<li>✅ 说清用哪4级及作用</li>
+<li>✅ 不跨级混用</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(25,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="26">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D26</span>
+    <span class="dt">W5·Day2 ｜ 大级别定方向</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>用日/60分看趋势与中枢位置，只做顺势：大级别多→只在小级别找买点；大级别空→只找卖点；大级别震荡→小级别高抛低吸不追方向。方向判反是亏损第一因。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="95" y="18" fill="#f5c542" font-size="11" text-anchor="middle">盘整(1中枢)</text>
+<polyline points="20,120 70,80 120,110 170,70 220,100 270,80" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="120" y="85" width="100" height="25" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="285" y="18" fill="#f5c542" font-size="11" text-anchor="middle">趋势(≥2不重叠中枢)</text>
+<polyline points="210,150 260,110 300,135 350,70 380,110" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="255" y="115" width="55" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<rect x="345" y="80" width="45" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">没有趋势(≥2中枢)就没有趋势背驰</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>日/60分看趋势与中枢位置</li>
+<li>只做顺势：大级别多找买、空找卖</li>
+<li>大级别震荡→小级别高抛低吸不追方向</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：MA日线两中枢向上趋势→定多，15分只找二类/三类买。BU日线横盘单中枢→震荡，只做区间高抛低吸。</li>
+<li>纪律：大级别空时，15分反弹只做短空/不做多。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>3个品种做日线方向判定(多/空/震荡)并写依据</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 大级别定方向后小级别怎么动？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 顺大级别：多找买、空找卖、震荡高抛低吸</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 逆大级别方向做</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 随便做</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>顺大级别方向：多找买、空找卖、震荡高抛低吸。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 大级别震荡怎么办？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 小级别高抛低吸，不追单方向</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 追涨杀跌</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 满仓持有</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>大级别震荡时小级别只高抛低吸，不追单方向。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 方向判反的后果？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 逆势操作，胜率与盈亏比双杀</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 没有影响</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 反而更好</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>方向判反=逆势，胜率与盈亏比双杀，是亏损第一因。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 方向判定不反</li>
+<li>✅ 写出判定依据(趋势/中枢)</li>
+<li>✅ 震荡市明确不追单</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(26,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="27">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D27</span>
+    <span class="dt">W5·Day3 ｜ 区间套</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>区间套是精确进场的武器：大级别背驰区 → 下钻小级别找精确点，逐级缩小区间(日→60→15→5→1)。大级别给安全垫(方向对)，小级别给精确性(点位优)。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>大级别背驰区→下钻小级别找精确点</li>
+<li>逐级缩小区间：日→60→15→5→1</li>
+<li>大级别给安全垫，小级别给精确性</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：60分上涨末背驰区[12,13]，下钻15分见一类买点12.1→再下钻5分背驰精确进场12.05。区间从[12,13]缩到12.05。</li>
+<li>价值：大级别保证『做多对』，小级别保证『买得便宜』。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>用某品种60分背驰区，下钻15分找到一类点</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 区间套做什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 大级别定位背驰区，小级别逐级找精确买卖点</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 只看大级别</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 只看小级别</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>区间套=大级别定位背驰区，小级别逐级缩小找精确点。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 逐级下钻顺序？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 日→60→15→5→1</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 1→5→15→60→日</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 随意下钻</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>逐级下钻：日→60→15→5→1，每层缩小区间。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 大/小级别各提供什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 大级别给安全垫(方向)，小级别给精确性(点位)</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 反过来</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 一样</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>大级别提供安全垫（方向对），小级别提供精确性（点位优）。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 会做区间套下钻</li>
+<li>✅ 下钻层级正确</li>
+<li>✅ 精确点落在大级别背驰区内</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(27,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="28">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D28</span>
+    <span class="dt">W5·Day4 ｜ 主级别+进场级联动</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>15分找买卖点区域，5分/1分用背驰量化锁精确进场，止损用次级别破位(如15分二类被1分前低跌破)。每单盈亏比≥2:1才出手。这是你期货下午盘的核心打法。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>15分找买卖点区域，5/1用背驰锁精确进场</li>
+<li>止损用次级别破位</li>
+<li>盈亏比≥2:1才出手</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：60分多，15分二类买区[11.0,11.2]，5分背驰精确进场11.05，止损1分前低10.8(-0.25)，止盈前中枢11.8(+0.75)，盈亏比3:1。</li>
+<li>纪律：盈亏比&lt;2:1不进场，宁可错过。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>完整演练：60定多→15二类→5进场+写止损止盈</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 主级别和进场级怎么配合？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 15分定买卖点区域，5/1背驰量化精确进场</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 都看15分</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 都看1分</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>15分定区域，5/1背驰量化精确进场，主+进场级联动。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 止损位怎么定？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 用次级别破位(如1分前低破15分二类)</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 凭感觉随意设</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 固定几个点</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>止损用次级别破位（如1分前低破15分二类），结构止损。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 盈亏比低于多少不进场？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 低于2:1不进场</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 低于1:1不进场</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 随便，能进就进</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>盈亏比&lt;2:1不进场，宁可错过。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 主+进场级联动无误</li>
+<li>✅ 止损位写清(次级别破位)</li>
+<li>✅ 盈亏比≥2:1</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(28,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="29">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D29</span>
+    <span class="dt">W5·Day5 ｜ 级别冲突处理</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>当大级别与小级别方向矛盾(如大空小多)，原则『顺大逆小』：小级别只做反弹、不过夜，且降仓位。冲突时若无法清晰处理，宁可不交易。纪律&gt;判断。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="95" y="18" fill="#f5c542" font-size="11" text-anchor="middle">盘整(1中枢)</text>
+<polyline points="20,120 70,80 120,110 170,70 220,100 270,80" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="120" y="85" width="100" height="25" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="285" y="18" fill="#f5c542" font-size="11" text-anchor="middle">趋势(≥2不重叠中枢)</text>
+<polyline points="210,150 260,110 300,135 350,70 380,110" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="255" y="115" width="55" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<rect x="345" y="80" width="45" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">没有趋势(≥2中枢)就没有趋势背驰</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>大空小多：顺大逆小，小级别只做反弹不过夜</li>
+<li>冲突时降仓位或不做，等大级别明朗</li>
+<li>纪律&gt;判断</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：日线空，15分出现二类买反弹。处理：只做15分短多反弹、设紧止损、收盘前平，不顺日线抄底。</li>
+<li>铁律：大级别空，任何小级别买点都只是反弹，不持仓过夜。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>3个级别冲突案例，定出你的处理纪律</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 大级别空、小级别多怎么处理？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 顺大逆小：小级别只做反弹、不过夜、降仓</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 重仓逆小抄底</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不管，随便做</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>顺大逆小：小级别只做反弹、不过夜、降仓。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 冲突时无法判断怎么办？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 宁可不交易，等大级别明朗</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 硬着头皮做</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 满仓进场</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>冲突无法判断时宁可不交易，等大级别明朗。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 为什么冲突要降仓？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 逆大级别方向胜率天然低，必须控风险</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 逆大级别胜率更高</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 不用降仓</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>逆大级别方向胜率天然低，必须降仓控风险。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 有顺大逆小处理规则</li>
+<li>✅ 冲突时知道降仓/不做</li>
+<li>✅ 纪律写进速记卡</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(29,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="30">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D30</span>
+    <span class="dt">W5·Day6 ｜ W5 周复盘</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>选1品种做『日→60→15→5』全链路标注复盘，写1页分析。这是实盘前核心能力。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>无新知识点——复盘巩固</li>
+<li>选1品种做全链路标注复盘写1页</li>
+<li>核心能力：多级别联立</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>样例：MA 日多/60多→15二类买区→5分进场11.05/止损10.8/止盈11.8，盈亏比3:1。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>产出1页多级别联立分析(方向+买卖点+止损止盈)</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 本周过关硬指标？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 联立方向判断准确率≥60%</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 联立方向判断准确率≥70%</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 没有指标</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>W5过关线：联立方向判断准确率≥70%。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 全链路复盘输出什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 方向+买卖点+止损止盈的一页分析</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 只看方向</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不写报告</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>全链路复盘输出：方向+买卖点+止损止盈的一页分析。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 联立方向判断准确率≥70%</li>
+<li>✅ 全链路标注完整</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(30,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="31">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D31</span>
+    <span class="dt">W6·Day1 ｜ 虚拟交易(历史回测)</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>用历史K线『假装交易』，到点位记虚拟单，严格按前面学的买卖点+背驰进场。先不碰真钱，积累样本与手感。每单记录日期/品种/买卖点类型/入场价/结果。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>用历史K线假装交易，到点位记虚拟单</li>
+<li>严格按买卖点+背驰进场</li>
+<li>先不碰真钱，积累样本</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：MA 15分二类买11.05→持有至15分顶背驰12.0平，虚拟盈利+0.95。记录：日期/MA/二类买/11.05/盈。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>回测 MA 过去约2周，按买卖点虚拟开平，建交易记录表</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 虚拟交易目的？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 不碰真钱积累样本与手感，验证所学买卖点</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 直接重仓实盘</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 随便点几下</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>虚拟交易=用历史K线练手感、验证信号，不碰真钱。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 每笔虚拟单记录什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 日期/品种/买卖点类型/入场价/结果</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 只记盈亏金额</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 什么都不记</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>每笔应记：日期、品种、买卖点类型、入场价、结果。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 建立虚拟交易记录</li>
+<li>✅ 每单基于前面学的信号</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(31,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="32">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D32</span>
+    <span class="dt">W6·Day2 ｜ 止损位设定</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>止损是生存线。背驰点破位=止损(一类点被刷新)；中枢破位=止损(跌破ZD/突破ZG反向)。止损必须事先写死，盘中不临时改。期货尤须严格。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg>
+<svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>背驰点破位=止损(一类点被刷新)</li>
+<li>中枢破位=止损(跌破ZD/突破ZG反向)</li>
+<li>止损事先写死，盘中不临时改</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：二类买11.05，止损设1分前低10.8(破则背驰失败)。入场即挂，不盘中犹豫。若打到10.8机械止损。</li>
+<li>反例：跌破不止损扛单→期货杠杆下快速爆仓。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>为Day1每笔虚拟单写明确止损位+理由</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 两类常见止损位？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 背驰点破位、中枢破位(ZD/ZG)</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 凭感觉设</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 固定几个点</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>两类结构止损：背驰点破位、中枢破位（ZD/ZG）。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 止损单什么时候设？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 入场前事先写死，盘中不临时改</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 盘中临时改</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不设止损</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>止损必须入场前写死，盘中不临时改。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 为什么期货止损必须硬？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 杠杆放大，扛单易爆仓</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 期货风险小</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 不需要硬止损</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>期货杠杆放大，扛单会快速爆仓，止损必须硬。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 每单有止损位</li>
+<li>✅ 止损理由基于结构(非感觉)</li>
+<li>✅ 止损空间合理</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(32,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="33">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D33</span>
+    <span class="dt">W6·Day3 ｜ 止盈位设定</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>止盈三法：前中枢目标、对称幅度、次级别背驰。盈亏比≥2:1才出手。趋势单可移动止盈跟走(用15分顶背驰移动平仓)。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>止盈三法：前中枢/对称幅度/次级别背驰</li>
+<li>盈亏比≥2:1才出手</li>
+<li>趋势单可移动止盈跟走</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：二类买11.05，前中枢上沿11.8为止盈，止损10.8，盈亏比(0.75/0.25)=3:1→出手。趋势单涨至12后15分顶背驰，移动平仓锁利。</li>
+<li>纪律：不到盈亏比不开，到了按计划走，不贪。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>为Day1每笔虚拟单写止盈目标</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 三种止盈法？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 前中枢目标、对称幅度、次级别背驰</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 只看均线</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 随便设</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>止盈三法：前中枢目标、对称幅度、次级别背驰。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 出手的最低盈亏比？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> ≥2:1</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> ≥1:1</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 随便</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>出手最低盈亏比≥2:1。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 趋势单怎么锁利？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 用次级别背驰移动止盈</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 一直不动</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 立刻全平</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>趋势单用次级别背驰移动止盈，锁住利润。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 每单有止盈</li>
+<li>✅ 盈亏比≥2:1</li>
+<li>✅ 止盈基于结构目标</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(33,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="34">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D34</span>
+    <span class="dt">W6·Day4 ｜ 清仓纪律(铁律)</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>期货下午盘 23:00 前必须清仓，不留隔夜；外盘联动品种(FU等燃油/橡胶)尤须当日平。再好的结构也不隔夜——纪律&gt;判断。这是你反复强调的铁律。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="95" y="18" fill="#f5c542" font-size="11" text-anchor="middle">盘整(1中枢)</text>
+<polyline points="20,120 70,80 120,110 170,70 220,100 270,80" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="120" y="85" width="100" height="25" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="285" y="18" fill="#f5c542" font-size="11" text-anchor="middle">趋势(≥2不重叠中枢)</text>
+<polyline points="210,150 260,110 300,135 350,70 380,110" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="255" y="115" width="55" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<rect x="345" y="80" width="45" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">没有趋势(≥2中枢)就没有趋势背驰</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>期货下午盘23:00前必须清仓，不留隔夜</li>
+<li>外盘联动品种(FU等)尤须当日平</li>
+<li>再好结构也不隔夜：纪律&gt;判断</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：尾盘21:30出现15分二类买，但距23:00仅1.5h且FU受外盘影响→放弃，不隔夜。宁可少赚不扛风险。</li>
+<li>检查：每张单标注『是否日内平』，隔夜=0。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>复盘Day1-3虚拟单，凡会隔夜的强制剔除/改日内</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 期货清仓铁律？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 23:00前清仓，不留隔夜</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 可以留隔夜</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 随意</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>期货下午盘23:00前必须清仓，绝不隔夜。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 哪些品种最须当日平？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 外盘联动品种(FU燃油、RU橡胶等)</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 所有品种都可隔夜</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 只看MA</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>FU燃油、RU橡胶等外盘联动品种最须当日平。</div>
+</div>
+<div class="qz">
+<div class="qq">Q3. 好结构能隔夜吗？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q3" value="A"> 不能，纪律&gt;判断</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="B"> 能，结构好就留</label><label class="opt" data-correct="0"><input type="radio" name="q3" value="C"> 看情况</label></div>
+<div class="qfb" id="fb3"></div>
+<div class="qexp" id="exp3" style="display:none"><b>解析：</b>再好结构也不隔夜，纪律&gt;判断。</div>
+</div>
+<div class="qz">
+<div class="qq">Q4. 本计划怎么保证？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q4" value="A"> 每张单标注是否日内平，隔夜数=0</label><label class="opt" data-correct="0"><input type="radio" name="q4" value="B"> 不标注</label><label class="opt" data-correct="0"><input type="radio" name="q4" value="C"> 随便</label></div>
+<div class="qfb" id="fb4"></div>
+<div class="qexp" id="exp4" style="display:none"><b>解析：</b>每张单标注是否日内平，强制隔夜数=0。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 零隔夜单</li>
+<li>✅ 外盘品种当日平</li>
+<li>✅ 纪律写进速记卡</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(34,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="35">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D35</span>
+    <span class="dt">W6·Day5 ｜ 模拟成绩单</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>用数据评价自己：统计胜率、盈亏比、最大回撤，找出最赚/最亏的买卖点类型。用数据而非感觉。期货重仓位与回撤控制。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>统计：胜率、盈亏比、最大回撤</li>
+<li>找出最赚/最亏的买卖点类型</li>
+<li>用数据而非感觉评价</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>样例：20单，胜12负8，胜率60%，平均盈亏比2.4:1，最大回撤8%，最赚=二类买、最亏=假三类。</li>
+<li>结论：少做假三类，主攻二类买。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>出一份周度模拟成绩单(含各项指标)</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 模拟要统计哪些指标？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 胜率、盈亏比、最大回撤、各买卖点盈亏</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 只看总盈亏</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不统计</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>统计：胜率、盈亏比、最大回撤、各买卖点盈亏。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 怎么用成绩单改进？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 主攻最赚类型，剔除最亏类型(如假三类)</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 所有类型都做</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 随便</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>用数据主攻最赚类型、剔除最亏类型（如假三类）。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 胜率≥55%</li>
+<li>✅ 列出最赚/最亏买卖点类型</li>
+<li>✅ 最大回撤可控</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(35,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="36">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D36</span>
+    <span class="dt">W6·Day6 ｜ W6 周复盘</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>模拟周总结，定位下周(W7)弱点专项。准备进入弱点突破。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>无新知识点——复盘巩固</li>
+<li>模拟周总结，定位W7弱点专项</li>
+<li>准备进入弱点突破</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>样例：最弱=背驰临界区判断、级别错位。W7专项攻这两点。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>写模拟周总结，列出最弱环节Top2</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 本周过关硬指标？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> 模拟胜率≥50%</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> 模拟胜率≥55%</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 模拟胜率≥70%</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>W6过关线：模拟胜率≥55%。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. W7怎么定专项？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 按周总结最弱环节Top2定</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 随便挑</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不练专项</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>W7专项按周总结最弱环节Top2来定。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 明确下周专项突破目标</li>
+<li>✅ 胜率≥55%进W7</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(36,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="37">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D37</span>
+    <span class="dt">W7·Day1 ｜ 专项①：笔段画错</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>回看错题本中笔/段类错误，两大主因：包含未处理、笔延续判错。重画50个样本直到连续3天零错误。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">包含关系处理</text>
+<text x="95" y="40" fill="#f85149" font-size="11" text-anchor="middle">↑趋势：取「高高」</text>
+<line x1="53.0" y1="70" x2="53.0" y2="120" stroke="#f85149" stroke-width="2"/><rect x="40" y="85" width="26" height="23" fill="#f85149"/><line x1="103.0" y1="60" x2="103.0" y2="115" stroke="#888" stroke-width="2"/><rect x="90" y="78" width="26" height="22" fill="#888"/>
+<rect x="40" y="60" width="76" height="60" fill="none" stroke="#f5c542" stroke-dasharray="3"/>
+<text x="78" y="150" fill="#9aa4b2" font-size="10" text-anchor="middle">合并后高点取高、低点取高</text>
+<text x="285" y="40" fill="#3fb950" font-size="11" text-anchor="middle">↓趋势：取「低低」</text>
+<line x1="243.0" y1="60" x2="243.0" y2="115" stroke="#3fb950" stroke-width="2"/><rect x="230" y="75" width="26" height="23" fill="#3fb950"/><line x1="293.0" y1="55" x2="293.0" y2="125" stroke="#888" stroke-width="2"/><rect x="280" y="70" width="26" height="35" fill="#888"/>
+<rect x="230" y="55" width="76" height="70" fill="none" stroke="#f5c542" stroke-dasharray="3"/>
+<text x="268" y="150" fill="#9aa4b2" font-size="10" text-anchor="middle">合并后高点取低、低点取低</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>回看错题本笔/段类错误</li>
+<li>包含未处理、笔延续判错是主因</li>
+<li>重画50样本直到连续3天零错</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：重画时先逐根处理包含，再判笔，再3笔成段。连续3天50样本零错=攻克。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>重画50个笔段样本(选自常做品种)</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 笔段画错两大主因？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 包含未处理、笔延续判错</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 看错K线颜色</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不画任何线</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>笔段画错两大主因：包含未处理、笔延续判错。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 专项过关标准？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 连续3天50样本零错误</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 一天画对就行</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不用标准</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>专项过关：连续3天50样本零错误。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 连续3天笔段零错误</li>
+<li>✅ 错题本对应条目标已攻克</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(37,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="38">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D38</span>
+    <span class="dt">W7·Day2 ｜ 专项②：假背驰</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>回看背驰类错误，主因：把延伸当背驰、柱子面积看反。专练『背驰 vs 延伸』100例对比，坚持三项≥2项同向。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>回看背驰类错误</li>
+<li>把延伸当背驰、柱子面积看反是主因</li>
+<li>专练背驰 vs 延伸100例对比</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：用面积/黄白线/柱子逐项核对，100例中凡仅1项同向一律判延伸，统计准确率≥75%。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>做100例『背驰 vs 延伸』对比标注</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 假背驰两大主因？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 把延伸当背驰、柱子面积看反</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 看错指标名字</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不存在假背驰</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>假背驰两大主因：把延伸当背驰、柱子面积看反。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 专项怎么练？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 背驰vs延伸100例，坚持三项≥2项同向</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 随便看</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 只看面积一项</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>专练背驰vs延伸100例，坚持三项≥2项同向。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 背驰判断准确率≥75%</li>
+<li>✅ 能逐项列背驰三项指标</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(38,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="39">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D39</span>
+    <span class="dt">W7·Day3 ｜ 专项③：级别乱</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>回看级别错位类错误，主因：用1分点当15分点、区间套错层。每标注强制写清『X分级的Y点』。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>回看级别错位类错误</li>
+<li>1分点当15分点、区间套错层是主因</li>
+<li>每标注强制写清『X分级的Y点』</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：标注时每点注明『15分二类买』『5分精确进』，杜绝把5分背驰当15分信号。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>选3品种做级别标注，每点标注级别</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 级别乱两大主因？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 1分点当15分点、区间套错层</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 看错品种</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不分级</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>级别乱两大主因：1分点当15分点、区间套错层。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 怎么防级别乱？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 每标注写清『X分级的Y点』</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 不写级别</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 随便标</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>每标注强制写清『X分级的Y点』，防止级别错位。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 零级别错位</li>
+<li>✅ 区间套层级正确</li>
+<li>✅ 速记卡补级别纪律</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(39,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="40">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D40</span>
+    <span class="dt">W7·Day4 ｜ 专项④：买卖点识别</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>回看买卖点类错误，主因：假三类、二类破位。重做W4全部样本+新找20个，重点辨真假三类。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>回看买卖点类错误</li>
+<li>假三类、二类破位是主因</li>
+<li>重做W4样本+新找20个</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：20新样本中凡回抽进中枢一律判假三类；二类破一类低点一律判背驰失败。准确率≥75%。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>重做W4样本+新找20个买卖点标注</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 买卖点识别两大坑？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 假三类、二类破位</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 看错颜色</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不做买卖点</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>买卖点识别两大坑：假三类、二类破位。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 专项怎么验？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 重做W4+新20样本，准确率≥75%</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 随便验</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不验证</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>重做W4样本+新20样本，准确率≥75%才算过关。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 买卖点准确率≥75%</li>
+<li>✅ 真假三类不再误判</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(40,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="41">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D41</span>
+    <span class="dt">W7·Day5 ｜ 专项⑤：联立方向</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>回看联立类错误，主因：大级别方向判反、冲突处理犹豫。做5个品种全链路联立，冲突严格顺大逆小。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="95" y="18" fill="#f5c542" font-size="11" text-anchor="middle">盘整(1中枢)</text>
+<polyline points="20,120 70,80 120,110 170,70 220,100 270,80" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="120" y="85" width="100" height="25" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="285" y="18" fill="#f5c542" font-size="11" text-anchor="middle">趋势(≥2不重叠中枢)</text>
+<polyline points="210,150 260,110 300,135 350,70 380,110" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="255" y="115" width="55" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<rect x="345" y="80" width="45" height="22" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">没有趋势(≥2中枢)就没有趋势背驰</text></svg>
+<svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>回看联立类错误</li>
+<li>大级别方向判反、冲突犹豫是主因</li>
+<li>做5品种全链路联立</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：5品种均先定日/60方向再下钻，冲突时降仓/不做，联立方向准确率≥75%。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>做5个品种『日→60→15→5』全链路标注</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 联立方向两大坑？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 大级别方向判反、冲突处理犹豫</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 看错指标</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不联立</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>联立方向两大坑：大级别方向判反、冲突处理犹豫。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 冲突时原则？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 顺大逆小，降仓或不做</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 重仓逆小</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不管冲突</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>冲突时顺大逆小，降仓或不做。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 联立方向准确率≥75%</li>
+<li>✅ 冲突处理果断</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(41,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="42">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D42</span>
+    <span class="dt">W7·Day6 ｜ W7 弱项复测</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>对你W7练的最弱环节做最终复测，该弱项≥75%视为过关，未过则下周继续该专项。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg>
+<svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>无新知识点——复测最弱项</li>
+<li>对你W7最弱环节做最终复测</li>
+<li>该弱项≥75%过关，未过则续练</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>样例：最弱=背驰临界区，30例复测准确率80%→过关；若68%→下周续练。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>对最弱项做30例复测并统计</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 弱项复测过关线？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q1" value="A"> ≥70%</label><label class="opt" data-correct="1"><input type="radio" name="q1" value="B"> ≥75%</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> ≥60%</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>弱项复测过关线≥75%。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 未过怎么办？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 下周继续该专项，不进W8</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 直接进W8</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 放弃</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>未过则下周继续该专项，不进W8。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 最弱项复测≥75%</li>
+<li>✅ 未过则下周继续该专项</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(42,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="43">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D43</span>
+    <span class="dt">W8·Day1 ｜ 盲测①</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>不回看教材，独立对陌生品种历史段做全链路标注：笔→段→中枢→背驰→买卖点。完整且逻辑自洽。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg>
+<svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>不回看教材，独立全标注</li>
+<li>随机抽陌生品种历史段</li>
+<li>完整：笔→段→中枢→背驰→买卖点</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：抽MA/EG/BU各一段，不翻教材，独立完成全标注并自检逻辑。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>随机抽3个品种历史段，独立做全链路标注</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 盲测要求？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 不回看教材，独立全链路标注</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 可以翻书</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不用标注</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>盲测要求不回看教材，独立完成全链路标注。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 达标线？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 命中率≥60%</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 命中率≥70%</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 命中率≥50%</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>盲测达标线：命中率≥70%。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 全链路不卡壳</li>
+<li>✅ 标注逻辑自洽</li>
+<li>✅ 命中率≥70%</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(43,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="44">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D44</span>
+    <span class="dt">W8·Day2 ｜ 盲测②</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>同Day1要求，换不同品种，并计时：单品种≤15分钟完成全标注，保持准确率。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>同Day1，换品种</li>
+<li>计时：单品种≤15分钟</li>
+<li>保持准确率</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：每个品种限时15分钟，3个合计≤45分钟，命中率仍≥70%。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>随机抽3个品种历史段，独立全标注(计时)</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 盲测②新增要求？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 单品种≤15分钟完成</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 不限时间</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 1小时也行</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>盲测②新增：单品种≤15分钟完成全标注。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 速度达标线？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> ≤15分钟/品种且命中率≥70%</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 越快越好不管准确率</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 随便</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>速度达标：≤15分钟/品种且命中率≥70%。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 单品种≤15分钟</li>
+<li>✅ 命中率≥70%</li>
+<li>✅ 速度达标</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(44,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="45">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D45</span>
+    <span class="dt">W8·Day3 ｜ 盲测③</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>同前，最后一轮盲测，模拟实盘节奏，为每个点写级别+理由。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#bc8cff" font-size="12" text-anchor="middle">线段：至少3笔，第3笔破坏第1笔端点</text>
+<polyline points="30,140 110,70 180,130 260,60 340,120" fill="none" stroke="#bc8cff" stroke-width="2.5"/>
+<circle cx="30" cy="140" r="4" fill="#fff"/><circle cx="110" cy="70" r="4" fill="#fff"/>
+<circle cx="180" cy="130" r="4" fill="#fff"/><circle cx="260" cy="60" r="4" fill="#fff"/><circle cx="340" cy="120" r="4" fill="#fff"/>
+<text x="185" y="160" fill="#9aa4b2" font-size="10" text-anchor="middle">3笔↑↑↑ 构成向上线段（端点=最高/最低笔端点）</text></svg>
+<svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>同前，最后一轮盲测</li>
+<li>模拟实盘节奏</li>
+<li>每点写级别+理由</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>案例：标注同时注『15分二类买，因回抽不破一类低点』，盲测三连达标。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>随机抽3个品种，独立全标注+写每点级别理由</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 盲测③要点？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 每点写级别与理由，模拟实盘节奏</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 不写理由</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 随便标</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>盲测③要点：每点写级别与理由，模拟实盘节奏。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 出师前要求？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 盲测三连达标(命中率≥70%)</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 一次达标即可</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不用</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>出师前要求盲测三连达标（命中率≥70%）。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 命中率≥70%</li>
+<li>✅ 每点有级别与理由</li>
+<li>✅ 盲测三连达标</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(45,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="46">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D46</span>
+    <span class="dt">W8·Day4 ｜ 综合考核</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>对1个陌生品种做全级别分析，产出1页报告：方向+买卖点+止损止盈。这是出师考。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>对1陌生品种做全级别分析</li>
+<li>产出1页报告：方向+买卖点+止损止盈</li>
+<li>出师考</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>样例：品种X 日多/60多→15二类买区→5分进11.05/止损10.8/止盈11.8，盈亏比3:1，联立方向多。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>对1陌生品种做『日→60→15→5』全链路，写1页报告</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 综合考核产出？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 1页报告：方向+买卖点+止损止盈</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 只看图不写</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不写报告</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>综合考核产出1页报告：方向+买卖点+止损止盈。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 出师线？</div>
+<div class="opts"><label class="opt" data-correct="0"><input type="radio" name="q2" value="A"> 联立方向≥70%</label><label class="opt" data-correct="1"><input type="radio" name="q2" value="B"> 联立方向≥75%</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 联立方向≥60%</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>出师线：联立方向判断≥75%。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 报告完整</li>
+<li>✅ 联立方向≥75%</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(46,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="47">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D47</span>
+    <span class="dt">W8·Day5 ｜ 总命中率统计</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>汇总8周所有命中率。三类买卖点识别≥70%、联立方向≥75%→出师，可小仓位实盘验证。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>汇总8周所有命中率</li>
+<li>买卖点识别≥70%、联立方向≥75%→出师</li>
+<li>可小仓位实盘验证</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>样例：笔段98%、背驰82%、买卖点74%、联立78%→出师。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>统计8周总命中率，出最终成绩单</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 出师硬指标？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 买卖点识别≥70%、联立方向≥75%</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 只看一项</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 随便</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>出师硬指标：买卖点识别≥70%、联立方向≥75%。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 出师后？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 小仓位实盘验证，严控止损与清仓纪律</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 直接重仓</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 不验证</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>出师后小仓位实盘验证，严控止损与清仓纪律。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 买卖点识别≥70%</li>
+<li>✅ 联立方向≥75%</li>
+<li>✅ 达标=出师</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(47,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="day" data-day="48">
+  <div class="dh" onclick="this.parentNode.classList.toggle('open')">
+    <span class="dn">D48</span>
+    <span class="dt">W8·Day6 ｜ 固化·速查卡</span>
+    <span class="arrow">▸</span>
+  </div>
+  <div class="db">
+    <div class="blk def"><h4>📖 定义</h4><p>整理最终错题本与个人速查卡(笔段规则/中枢算法/背驰量化标准/级别纪律)，形成长期工具，之后每周滚动复习。</p></div>
+    <div class="blk dia"><h4>🖼️ 图示</h4><svg viewBox="0 0 380 175" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">笔：相邻顶底分型+至少1根独立K线（≥5根K线）</text>
+<polyline points="40,140 120,60 200,130 300,55" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="40" cy="140" r="4" fill="#3fb950"/><circle cx="120" cy="60" r="4" fill="#f85149"/>
+<circle cx="200" cy="130" r="4" fill="#3fb950"/><circle cx="300" cy="55" r="4" fill="#f85149"/>
+<text x="80" y="100" fill="#9aa4b2" font-size="10">↑笔</text><text x="250" y="100" fill="#9aa4b2" font-size="10">↑笔</text>
+<text x="190" y="165" fill="#9aa4b2" font-size="10" text-anchor="middle">底→顶=向上笔；顶→底=向下笔；顶底必须交替</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#58a6ff" font-size="12" text-anchor="middle">中枢：至少3段重叠，区间=[max低, min高]</text>
+<polyline points="30,150 100,90 160,140 230,80 300,130 360,95" fill="none" stroke="#bc8cff" stroke-width="2"/>
+<rect x="160" y="110" width="140" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<text x="230" y="104" fill="#58a6ff" font-size="10" text-anchor="middle">ZG(上沿)</text>
+<text x="230" y="152" fill="#58a6ff" font-size="10" text-anchor="middle">ZD(下沿)</text>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">三段重叠区=中枢，上升中枢=下上下</text></svg>
+<svg viewBox="0 0 380 185" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#3fb950" font-size="12" text-anchor="middle">背驰：最后中枢后力度减弱（面积/高度递减）</text>
+<polyline points="20,150 90,90 160,140 240,70 320,120 370,95" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="160" y="135" width="80" height="30" fill="rgba(88,166,255,.18)" stroke="#58a6ff" stroke-dasharray="4"/>
+<!-- MACD示意柱 -->
+<g fill="#3fb950"><rect x="30" y="160" width="10" height="10"/><rect x="55" y="160" width="10" height="14"/><rect x="80" y="160" width="10" height="18"/></g>
+<g fill="#f85149"><rect x="250" y="160" width="10" height="8"/><rect x="275" y="160" width="10" height="11"/><rect x="300" y="160" width="10" height="9"/></g>
+<text x="190" y="178" fill="#9aa4b2" font-size="10" text-anchor="middle">↑红柱面积↓ & ↓绿柱面积↓ → 背驰（三项≥2项同向才认）</text></svg>
+<svg viewBox="0 0 380 195" xmlns="http://www.w3.org/2000/svg">
+<text x="190" y="18" fill="#f5c542" font-size="12" text-anchor="middle">三类买点（上涨示例）</text>
+<polyline points="20,60 90,140 150,90 210,150 280,100 350,130" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<rect x="150" y="95" width="130" height="45" fill="rgba(88,166,255,.15)" stroke="#58a6ff" stroke-dasharray="4"/>
+<circle cx="90" cy="140" r="5" fill="#3fb950"/><text x="78" y="160" fill="#3fb950" font-size="10">①类(背驰最低)</text>
+<circle cx="210" cy="150" r="5" fill="#f5c542"/><text x="198" y="172" fill="#f5c542" font-size="10">②类(回抽不破)</text>
+<circle cx="350" cy="130" r="5" fill="#bc8cff"/><text x="300" y="150" fill="#bc8cff" font-size="10">③类(突破回踩不回中枢)</text>
+<text x="190" y="190" fill="#9aa4b2" font-size="10" text-anchor="middle">①最低 ②次低 ③最高(上涨)；下跌反之</text></svg></div>
+    <div class="blk study"><h4>📘 学习要点</h4><ul><li>整理最终错题本</li>
+<li>做个人速查卡：笔段/中枢/背驰/级别纪律</li>
+<li>形成长期工具，每周滚动复习</li></ul></div>
+    <div class="blk ex"><h4>🔍 案例</h4><ul><li>速查卡内容：①笔=5K线顶底交替 ②中枢=[max低,min高] ③背驰=面积/黄白/柱子≥2项 ④级别=日/60定方向,15操作,5/1进。</li></ul></div>
+    <div class="blk practice"><h4>✍️ 今日练习</h4><ul><li>产出个人速查卡(1页可打印)</li></ul></div>
+    <div class="blk quiz"><h4>📝 今日考核题（点选项立即判对错，答错看解析，答不准必须重学当日）</h4><div class="qz">
+<div class="qq">Q1. 速查卡含什么？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q1" value="A"> 笔段规则、中枢算法、背驰量化标准、级别纪律</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="B"> 只看图</label><label class="opt" data-correct="0"><input type="radio" name="q1" value="C"> 不写</label></div>
+<div class="qfb" id="fb1"></div>
+<div class="qexp" id="exp1" style="display:none"><b>解析：</b>速查卡含：笔段规则、中枢算法、背驰量化标准、级别纪律。</div>
+</div>
+<div class="qz">
+<div class="qq">Q2. 之后怎么保持？</div>
+<div class="opts"><label class="opt" data-correct="1"><input type="radio" name="q2" value="A"> 每周滚动复习速查卡+错题本</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="B"> 不复习</label><label class="opt" data-correct="0"><input type="radio" name="q2" value="C"> 随便</label></div>
+<div class="qfb" id="fb2"></div>
+<div class="qexp" id="exp2" style="display:none"><b>解析：</b>之后每周滚动复习速查卡+错题本，保持手感。</div>
+</div></div>
+    <div class="blk assess"><h4>✅ 达标线</h4><ul><li>✅ 速查卡完成</li>
+<li>✅ 错题本定稿</li>
+<li>✅ 制定每周复习节奏</li></ul></div>
+    <label class="done"><input type="checkbox" onchange="markDone(48,this.checked)"> 我已学完并达标</label>
+  </div>
+</div>
+<div class="foot">数据文件：缠论学习数据.json ｜ 计划开始 2026-09-07 ｜ 本报告仅供研究参考，不构成投资建议</div>
+<script>
+const START="2026-09-07";const TOTAL=48;
+const done=JSON.parse(localStorage.getItem('chan_done')||'{}');
+function markDone(d,ok){if(ok)done[d]=1;else delete done[d];localStorage.setItem('chan_done',JSON.stringify(done));refresh();}
+function refresh(){
+  let c=0;document.querySelectorAll('.day').forEach(el=>{const d=+el.dataset.day;
+    if(done[d]){el.classList.add('done-day');const cb=el.querySelector('.done input');if(cb)cb.checked=true;c++;}else el.classList.remove('done-day');});
+  document.getElementById('pc').textContent=c;document.getElementById('pbar').style.width=(c/TOTAL*100)+'%';
+}
+// 选择题即时判分
+document.querySelectorAll('.opt input').forEach(r=>r.addEventListener('change',function(){
+  const qz=this.closest('.qz');
+  const label=this.closest('.opt');
+  const isRight=label.dataset.correct==='1';
+  qz.querySelectorAll('.opt').forEach(o=>o.classList.remove('right','wrong'));
+  label.classList.add(isRight?'right':'wrong');
+  const fb=qz.querySelector('.qfb');
+  if(isRight){fb.textContent='✅ 答对了';fb.className='qfb ok';}
+  else{fb.textContent='❌ 答错了，看下方解析';fb.className='qfb bad';}
+  qz.querySelector('.qexp').style.display='block';
+}));
+const sd=new Date(START+'T00:00:00');const now=new Date();
+const diff=Math.floor((now-sd)/86400000)+1;const t=document.getElementById('today');
+if(diff>=1&&diff<=TOTAL){t.innerHTML='📌 <b>今日是 Day'+diff+'</b>（'+now.toLocaleDateString('zh-CN')+'）。展开对应卡片学习，点选项即时判分，答不准重学当日。';
+  const el=document.querySelector('.day[data-day="'+diff+'"]');if(el)el.classList.add('open');}
+else if(diff<TOTAL)t.innerHTML='⏳ 计划尚未开始（Day1 = '+START+'）。';
+else t.innerHTML='🎉 48天计划已全部完成！进入每周滚动复习与实盘验证。';
+refresh();
+</script></body></html>
