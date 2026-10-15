@@ -762,7 +762,7 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
   }
   .idx-source-note { font-size: 9px !important; }
 }
-/* WB_PATCH_DATE_NAV_V1:css · 交易日选择器 */
+/* WB_PATCH_DATE_NAV_V3:css · 交易日选择器 */
 .wb-datenav{display:inline-flex;align-items:center;gap:3px;margin-right:8px;flex:0 0 auto}
 .wb-date-step{padding:4px 9px;font-size:15px;line-height:1;min-width:26px;text-align:center}
 .wb-date-input{padding:4px 7px;font-size:12.5px;font-family:var(--font-sans);
@@ -792,7 +792,7 @@ body.wb-readonly .wb-datenav{opacity:1}
     <span class="topbar-update" id="lastUpdateDisplay"></span>
   </div>
   <div class="topbar-right">
-  <!-- WB_PATCH_DATE_NAV_V1:dom · 顶栏交易日选择器 -->
+  <!-- WB_PATCH_DATE_NAV_V3:dom · 顶栏交易日选择器 -->
   <div class="wb-datenav" id="wbDateNav">
     <button class="topbar-btn wb-date-step" onclick="wbChangeDate(-1)" title="上一交易日">‹</button>
     <input type="date" id="datePicker" class="wb-date-input" onchange="onDateChange()" title="选择交易日查看历史数据" />
@@ -8417,9 +8417,11 @@ function getDataTimeState() {
   var M = (typeof EMBEDDED_MAINLINE !== 'undefined') ? EMBEDDED_MAINLINE : null;
   var K = (typeof EMBEDDED_KLINE_PACK !== 'undefined') ? EMBEDDED_KLINE_PACK : null;
   var A = (typeof EMBEDDED_AUCTION !== 'undefined') ? EMBEDDED_AUCTION : null;
-  var provisional = !!(snap.provisional || (L && L.provisional) || (M && M.provisional));
+  // WB_PATCH: EMBEDDED_* 只含最新一天，历史日必须读 WB_META，否则定稿状态与时点都会误判
+  var _meta = (typeof WB_META !== 'undefined' && WB_META && WB_META[DATA.date]) || null;
+  var provisional = !!(_meta ? _meta.provisional : (snap.provisional || (L && L.provisional) || (M && M.provisional)));
   var phase = getTradePhase(new Date());
-  var at = snap.snapshotAt || (L && L.generatedAt) || '未知';
+  var at = (_meta && _meta.snapshotAt) || snap.snapshotAt || (L && L.generatedAt) || '未知';
   var time = String(at).replace(/^\d{4}-\d{2}-\d{2}\s*/, '');
   var label = '收盘·最终';
 
@@ -8570,6 +8572,8 @@ function loadDay(date, force) {
         if (payload && payload.isPreOpen) showNotify('⏰ 盘前快照：涨停池为隔夜涨停（开盘或撤单），板块资金/龙虎榜/选股沿用上一交易日，收盘后点「更新数据」补全', 7000);
         refreshAutoState();
         wbSyncNavState();
+        // WB_PATCH: 记住本次数据的定稿状态，供 getDataTimeState() 判定（走 fetch 时 EMBEDDED_SNAPSHOT 无此日）
+        WB_META[DATA.date] = { provisional: !!payload.provisional, phase: payload.phase || '', snapshotAt: payload.snapshotAt || '' };
         if (CURRENT_IS_LATEST && AUTO_REFRESH_ON) fetchQuotes();
       } else {
         hideLoading();
@@ -17603,7 +17607,8 @@ function exportPDF() {
 <!-- KLINEPK_DATA_END -->
 <!-- AUCTION_DATA_START -->
 <script>var EMBEDDED_AUCTION = {"date":"2026-10-15","capturedAt":"2026-10-15 11:28:24","mode":"backfill","source":"收盘后回溯：一字涨停按快照涨停池「首封 09:25:00」推导；板块竞价高开与一字跌停明细收盘后无法回溯（板块高开可参考主线K线包今日开盘/昨收口径）","sectors":[],"topGaps":[],"oneWordZT":[{"code":"002815","name":"崇达技术","fbt":"092500","chgPct":9.98,"turnover":1.59,"lbc":1}],"oneWordDT":[]};
-/* ===== WB_PATCH_DATE_NAV_V1:js · 数据层与交易日导航 ===== */
+/* ===== WB_PATCH_DATE_NAV_V3:js · 数据层与交易日导航 ===== */
+var WB_META = {};   // {date: {provisional, phase, snapshotAt}} —— fetch 来的数据的定稿状态
 var WBData = (function () {
   // ⚠️ 用 wbdata/ 而非 data/：data/ 是仓库里用户已有的目录，不复用
   var BASE = 'wbdata/';
