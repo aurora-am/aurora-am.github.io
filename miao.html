@@ -4902,20 +4902,23 @@ function fetchThemeQuotes() {
   });
   if (!codes.length) return;
   _themeQuoteRunning = true; _lastThemeQuote = Date.now();
-  var secids = codes.map(function (c) { return (/^(60|68|9)/.test(c) ? '1.' : '0.') + c; }).join(',');
-  var u = 'https://push2delay.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&ut=' + UT_THEME
-        + '&secids=' + secids + '&fields=f2,f3,f6,f8,f10,f12,f14,f62';
-  LiveFeed.jsonp(u, 10000).then(function (j) {
-    var arr = (j && j.data && j.data.diff) || [];
-    arr.forEach(function (it) {
-      if (!it || it.f12 == null) return;
-      THEME_QUOTE_MAP[it.f12] = {
-        price: +it.f2, chgPct: +it.f3, amount: +it.f6, turnover: +it.f8, volRatio: +it.f10,
-        mainNetFlowYi: (it.f62 == null || it.f62 === '-') ? null : Math.round(it.f62 / 1e8 * 100) / 100
+  LiveFeed.batchQuotes(codes).then(function (map) {
+    var n = 0;
+    Object.keys(map).forEach(function (code) {
+      var v = map[code], cur = THEME_QUOTE_MAP[code] || {};
+      // 腾讯兜底时 量比/主力净流入 为 null → 保留原值，绝不拿 0 顶替（0 会算成真实的「无流入」）
+      THEME_QUOTE_MAP[code] = {
+        price: (v.price != null && isFinite(v.price)) ? v.price : cur.price,
+        chgPct: (v.chgPct != null && isFinite(v.chgPct)) ? v.chgPct : cur.chgPct,
+        amount: (v.amount != null) ? v.amount : cur.amount,
+        turnover: (v.turnover != null) ? v.turnover : cur.turnover,
+        volRatio: (v.volRatio != null) ? v.volRatio : cur.volRatio,
+        mainNetFlowYi: (v.mainNetFlowYi != null) ? v.mainNetFlowYi : cur.mainNetFlowYi
       };
+      n++;
     });
     _themeQuoteRunning = false;
-    if (arr.length) renderThemeRadar();
+    if (n) renderThemeRadar();
   }).catch(function () { _themeQuoteRunning = false; });
 }
 
@@ -7583,8 +7586,86 @@ var LiveFeed = (function () {
     ]);
   }
 
+  /* 8) 题材成分股批量报价（主源 东财 ulist；备源 腾讯批量）
+        腾讯口径没有「量比 / 主力净流入」→ 这两项置 null，调用方保留原值，绝不拿 0 冒充。 */
+  function batchQuotes(codes) {
+    if (!codes || !codes.length) return Promise.reject(new Error('no-codes'));
+    return fallback('themeQuotes', [
+      function () {
+        var secids = codes.map(function (c) { return (/^(60|68|9)/.test(c) ? '1.' : '0.') + c; }).join(',');
+        var u = 'https://push2delay.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&ut=' + UT_Q
+              + '&secids=' + secids + '&fields=f2,f3,f6,f8,f10,f12,f14,f62';
+        return jsonp(u, 10000).then(function (j) {
+          var arr = (j && j.data && j.data.diff) || [];
+          if (!arr.length) throw new Error('empty');
+          var out = {};
+          arr.forEach(function (it) {
+            if (!it || it.f12 == null) return;
+            out[String(it.f12)] = {
+              price: +it.f2, chgPct: +it.f3, amount: +it.f6, turnover: +it.f8, volRatio: +it.f10,
+              mainNetFlowYi: (it.f62 == null || it.f62 === '-') ? null : Math.round(it.f62 / 1e8 * 100) / 100
+            };
+          });
+          if (!Object.keys(out).length) throw new Error('empty-mapped');
+          return out;
+        });
+      },
+      function () {
+        var txCodes = codes.map(function (c) { return (/^(6|9)/.test(c) ? 'sh' : 'sz') + c; });
+        return txBatchQuotes(txCodes).then(function (m) {
+          var out = {};
+          Object.keys(m).forEach(function (k) {
+            out[k.slice(2)] = { price: m[k].price, chgPct: m[k].chgPct, amount: null, turnover: null, volRatio: null, mainNetFlowYi: null };
+          });
+          if (!Object.keys(out).length) throw new Error('tx-empty');
+          return out;
+        });
+      }
+    ]);
+  }
+
+  /* 9) 板块主力净流全量（资金流页用）：主源 clist 行业+概念；备源 datacenter 行业资金流（概念缺失即少，不伪造） */
+  function sectorFlowRank() {
+    return fallback('sectorFlowRank', [
+      function () {
+        function one(fs) {
+          var u = 'https://push2delay.eastmoney.com/api/qt/clist/get?pn=1&pz=400&po=1&np=1&fltt=2&invt=2&fid=f62&fs='
+                + fs + '&fields=f12,f14,f62,f3';
+          return jsonp(u, 9000).then(function (j) { return (j && j.data && j.data.diff) || []; });
+        }
+        return Promise.all([one('m:90+t:2'), one('m:90+t:3')]).then(function (rs) {
+          var all = [], seen = {};
+          rs.forEach(function (diff) {
+            diff.forEach(function (x) {
+              if (!x || x.f12 == null || seen[x.f12]) return;
+              seen[x.f12] = 1;
+              all.push({ code: x.f12, name: x.f14, netInflow: yi(x.f62), chgPct: +x.f3 });
+            });
+          });
+          if (!all.length) throw new Error('empty');
+          return all;
+        });
+      },
+      function () {
+        var u = 'https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_INDUSTRY_FUNDFLOW'
+              + '&columns=ALL&pageSize=400&source=WEB&client=WEB';
+        return fetch(u, { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (j) {
+          var rows = ((j || {}).result || {}).data || [];
+          if (!rows.length) throw new Error('dc-empty');
+          var latest = rows.reduce(function (m, r) { return (r.TRADE_DATE && r.TRADE_DATE > m) ? r.TRADE_DATE : m; }, '');
+          var all = rows.filter(function (r) { return r.TRADE_DATE === latest; })
+            .map(function (r) { return { code: 'DC_' + r.BOARD_NAME, name: r.BOARD_NAME, netInflow: yi(r.NET_INFLOW), chgPct: +r.CHANGE_RATE }; })
+            .filter(function (x) { return x.name; });
+          if (all.length < 3) throw new Error('dc-thin');
+          return all;
+        });
+      }
+    ]);
+  }
+
   return { jsonp: jsonp, quotes: quotes, limitPool: limitPool, breadth: breadth,
-           sectorFlow: sectorFlow, indexFlow: indexFlow, overseas: overseas, fetchAll: fetchAll };
+           sectorFlow: sectorFlow, indexFlow: indexFlow, overseas: overseas, fetchAll: fetchAll,
+           batchQuotes: batchQuotes, sectorFlowRank: sectorFlowRank };
 })();
 
 /* 把实时分片合并到基准快照上（K线等实时接口不覆盖的字段保持原值） */
@@ -8801,22 +8882,8 @@ function fetchCapitalFlow() {
     }).catch(function () { return null; });
   }));
 
-  // 2) 板块主力净流入（行业 m:90+t:2 + 概念 m:90+t:3）
-  var secP = doSector ? Promise.all([
-    LiveFeed.jsonp('https://push2delay.eastmoney.com/api/qt/clist/get?pn=1&pz=400&po=1&np=1&fltt=2&invt=2&fid=f62&fs=m:90+t:2&fields=f12,f14,f62,f3', 9000),
-    LiveFeed.jsonp('https://push2delay.eastmoney.com/api/qt/clist/get?pn=1&pz=400&po=1&np=1&fltt=2&invt=2&fid=f62&fs=m:90+t:3&fields=f12,f14,f62,f3', 9000)
-  ]).then(function (rs) {
-    var all = [], seen = {};
-    rs.forEach(function (j) {
-      var diff = (j && j.data && j.data.diff) || [];
-      diff.forEach(function (x) {
-        if (!x || x.f12 == null || seen[x.f12]) return;
-        seen[x.f12] = 1;
-        all.push({ code: x.f12, name: x.f14, netInflow: yi(x.f62), chgPct: +x.f3 });
-      });
-    });
-    return all;
-  }).catch(function () { return null; }) : Promise.resolve(null);
+  // 2) 板块主力净流入（主源 东财 clist 行业+概念；备源 datacenter 行业资金流，概念缺失即少，不伪造）
+  var secP = doSector ? LiveFeed.sectorFlowRank().catch(function () { return null; }) : Promise.resolve(null);
 
   Promise.all([idxP, secP]).then(function (res) {
     var idxArr = res[0] || [], secAll = res[1];
