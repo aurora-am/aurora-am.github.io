@@ -109,7 +109,8 @@ body {
 .topbar-title { font-size:16px; font-weight:700; letter-spacing:1px; white-space:nowrap; }
 .topbar-date-display { color:#fff; font-size:13px; font-family:inherit; user-select:none; opacity:0.9; margin-left:12px; white-space:nowrap; flex-shrink:0; }
 .topbar-update { color:rgba(255,255,255,0.82); font-size:11px; font-family:inherit; user-select:none; margin-left:10px; white-space:nowrap; }
-.topbar-update.live { color:#7CFFB2; }
+.topbar-update.closed { color:rgba(255,255,255,0.62); }
+  .topbar-update.live { color:#7CFFB2; }
 @media (max-width:768px) { .topbar-update { font-size:10px; margin-left:6px; } }
 .theme-block { border:1px solid var(--card-border); border-radius:10px; padding:12px 14px; margin-bottom:14px; background:var(--card-bg); }
 .theme-head { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
@@ -714,7 +715,7 @@ body {
 .notes-cal-cell.sel { background:var(--green); color:#fff; }
 .notes-cal-cell.muted { color:#c4cdd8; }
 .notes-date-label { font-size:13px; font-weight:700; margin:4px 0 12px; }
-/* WB_PATCH_DATE_NAV_V5:css · 交易日选择器 */
+/* WB_PATCH_DATE_NAV_V6:css · 交易日选择器 */
 .wb-datenav{display:inline-flex;align-items:center;gap:3px;margin-right:8px;flex:0 0 auto}
 .wb-date-step{padding:4px 9px;font-size:15px;line-height:1;min-width:26px;text-align:center}
 .wb-date-input{padding:4px 7px;font-size:12.5px;font-family:var(--font-sans);
@@ -755,7 +756,7 @@ body.wb-readonly .wb-datenav{opacity:1}
     <span class="topbar-update" id="lastUpdateDisplay"></span>
   </div>
   <div class="topbar-right">
-  <!-- WB_PATCH_DATE_NAV_V5:dom · 顶栏交易日选择器 -->
+  <!-- WB_PATCH_DATE_NAV_V6:dom · 顶栏交易日选择器 -->
   <div class="wb-datenav" id="wbDateNav">
     <button class="topbar-btn wb-date-step" onclick="wbChangeDate(-1)" title="上一交易日">‹</button>
     <input type="date" id="datePicker" class="wb-date-input" onchange="onDateChange()" title="选择交易日查看历史数据" />
@@ -4592,19 +4593,48 @@ function fmtDateTime(d) {
   var p = function (n) { return String(n).padStart(2, '0'); };
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
 }
+// WB_PATCH: 交易时段判定（供更新时间文案用）。
+//   收盘集合竞价 15:00 结束；周末与节假日一律休市。
+function wbIsMarketOpenNow() {
+  if (typeof isMarketOpen === 'function') { try { return !!isMarketOpen(); } catch (e) {} }
+  var now = new Date(), day = now.getDay(), hm = now.getHours() * 100 + now.getMinutes();
+  if (day === 0 || day === 6) return false;
+  if (typeof isTradeDay === 'function') { try { if (!isTradeDay(fmtDate(now))) return false; } catch (e) {} }
+  return (hm >= 915 && hm <= 1500);
+}
 function updateLastUpdateLabel() {
   var el = document.getElementById('lastUpdateDisplay');
   if (!el) return;
-  if (LAST_LIVE_AT) {
+  var open = wbIsMarketOpenNow();
+  if (LAST_LIVE_AT && open) {
     el.textContent = '🟢 最后更新 ' + fmtDateTime(LAST_LIVE_AT);
     el.className = 'topbar-update live';
+  } else if (LAST_LIVE_AT) {
+    // 休市：明确说明「当前休市」，不要让用户以为还在实时更新
+    var next = wbNextOpenHint();
+    el.textContent = '🌙 休市中 · 上次更新 ' + fmtDateTime(LAST_LIVE_AT) + (next ? ' · ' + next : '');
+    el.className = 'topbar-update closed';
+    el.title = '当前非交易时段，数据不会自动刷新。下次开盘后点「刷新数据」即可取到当日最新行情。';
   } else if (CURRENT_SNAP_AT) {
     var _d = (typeof LATEST_TRADE_DAY !== 'undefined' && LATEST_TRADE_DAY) || DATA.date || '';
-    el.textContent = '📦 数据对应 ' + _d;
-    el.className = 'topbar-update';
+    el.textContent = (open ? '🟢 交易中·' : '📦 休市中 · 数据对应 ') + _d + (open ? '' : '（非交易时段，不自动刷新）');
+    el.className = 'topbar-update' + (open ? ' live' : '');
+    el.title = open ? '' : '当前非交易时段，数据不会自动刷新。';
   } else {
     el.textContent = '';
   }
+}
+// 下次开盘提示（只算文案，不改数据）
+function wbNextOpenHint() {
+  try {
+    var now = new Date(), day = now.getDay(), hm = now.getHours() * 100 + now.getMinutes();
+    if (day === 0 || day === 6) return '下周一开盘更新';
+    if (hm >= 1500) return '次日开盘后更新';
+    if (hm >= 1130 && hm < 1300) return '13:00 开盘后更新';
+    if (hm >= 930 && hm < 1130) return '今日午盘已更新';
+    if (hm < 915) return '今日 9:15 开盘后更新';
+    return '下次开盘后更新';
+  } catch (e) { return ''; }
 }
 /* ===== 实时题材：1分钟涨速（确定性计算，不依赖字段猜测） ===== */
 var ZS_MAP = {};            // code -> 涨速(%)，仅盘中实时刷新时填充
@@ -4757,18 +4787,31 @@ function renderThemeRadar() {
 
   /* ===== ① 强势板块过滤：前排 ≥2 且 后排 ≥2，否则整卡隐藏（每次刷新自动重新校验）===== */
   var totalBoards = themes.length, weakCount = 0, strong = [];
+  // WB_PATCH: 后排补涨数据源（板块成分股 clist）不可用时 backRows 全空，
+  //   原逻辑「后排<2 即隐藏」会把**所有**板块都藏掉→ 页面一片空白。
+  //   降级策略：无任何板块带后排数据时，只按前排梯队筛选，并在文案注明口径。
+  var hasAnyBack = themes.some(function (t) { return (t.backRows || []).length > 0; });
+  var minFront = hasAnyBack ? THEME_MIN_FRONT : 1;
   themes.forEach(function (t) {
     var f = t.front || [], b = t.backRows || [];
-    if (!f.length || !b.length) { weakCount++; return; }            // 边界：无个股板块直接隐藏
-    if (f.length >= THEME_MIN_FRONT && b.length >= THEME_MIN_BACK) strong.push(t);
-    else weakCount++;
+    if (!f.length) { weakCount++; return; }
+    if (b.length) {
+      if (f.length >= minFront && b.length >= THEME_MIN_BACK) strong.push(t);
+      else weakCount++;
+    } else if (!hasAnyBack && f.length >= minFront) {
+      strong.push(t);// 降级模式：只看前排
+    } else {
+      weakCount++;
+    }
   });
   var shownCount = Math.min(strong.length, THEME_MAX_CARDS);
   var hiddenCount = weakCount + Math.max(0, strong.length - THEME_MAX_CARDS);
   if (statsEl) {
     var statsHTML = totalBoards
       ? '当前展示强势板块 <span class="ts-x">' + shownCount + '</span> 个，已自动隐藏弱板块 <span class="ts-y">' + hiddenCount + '</span> 个'
-        + '<span class="ts-rule">筛选：前排涨停梯队 ≥ ' + THEME_MIN_FRONT + ' 只 且 后排补涨候选 ≥ ' + THEME_MIN_BACK + ' 只；'
+        + '<span class="ts-rule">' + (hasAnyBack
+            ? '筛选：前排涨停梯队 ≥ ' + THEME_MIN_FRONT + ' 只 且 后排补涨候选 ≥ ' + THEME_MIN_BACK + ' 只；'
+            : '筛选：前排涨停梯队 ≥ 1 只（<b>后排补涨数据源当日不可用，已降级为只看前排梯队</b>，不代表板块无补涨机会）；')
         + '板块按「综合涨速强度」从高到低动态重排，每 5 秒刷新自动重新校验</span>'
       : '';
     if (statsEl.innerHTML !== statsHTML) statsEl.innerHTML = statsHTML;
@@ -6861,6 +6904,9 @@ function syncPicker(date) {
   var disp = document.getElementById('currentDateDisplay');
   if (disp) disp.textContent = date;
   DATA.date = date;
+  // WB_PATCH: 同步 <input type="date"> 的值，否则输入框一直空白（原来只更新了文本节点）
+  var dp = document.getElementById('datePicker');
+  if (dp && dp.value !== date) dp.value = date;
 }
 
 function onDateChange() {
@@ -8079,7 +8125,21 @@ function init() {
       // 交易日每次访问：静默拉取一次实时数据（指数/涨停池/板块净流/指数资金流），失败回落内嵌快照
       setTimeout(function () { autoLiveRefreshOnce(); }, 1200);
     }
-    if (isMarketOpen()) {
+    // WB_PATCH: 跨天检测——页面长时间开着时，本地日期可能已跨到下一交易日
+  setInterval(function () {
+    try {
+      var now = new Date();
+      var dstr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      if (typeof _lastDayStr !== 'undefined' && _lastDayStr && _lastDayStr !== dstr) {
+        _lastDayStr = dstr;
+        showNotify('📅 已跨天（' + dstr + '），正在刷新最新交易日数据…', 5000);
+        if (typeof updateLastUpdateLabel === 'function') updateLastUpdateLabel();
+        if (typeof loadDay === 'function') loadDay(typeof LATEST_TRADE_DAY !== 'undefined' && LATEST_TRADE_DAY ? LATEST_TRADE_DAY : dstr, true);
+      }
+      _lastDayStr = dstr;
+    } catch (e) {}
+  }, 60000);
+  if (isMarketOpen()) {
       setTimeout(function() { toggleAutoRefresh(true); showNotify('⏱ 检测到盘中交易时段，已自动开启 5 秒刷新', 5000); }, 2500);
     } else {
       showNotify('ℹ️ 当前为休市时段；已尝试交易日自动刷新（顶栏可手动开启 5 秒连刷）', 5000);
@@ -16461,7 +16521,7 @@ window.addEventListener('DOMContentLoaded', init);
 <!-- KLINEPK_DATA_END -->
 <!-- AUCTION_DATA_START -->
 <script>var EMBEDDED_AUCTION = {"date":"2026-10-15","capturedAt":"2026-10-15 11:28:24","mode":"backfill","source":"收盘后回溯：一字涨停按快照涨停池「首封 09:25:00」推导；板块竞价高开与一字跌停明细收盘后无法回溯（板块高开可参考主线K线包今日开盘/昨收口径）","sectors":[],"topGaps":[],"oneWordZT":[{"code":"002815","name":"崇达技术","fbt":"092500","chgPct":9.98,"turnover":1.59,"lbc":1}],"oneWordDT":[]};
-/* ===== WB_PATCH_DATE_NAV_V5:js · 数据层与交易日导航 ===== */
+/* ===== WB_PATCH_DATE_NAV_V6:js · 数据层与交易日导航 ===== */
 var WB_META = {};   // {date:{provisional,phase,snapshotAt}} —— fetch 数据的定稿状态
 var WBData = (function () {
   // ⚠️ 用 wbdata/ 而非 data/：data/ 是仓库里用户已有的目录，不复用
