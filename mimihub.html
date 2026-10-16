@@ -715,7 +715,7 @@ body {
 .notes-cal-cell.sel { background:var(--green); color:#fff; }
 .notes-cal-cell.muted { color:#c4cdd8; }
 .notes-date-label { font-size:13px; font-weight:700; margin:4px 0 12px; }
-/* WB_PATCH_DATE_NAV_V6:css · 交易日选择器 */
+/* WB_PATCH_DATE_NAV_V8:css · 交易日选择器 */
 .wb-datenav{display:inline-flex;align-items:center;gap:3px;margin-right:8px;flex:0 0 auto}
 .wb-date-step{padding:4px 9px;font-size:15px;line-height:1;min-width:26px;text-align:center}
 .wb-date-input{padding:4px 7px;font-size:12.5px;font-family:var(--font-sans);
@@ -756,7 +756,7 @@ body.wb-readonly .wb-datenav{opacity:1}
     <span class="topbar-update" id="lastUpdateDisplay"></span>
   </div>
   <div class="topbar-right">
-  <!-- WB_PATCH_DATE_NAV_V6:dom · 顶栏交易日选择器 -->
+  <!-- WB_PATCH_DATE_NAV_V8:dom · 顶栏交易日选择器 -->
   <div class="wb-datenav" id="wbDateNav">
     <button class="topbar-btn wb-date-step" onclick="wbChangeDate(-1)" title="上一交易日">‹</button>
     <input type="date" id="datePicker" class="wb-date-input" onchange="onDateChange()" title="选择交易日查看历史数据" />
@@ -3304,10 +3304,23 @@ function renderCapitalFlowIndex() {
       '<div style="font-size:11.5px;opacity:.75">接口恢复后自动补全</div></div>';
     return;
   }
-  fitChartBox(el, (DATA.capitalFlowIndex || []).length, { fill: true, min: 160 });
+  // WB_PATCH: 过滤无有效值项（null 会画成「0 亿」的假值）
+  var _cfData = (DATA.capitalFlowIndex || []).filter(function (d) {
+    return d && d.value != null && isFinite(d.value);
+  });
+  if (!_cfData.length) {
+    if (charts.capitalFlowIndex) { charts.capitalFlowIndex.dispose(); charts.capitalFlowIndex = null; }
+    el.innerHTML = '<div style="height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#8b95a5;font-size:12.5px;text-align:center;padding:0 16px">'
+      + '<div style="font-size:22px;opacity:.45">📉</div>'
+      + '<div>本交易日三大指数主力资金流未取到</div>'
+      + '<div style="font-size:11.5px;opacity:.75;line-height:1.7">东方财富该接口（指数资金流）只提供<b>当日实时值</b>，不保留历史。<br>'
+      + '历史交易日无法回补，已如实留空——图表里的「0 亿」不表示真实资金流为零。</div></div>';
+    return;
+  }
+  fitChartBox(el, _cfData.length, { fill: true, min: 160 });
   if (charts.capitalFlowIndex) charts.capitalFlowIndex.dispose();
   charts.capitalFlowIndex = echarts.init(el);
-  var data = DATA.capitalFlowIndex;
+  var data = _cfData;
   // 找出最大正值作为刻度
   var maxVal = 0;
   for (var i = 0; i < data.length; i++) if (data[i].value > maxVal) maxVal = data[i].value;
@@ -16521,7 +16534,7 @@ window.addEventListener('DOMContentLoaded', init);
 <!-- KLINEPK_DATA_END -->
 <!-- AUCTION_DATA_START -->
 <script>var EMBEDDED_AUCTION = {"date":"2026-10-15","capturedAt":"2026-10-15 11:28:24","mode":"backfill","source":"收盘后回溯：一字涨停按快照涨停池「首封 09:25:00」推导；板块竞价高开与一字跌停明细收盘后无法回溯（板块高开可参考主线K线包今日开盘/昨收口径）","sectors":[],"topGaps":[],"oneWordZT":[{"code":"002815","name":"崇达技术","fbt":"092500","chgPct":9.98,"turnover":1.59,"lbc":1}],"oneWordDT":[]};
-/* ===== WB_PATCH_DATE_NAV_V6:js · 数据层与交易日导航 ===== */
+/* ===== WB_PATCH_DATE_NAV_V8:js · 数据层与交易日导航 ===== */
 var WB_META = {};   // {date:{provisional,phase,snapshotAt}} —— fetch 数据的定稿状态
 var WBData = (function () {
   // ⚠️ 用 wbdata/ 而非 data/：data/ 是仓库里用户已有的目录，不复用
@@ -16572,12 +16585,16 @@ var WBData = (function () {
 /* 用远端索引补全交易日历（STATIC_TRADE_DAYS 只有已内嵌的日期，会漏掉库里新增的天） */
 function wbMergeIndex(idx) {
   if (!idx || !idx.tradeDays || !idx.tradeDays.length) return false;
-  var add = idx.tradeDays.map(function (t) { return t.d; });
-  if (idx.calendar2026 && idx.calendar2026.length) add = add.concat(idx.calendar2026);
+  // 🚨 2026-10-16 修：原来把 calendar2026（整年交易日历，**含今天**）也并进 TRADE_DAYS，
+  //   于是 LATEST_TRADE_DAY / dp.max 都被推到「今天」——但今天可能还没抓数据
+  //   （如 10-16 盘中、库里最新只到10-15）→ 页面跳到今天 → 取不到数据
+  //   → getDataTimeState 走 provisional 分支 → 显示「盘中·临时 16:06」。
+  //   正确做法：**日历只用于「非交易日判断」，不参与「有数据日」的计算**。
+  var dataDays = idx.tradeDays.map(function (t) { return t.d; });   // 真正有数据的日子
   var merged = {};
-  TRADE_DAYS.concat(add).forEach(function (d) { merged[d] = 1; });
+  dataDays.forEach(function (d) { merged[d] = 1; });
   var next = Object.keys(merged).sort();
-  if (next.length > TRADE_DAYS.length) {
+  if (next.length) {
     TRADE_DAYS = next;
     TRADE_DAY_SET = {};
     for (var i = 0; i < TRADE_DAYS.length; i++) TRADE_DAY_SET[TRADE_DAYS[i]] = 1;
@@ -16586,15 +16603,11 @@ function wbMergeIndex(idx) {
     }
   }
   var lt = idx.latest;
-  if (lt) {
-    var todayStr = fmtDate(new Date());
-    var cand = (lt <= todayStr) ? lt : LATEST_TRADE_DAY;
-    if (cand && TRADE_DAY_SET[cand]) LATEST_TRADE_DAY = cand;
-  }
+  if (lt && TRADE_DAY_SET[lt]) LATEST_TRADE_DAY = lt;   // 直接采用索引声明的最新有数据日
   var dp = document.getElementById('datePicker');
   if (dp && TRADE_DAYS.length) {
-    if (!dp.min) dp.min = TRADE_DAYS[0];
-    if (!dp.max) dp.max = TRADE_DAYS[TRADE_DAYS.length - 1];
+    dp.min = TRADE_DAYS[0];
+    dp.max = TRADE_DAYS[TRADE_DAYS.length - 1];// 上限＝最新有数据日，不能选到没数据的未来日
   }
   return true;
 }
