@@ -768,7 +768,8 @@ body:not(.miao-unlocked) .app-layout{display:none !important;}
 .wb-date-step{padding:4px 9px;font-size:15px;line-height:1;min-width:26px;text-align:center}
 .wb-date-input{padding:4px 7px;font-size:12.5px;font-family:var(--font-sans);
   border:1px solid var(--border,rgba(0,0,0,.18));border-radius:6px;
-  background:var(--bg,transparent);color:inherit;min-width:130px;cursor:pointer}
+  background:var(--card-bg,#fff);color:#374151;color-scheme:light;min-width:130px;cursor:pointer}
+body.dark .wb-date-input{background:var(--card-bg,#161b22);color:#c9d1d9;color-scheme:dark}
 .wb-date-input::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}
 .wb-date-input.is-historical{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.12)}
 .wb-date-live{padding:4px 8px;font-size:12px;line-height:1}
@@ -7956,6 +7957,18 @@ function hideLoading() {
   var banner = document.getElementById('loadingBanner');
   if (banner) banner.style.display = 'none';
 }
+/* 收盘/开盘时段判定：开盘 = 交易日（周一~周五）9:15-11:30 与 13:00-15:00；其余（含午休、
+   15:00 后、集合竞价前、周末节假日）一律视为「非开盘时段」——数据类弹窗/提示条在此期间一律不弹。
+   依据：A股连续竞价时段（9:15 起算集合竞价），节假日以周末近似；盘前/收盘后的数据已定稿，
+   重复提示无信息增量（2026-10-16 用户反馈 16:44 收盘后仍弹「盘中快照/已载入」提示）。 */
+function isMarketOpen() {
+  try {
+    var d = new Date(), day = d.getDay();
+    if (day === 0 || day === 6) return false;
+    var m = d.getHours() * 60 + d.getMinutes();
+    return (m >= 9*60+15 && m <= 11*60+30) || (m >= 13*60 && m <= 15*60);
+  } catch (e) { return false; }
+}
 function showNotify(text, duration) {
   var banner = document.getElementById('notifyBanner');
   if (!banner) return;
@@ -8799,6 +8812,8 @@ function showDataTimeModal() {
 function renderPreMarketBanner() {
   var el = document.getElementById('premarketBanner');
   if (!el) return;
+  /* 收盘/非开盘时段一律不弹「盘中快照」提示条：数据已定稿，时点提示仅开盘时段有意义（2026-10-16 用户反馈） */
+  if (!isMarketOpen()) { el.style.display = 'none'; return; }
   var s = (typeof EMBEDDED_SNAPSHOT !== 'undefined') && EMBEDDED_SNAPSHOT && EMBEDDED_SNAPSHOT[DATA.date];
   if (s && s.note) { el.textContent = '⚠️ ' + s.note; el.style.display = 'block'; }
   else { el.style.display = 'none'; }
@@ -8834,10 +8849,11 @@ function loadDay(date, force) {
         renderAll();
         hideLoading();
         var lu = DATA.limitUp || {};
-        showNotify('✅ ' + date + '（' + weekdayCN(date) + '）已载入：涨停 ' + (lu.count || 0)
+        /* 收盘/非开盘时段静默：数据已定稿，「已载入」提示无信息增量（2026-10-16 用户反馈） */
+        if (isMarketOpen()) showNotify('✅ ' + date + '（' + weekdayCN(date) + '）已载入：涨停 ' + (lu.count || 0)
           + ' 只 / 跌停 ' + (lu.limitDown || 0) + ' 只 / 最高 ' + (lu.maxStreak || 0) + ' 板'
           + (fromBackend ? '（后端预计算）' : '（内嵌快照·' + (payload.source === 'em' ? '东方财富' : payload.source === 'mixed' ? '通达信+东财' : '通达信') + '）'), 5000);
-        if (payload && payload.isPreOpen) showNotify('⏰ 盘前快照：涨停池为隔夜涨停（开盘或撤单），板块资金/龙虎榜/选股沿用上一交易日，收盘后点「更新数据」补全', 7000);
+        if (payload && payload.isPreOpen && isMarketOpen()) showNotify('⏰ 盘前快照：涨停池为隔夜涨停（开盘或撤单），板块资金/龙虎榜/选股沿用上一交易日，收盘后点「更新数据」补全', 7000);
         refreshAutoState();
         wbSyncNavState();
         // WB_PATCH: 记住本次数据的定稿状态，供 getDataTimeState() 判定（走 fetch 时 EMBEDDED_SNAPSHOT 无此日）
@@ -9465,9 +9481,8 @@ function init() {
     }
     if (isMarketOpen()) {
       setTimeout(function() { toggleAutoRefresh(true); showNotify('⏱ 检测到盘中交易时段，已自动开启 5 秒刷新', 5000); }, 2500);
-    } else {
-      showNotify('ℹ️ 当前为休市时段；已尝试交易日自动刷新（顶栏可手动开启 5 秒连刷）', 5000);
     }
+    /* 收盘/休市时段静默：不再弹「休市时段」提示（2026-10-16 用户反馈：收盘后不弹任何数据类弹窗） */
   });
 }
 
