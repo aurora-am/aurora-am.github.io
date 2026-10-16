@@ -4422,6 +4422,11 @@ function renderMainFundPool() {
   if (!M) { el.innerHTML = '<div class="section-text">当前交易日暂无中线机构资金流入数据（每日收盘后自动扫描全市场主板）。</div>'; return; }
   var c = M.criteria || {};
   var html = '';
+  /* 诚实空态：当日扫描未运行（口径缺失且无名单）时说明，绝不打印 undefined（2026-10-16 事故） */
+  if (!(c.low && c.ma20) && !(M.list || []).length) {
+    el.innerHTML = '<div class="section-text">📋 本交易日「方案A」扫描未运行（数据管道当日未产出口径与名单；历史交易日数据完整可查）。收盘后补跑扫描将自动显示，非数据缺口伪造。</div>';
+    return;
+  }
   html += '<div style="font-size:11px; color:var(--text-secondary); line-height:1.8; margin-bottom:10px; padding:8px 10px; background:var(--input-bg); border-radius:6px; border:1px solid var(--card-border);">'
     + '<b>方案A · 中线机构大资金流入筛选（全市场主板每日自动扫描）：</b><br>'
     + '① ' + c.low + '　② ' + c.ma20 + '　③ ' + c.volPersist + '　④ ' + c.noBig + '　⑤ ' + c.volStruct + '　⑥ ' + c.rise
@@ -4462,6 +4467,11 @@ function renderChanBuyList() {
   if (!M) { el.innerHTML = '<div class="section-text">当前交易日暂无三买候选数据（依赖板块强弱雷达：强势板块内箱体突破回踩粗筛）。</div>'; return; }
   var c = M.criteria || {};
   var html = '';
+  /* 诚实空态：当日缠论强弱扫描未运行（口径缺失且无名单）时说明，绝不打印 undefined（2026-10-16 事故） */
+  if (!(c.sector && c.level) && !(M.list || []).length) {
+    el.innerHTML = '<div class="section-text">📋 本交易日缠论板块强弱扫描未运行（数据管道当日未产出三买粗筛口径与名单；历史交易日数据完整可查）。收盘后补跑扫描将自动显示。</div>';
+    return;
+  }
   html += '<div style="font-size:11px; color:var(--text-secondary); line-height:1.8; margin-bottom:10px; padding:8px 10px; background:var(--input-bg); border-radius:6px; border:1px solid var(--card-border);">'
     + '<b>粗筛口径（箱体近似，非完整缠论中枢判定）：</b><br>① ' + c.sector + '　② ' + c.level + '　③ ' + c.box + '　④ ' + c.pullback + '　⑤ ' + c.volume
     + '<br><b>数据来源：</b>' + M.source + '，在 ' + (M.strongSectors || 0) + ' 个强势板块、' + M.scanned + ' 只成分股中粗筛命中 ' + (M.hits || 0) + ' 只。'
