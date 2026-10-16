@@ -11,7 +11,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>观复・研社 · 复盘工作台</title>
-<script src="echarts.min.js"></script>
+<!-- echarts：defer 加载，不阻塞 HTML 解析与首屏渲染（2026-10-16 性能优化）。
+     本地副本 1MB / gzip 338KB，同步加载会把 DOMContentLoaded 推迟数秒 → 配合门禁白屏 = 进入极慢。
+     defer 保证在 DOMContentLoaded 前执行完，页面 init() 里 renderAll() 仍能拿到 window.echarts。 -->
+<script src="echarts.min.js" defer></script>
 <link rel="stylesheet" href="miao_supabase.css?v=0516d1e0">
 <style>
 /* ===== CSS Variables: Light Theme ===== */
