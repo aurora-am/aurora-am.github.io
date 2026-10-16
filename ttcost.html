@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>持仓成本与做T情景推演器</title>
+<style>
+:root{
+  --bg:#f7f8fa; --card:#fff; --ink:#1f2937; --ink2:#6b7280; --ink3:#9ca3af;
+  --line:#e5e7eb; --blue:#185fa5; --red:#c0392b; --green:#1a7f4b; --amber:#a86a00;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.65;padding-bottom:40px}
+.wrap{max-width:680px;margin:0 auto;padding:16px}
+.risk{background:#fff8f6;border:1px solid #f0c4b8;border-left:3px solid var(--red);border-radius:8px;padding:12px 14px;font-size:12.5px;color:#8a3a2c;margin-bottom:16px;line-height:1.6}
+h1{font-size:20px;font-weight:600;margin:0 0 4px}
+h2{font-size:16px;font-weight:600;margin:0 0 12px}
+.sub{font-size:12.5px;color:var(--ink2);margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--ink2);margin:12px 0 5px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;padding:10px 11px;font-size:15px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--blue)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.hint{font-size:11.5px;color:var(--ink3);margin-top:4px;line-height:1.5}
+.req{color:var(--red);font-size:11px}
+button{width:100%;padding:14px;font-size:16px;font-weight:500;border:none;border-radius:10px;background:var(--blue);color:#fff;margin-top:18px;font-family:inherit;cursor:pointer}
+button:active{opacity:.85}
+.g{color:var(--green)} .r{color:var(--red)} .a{color:var(--amber)}
+.kv{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--ink2);flex-shrink:0}
+.kv .v{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.big{font-size:26px;font-weight:600;letter-spacing:-.5px}
+.big2{font-size:20px;font-weight:600}
+.note{font-size:12.5px;color:var(--ink2);line-height:1.65;margin-top:10px}
+.warnbox{background:#fffaf0;border:1px solid #f0d9a8;border-radius:8px;padding:11px 13px;font-size:12.5px;color:#7a5200;margin-top:12px;line-height:1.6}
+.stopbox{background:#f6f7f9;border:1px solid var(--line);border-radius:8px;padding:13px;font-size:13.5px;color:var(--ink2);text-align:center;margin-top:12px}
+.stopbox b{display:block;font-size:16px;color:var(--ink);margin-bottom:4px}
+ul.rl{margin:8px 0 0;padding-left:18px;font-size:12.5px;color:var(--ink2);line-height:1.7}
+.sect{margin:22px 0 10px;font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:.5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink2);font-weight:500;font-size:11.5px}
+td.v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.score{display:flex;align-items:center;gap:12px;margin-top:10px}
+.bar{flex:1;height:8px;background:#eceef1;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px}
+details{margin-top:12px;font-size:12.5px}
+summary{cursor:pointer;color:var(--ink2);padding:7px 0;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary:before{content:"＋ ";color:var(--ink3)}
+details[open] summary:before{content:"－ "}
+details .dbody{padding:8px 0 0;font-size:12.5px;color:var(--ink2);line-height:1.7}
+footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink3);line-height:1.7}
+.hide{display:none}
+.pill{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:500}
+.pill-b{background:#e8f0fb;color:var(--blue)} .pill-r{background:#fdeceb;color:var(--red)}
+.pill-g{background:#e8f5ee;color:var(--green)} .pill-a{background:#fdf4e3;color:var(--amber)}
+.pill-n{background:#f0f1f3;color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="risk">
+<b>风险提示：</b>本工具仅做数学测算与情景模拟，<b>不构成任何投资建议</b>。做T存在踏空与亏损放大风险，股市有不确定性，所有交易风险由用户自行承担。本工具不预测涨跌、不推荐换股，只针对你当前持有的单只标的做持仓成本测算。
+</div>
+
+<h1>持仓成本与做T情景推演器</h1>
+<div class="sub">v2 · 方向A「只算不劝」— 所有输出为条件情景推演，非操作指令</div>
+
+<div class="card">
+<h2>持仓参数</h2>
+<div class="row">
+  <div><label>股票代码 <span class="req">*</span></label><input id="code" placeholder="如 600519" autocomplete="off"></div>
+  <div><label>当前价（元）<span class="req">*</span></label><input id="price" type="number" step="0.01" placeholder="11.00" inputmode="decimal"></div>
+</div>
+<label>持仓成本价（元）<span class="req">*</span></label>
+<input id="cost" type="number" step="0.001" placeholder="12.000" inputmode="decimal">
+<div class="hint">必须是<b>除权调整后</b>口径。若近期有送转/分红，请先用券商App的成本价核对，否则浮亏比例会完全错算。</div>
+<label>持股数量（股）<span class="req">*</span></label>
+<input id="shares" type="number" step="100" placeholder="10000" inputmode="numeric">
+<div class="hint">须为 100 整数倍（A股最小交易单位）。</div>
+<label>最低底仓（股）<span class="req">*</span></label>
+<input id="minbase" type="number" step="100" placeholder="3000" inputmode="numeric">
+<div class="hint">正T与反T共用此底线：任何操作卖出后，剩余底仓不得低于此值。填 0 表示不设底线（不推荐）。</div>
+</div>
+
+<details class="card">
+<summary>费率与参数设置（可选，默认值已按常见券商档位）</summary>
+<div class="dbody">
+<div class="row3">
+  <div><label>佣金率</label><input id="r_comm" type="number" step="0.00001" value="0.00025" inputmode="decimal"></div>
+  <div><label>最低佣金</label><input id="r_min" type="number" step="1" value="5" inputmode="decimal"></div>
+  <div><label>印花税</label><input id="r_stamp" type="number" step="0.0001" value="0.0005" inputmode="decimal"></div>
+</div>
+<div class="row">
+  <div><label>过户费</label><input id="r_tr" type="number" step="0.000001" value="0.00001" inputmode="decimal"></div>
+  <div><label>滑点率</label><input id="r_slip" type="number" step="0.0001" value="0.001" inputmode="decimal"></div>
+</div>
+<div class="hint">滑点：低价股/微盘股建议填 0.003（0.3%）。滑点是v1完全缺失的成本项，会显著影响做T经济性。</div>
+<div class="row3" style="margin-top:10px">
+  <div><label>可用备用资金</label><input id="cash" type="number" step="100" value="0" inputmode="decimal"></div>
+  <div><label>最低波动阈值</label><input id="minvol" type="number" step="0.001" value="0.015" inputmode="decimal"></div>
+  <div><label>接回概率假设</label><input id="psucc" type="number" step="0.05" value="0.5" inputmode="decimal"></div>
+</div>
+<div class="hint">波动阈值 0.015 = 1.5%。接回概率是期望值校验的主观输入，请按你对自身执行力的判断填，不要用默认值敷衍。</div>
+</div>
+</details>
+
+<details class="card">
+<summary>行情状态（可选，填了才能做行情熔断判定）</summary>
+<div class="dbody">
+<div class="row3">
+  <div><label>近20根振幅%</label><input id="vola" type="number" step="0.1" placeholder="3.2" inputmode="decimal"></div>
+  <div><label>20根漂移%</label><input id="drift" type="number" step="0.1" placeholder="-8.5" inputmode="decimal"></div>
+  <div><label>量比(×5日)</label><input id="volr" type="number" step="0.01" placeholder="1.2" inputmode="decimal"></div>
+</div>
+<div class="row3" style="margin-top:10px">
+  <div><label>状态</label><select id="mstate"><option value="auto">自动判定</option><option value="箱体震荡">箱体震荡</option><option value="单边上涨">单边上涨</option><option value="单边下跌">单边下跌</option><option value="长期横盘">长期横盘</option><option value="停牌">停牌</option><option value="一字涨停">一字涨停</option><option value="一字跌停">一字跌停</option></select></div>
+</div>
+<div class="hint">留空则不做行情熔断判定，仅输出纯成本测算。手动选择状态会跳过自动判定并直接熔断。</div>
+</div>
+</details>
+
+<div class="card">
+<label>近20日收盘价序列（可选，逗号分隔，用于自动判定行情状态）</label>
+<input id="closes" placeholder="11.2,11.5,11.3,11.8,...（至少20个）" autocomplete="off">
+<div class="hint">填了就用回归漂移 + 前后半段方向一致性自动判定「箱体/单边/横盘」；不填则跳过。</div>
+</div>
+
+<button onclick="run()">开始测算</button>
+
+<div id="out"></div>
+
+<footer>
+<b>数据与口径声明</b><br>
+· 本工具不联网取数，现价与行情状态均由你手工填入。工具不会也无法预测涨跌。<br>
+· 持仓成本价须为除权调整后口径；现价与K线须为前复权口径。口径不一致会导致全部结果错算。<br>
+· 费率默认值为常见券商档位，实际以你的交割单为准。<br>
+· 成本降本 ≠ 真实盈利。真实结果必须看「总资产」口径（持仓市值 + 累计兑现现金）。<br>
+· 本工具不提供投资建议、不推荐换股、不出现任何其他标的。所有输出均为条件情景推演。
+</footer>
+</div>
+
+<script>
+/* === 内联计算内核 === */
+/* ============================================================================
+ * 被套股民股票回本助手 · 计算内核 v2
+ * ============================================================================
+ * 设计原则（对应评审缺陷编号）：
+ *  - 无 DOM、无网络依赖，纯函数 → Node 测试与浏览器页面用同一份代码
+ *  - 所有"判断类"输出必须带 reason 数组，不允许静默结论
+ *  - 不做任何涨跌预测；只输出条件情景推演
+ * ==========================================================================*/
+
+/* ---------- 默认费率（用户可在页面覆盖；标注须以券商实际为准） ---------- */
+const DEFAULT_RATES = {
+  commission: 0.00025,   // 佣金 万2.5，双向
+  minCommission: 5,      // 单笔最低佣金（元）— 小资金账户致命项，v1 缺失
+  stampDuty: 0.0005,     // 印花税 0.05%，仅卖出方
+  transferFee: 0.00001,  // 过户费 0.001%，双向
+  slippage: 0.001        // 滑点 0.1%（微盘股建议 0.003）
+};
+
+/* ---------- 量能阈值写死，消除 AI 自由裁量 ---------- */
+const VOL_THRESHOLD = { blowup: 1.5, shrink: 0.7, base: 5 }; // base=5日均量
+
+/* ============================================================================
+ * 1. 基础测算（§2.1）
+ * ==========================================================================*/
+function calcBasic({ cost, shares, price, rates = DEFAULT_RATES }) {
+  const marketValue = price * shares;
+  const invested = cost * shares;
+  const pnl = marketValue - invested;
+  const pnlRatio = cost > 0 ? (price - cost) / cost : 0;
+
+  // 回本目标价：需覆盖卖出侧全部费用
+  const sellRate = rates.commission + rates.transferFee + rates.stampDuty;
+  const breakEvenPrice = cost / (1 - sellRate);
+
+  // 回本所需涨幅（以现价为基数）
+  const recoverGain = price > 0 ? breakEvenPrice / price - 1 : Infinity;
+
+  // 非对称倍数：阻止用户按线性直觉低估深度套牢的解套难度（缺陷 5 / 12）
+  let asymmetry = null;
+  if (pnlRatio < -1e-9) {
+    asymmetry = recoverGain / Math.abs(pnlRatio);
+  }
+
+  // 深度套牢区：所需涨幅超过阈值即进入警示区
+  const deepTrap = recoverGain > 0.5;
+
+  return {
+    marketValue: round2(marketValue),
+    invested: round2(invested),
+    pnl: round2(pnl),
+    pnlRatio: pct(pnlRatio),
+    breakEvenPrice: round3(breakEvenPrice),
+    recoverGain: pct(recoverGain),
+    asymmetry: asymmetry === null ? null : round2(asymmetry),
+    deepTrap
+  };
+}
+
+/* ============================================================================
+ * 2. 完整成本模型（§2.2）— 补滑点 / 100股整手 / 最低佣金
+ * ==========================================================================*/
+function calcCost(amount, side, rates = DEFAULT_RATES) {
+  // 最低佣金：名义费率失效，改用 5 元兜底（v1 完全缺失此项）
+  const commBase = amount * rates.commission;
+  const commission = Math.max(rates.minCommission, commBase);
+  const transferFee = amount * rates.transferFee;
+  const stampDuty = side === 'sell' ? amount * rates.stampDuty : 0;
+  const slippage = amount * rates.slippage;
+
+  const total = commission + transferFee + stampDuty + slippage;
+  const effRate = amount > 0 ? total / amount : 0;
+
+  return {
+    commission: round2(commission),
+    commissionWasFloor: commBase < rates.minCommission,
+    transferFee: round2(transferFee),
+    stampDuty: round2(stampDuty),
+    slippage: round2(slippage),
+    total: round2(total),
+    effRate: pct(effRate),
+    effRateBp: round1(effRate * 10000) // 基点，便于横向比较
+  };
+}
+
+/** 100 股整手校验（A股最小交易单位） */
+function isLotMultiple(shares) {
+  return Number.isInteger(shares) && shares > 0 && shares % 100 === 0;
+}
+
+/** 按整手向下取整 */
+function floorLot(shares) {
+  return Math.floor(shares / 100) * 100;
+}
+
+/* ============================================================================
+ * 3. 行情状态分类器（§2.8）— 先分类，再决定是否输出方案
+ *    v1 只处理一字板，其余极端场景全部缺失（缺陷 13）
+ * ==========================================================================*/
+function judgeStatus(d) {
+  const {
+    suspended = false,        // 停牌
+    limitState = 'none',      // 'up' | 'down' | 'none' 一字板
+    bars = [],                // [{high,low,close,vol}]
+    volBase = null,           // 5日均量；缺则由 bars 自行计算
+    minVolatility = 0.015,    // 最低有效波动阈值
+    invalidData = false
+  } = d;
+
+  const reason = [];
+
+  if (invalidData) {
+    return blocked('数据异常', ['行情数据缺失或校验不通过，禁止基于无效数据输出任何方案']);
+  }
+  if (suspended) {
+    return blocked('停牌', ['标的处于停牌状态，无法交易，禁止输出做T方案']);
+  }
+  if (limitState === 'up') {
+    return blocked('一字涨停', ['买盘封死，反T卖出后无法以预期价格接回；正T买入即被套']);
+  }
+  if (limitState === 'down') {
+    return blocked('一字跌停', ['卖盘封死，正T加仓无法成交；接回操作无法执行']);
+  }
+
+  if (!bars || bars.length < 5) {
+    return blocked('数据不足', [`K线仅 ${bars ? bars.length : 0} 根，不足 5 根，无法判定行情状态`]);
+  }
+
+  // 波动率：近 min(bars,20) 根的 (high-low)/close 均值
+  const win = bars.slice(-20);
+  const vola = win.reduce((s, b) => s + (b.high - b.low) / b.close, 0) / win.length;
+
+  // 趋势判定（缺陷修复：只看最后10根会把「前半涨+后半跌」的箱体误判为单边下跌）
+  //   ① 全窗口（近20根）线性回归斜率 → 反映整体漂移方向
+  //   ② 前后半段方向一致性 → 区分「箱体」与「单边」
+  //   两者同时成立才判单边；仅方向一致但斜率近零 → 视为横盘
+  const win20 = bars.slice(-20);
+  const closes = win20.map(b => b.close);
+  const regSlope = linregSlope(closes, win20[0].close); // 整窗口归一化漂移
+
+  const half = Math.floor(closes.length / 2);
+  const h1 = closes.slice(0, half), h2 = closes.slice(half);
+  const d1 = (h1[h1.length - 1] - h1[0]) / h1[0];
+  const d2 = (h2[h2.length - 1] - h2[0]) / h2[0];
+  const dirConsistent = Math.sign(d1) === Math.sign(d2)
+    && Math.abs(d1) > vola * 0.5 && Math.abs(d2) > vola * 0.5;
+  const drift = regSlope;
+  const singleTrend = dirConsistent && Math.abs(drift) > vola * 0.5;
+
+  // 量能
+  const vb = volBase || avgVol(bars.slice(0, -1), VOL_THRESHOLD.base);
+  const lastVol = bars[bars.length - 1].vol;
+  const volRatio = vb > 0 ? lastVol / vb : null;
+  const volState = volRatio === null ? 'unknown'
+    : volRatio >= VOL_THRESHOLD.blowup ? '放量'
+    : volRatio <= VOL_THRESHOLD.shrink ? '缩量'
+    : '平量';
+
+  const base = {
+    volatility: pct(vola),
+    drift: pct(drift),
+    trendConsistency: dirConsistent ? (drift > 0 ? '一致向上' : '一致向下') : '方向不一致（震荡特征）',
+    volRatio: volRatio === null ? null : round2(volRatio),
+    volState,
+    bars: bars.length
+  };
+
+  // 长期横盘：波动率低于阈值 → 做T经济性不足（手续费占比过高）
+  if (vola < minVolatility) {
+    return Object.assign({}, base, blocked('长期横盘', [
+      `近${win.length}根平均振幅 ${(vola * 100).toFixed(2)}%，低于最低有效波动阈值 ${(minVolatility * 100).toFixed(2)}%`,
+      '横盘状态下做T的主要对手方是手续费与滑点，胜率结构不利'
+    ]));
+  }
+
+  // 单边趋势判定：全窗口漂移显著 且 前后半段方向一致
+  if (singleTrend) {
+    if (drift > 0) {
+      return Object.assign({}, base, {
+        state: '单边上涨',
+        canReverseT: false, canForwardT: true,
+        reason: [`近${win.length}根回归漂移 ${(drift * 100).toFixed(2)}%，前后半段方向一致向上`,
+                 '反T（先卖后买）在单边上涨中必然踏空，禁止输出反T方案',
+                 '正T需等待回调条件成立后方可评估']
+      });
+    }
+    return Object.assign({}, base, {
+      state: '单边下跌',
+      canReverseT: false, canForwardT: false,
+      reason: [`近${win.length}根回归漂移 ${(drift * 100).toFixed(2)}%，前后半段方向一致向下`,
+               '单边下跌中反T变为单向减仓、正T变为逆势加仓，均禁止输出',
+               '仅输出止损情景与静态持有测算']
+    });
+  }
+
+  return Object.assign({}, base, {
+    state: '箱体震荡',
+    canReverseT: true, canForwardT: true,
+    reason: [`近${win.length}根平均振幅 ${(vola * 100).toFixed(2)}%，回归漂移 ${(drift * 100).toFixed(2)}%`,
+             `趋势一致性：${base.trendConsistency}（前后半段方向不一致 → 震荡特征）`,
+             `量能${volState}（${volRatio === null ? '—' : volRatio.toFixed(2)}×5日均量）`,
+             '震荡格局下正反T情景均可评估']
+  });
+}
+
+/** 线性回归斜率 → 归一化为「整窗口漂移比例」 */
+function linregSlope(ys, baseVal) {
+  const n = ys.length;
+  if (n < 2 || !baseVal) return 0;
+  const meanX = (n - 1) / 2;
+  let meanY = 0;
+  for (const y of ys) meanY += y;
+  meanY /= n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) {
+    num += (i - meanX) * (ys[i] - meanY);
+    den += (i - meanX) * (i - meanX);
+  }
+  if (den === 0) return 0;
+  // 斜率(元/根) × 根数 / 基准价 = 整窗口漂移比例
+  return (num / den) * (n - 1) / baseVal;
+}
+
+function blocked(state, reason) {
+  return {
+    state, reason,
+    canReverseT: false, canForwardT: false,
+    blocked: true
+  };
+}
+
+/* ============================================================================
+ * 4. 底仓保护（§2.4）— 正T / 反T 共用同一条（v1 只写在反T侧，缺陷 2）
+ * ==========================================================================*/
+function marginGate({ currentShares, minBaseShares, planShares }) {
+  const reason = [];
+  const sellable = currentShares - minBaseShares;
+
+  if (currentShares <= minBaseShares) {
+    return {
+      allowed: false, allowedShares: 0,
+      reason: [`当前底仓 ${currentShares} 股 ≤ 预设最低底仓 ${minBaseShares} 股，已触及底线`,
+               '正T / 反T 一律不输出，转入静态持有模式']
+    };
+  }
+
+  let allowed = planShares;
+  if (planShares > sellable) {
+    allowed = sellable;
+    reason.push(`受最低底仓保护：计划 ${planShares} 股 → 下调至 ${allowed} 股（卖出后剩余 ${currentShares - allowed} 股 = 底线 ${minBaseShares} 股）`);
+  }
+  if (allowed <= 0) {
+    return { allowed: false, allowedShares: 0, reason: reason.concat(['可操作股数为 0，方案不成立']) };
+  }
+  return { allowed: true, allowedShares: allowed, reason, remaining: currentShares - allowed };
+}
+
+/* ============================================================================
+ * 5. T+1 可执行性校验（§2.3）— v1 缺失，属制度性硬伤（缺陷 1）
+ * ==========================================================================*/
+function t1Gate({ addShares, sellableBase }) {
+  const reason = [];
+  if (addShares > sellableBase) {
+    return {
+      executable: false,
+      allowedShares: sellableBase,
+      reason: [
+        `方案不可执行：受 T+1 限制，当日买入股份当日不可卖出`,
+        `可卖底仓（昨日及之前持仓）${sellableBase} 股 < 计划加仓 ${addShares} 股`,
+        `已自动降档为部分T：加仓量下调至 ${sellableBase} 股`
+      ]
+    };
+  }
+  reason.push(`T+1 校验通过：可卖底仓 ${sellableBase} 股 ≥ 计划加仓 ${addShares} 股`);
+  reason.push('注：正T 本质为「当日买入 + 卖出等量旧底仓」，非「当日买入当日卖出」');
+  return { executable: true, allowedShares: addShares, reason };
+}
+
+/* ============================================================================
+ * 6. 期望值校验（§2.5⑤）— 替代 v1 的绝对值校验（缺陷 3）
+ * ==========================================================================*/
+function evCheck({ pSuccess, gainIfSuccess, lossIfFail, costTotal }) {
+  const ev = pSuccess * gainIfSuccess - (1 - pSuccess) * lossIfFail - costTotal;
+  return {
+    pSuccess: pct(pSuccess),
+    gainIfSuccess: round2(gainIfSuccess),
+    lossIfFail: round2(lossIfFail),
+    costTotal: round2(costTotal),
+    ev: round2(ev),
+    valid: ev > 0,
+    note: ev > 0
+      ? `期望值 ${ev.toFixed(2)} 元 > 0，情景具备数学价值（注意：期望值不保证单次结果为正）`
+      : `期望值 ${ev.toFixed(2)} 元 ≤ 0，判定本次T无效，不建议操作`
+  };
+}
+
+/* ============================================================================
+ * 7. 情景推演（§4）— 条件句式，禁指令句式（缺陷 9 / 20 / 21）
+ *    三行口径强制输出（缺陷 8）
+ * ==========================================================================*/
+function simulateT({ direction, shares, buyPrice, sellPrice, base, rates, pSuccess = 0.5, cashUsed = 0 }) {
+  const isForward = direction === 'forward'; // 正T：先买后卖
+  const buyAmt = shares * buyPrice;
+  const sellAmt = shares * sellPrice;
+
+  const cBuy = calcCost(buyAmt, 'buy', rates);
+  const cSell = calcCost(sellAmt, 'sell', rates);
+  const costTotal = cBuy.total + cSell.total;
+
+  // 价差毛利
+  const gross = isForward ? (sellAmt - buyAmt) : (sellAmt - buyAmt);
+  const net = gross - costTotal;
+
+  // 降本：兑现现金 / 操作后总股数
+  const sharesAfter = base.shares; // 正反T后股数回到原位
+  const newCostPerShare = base.cost - net / sharesAfter;
+
+  // 踏空情景（反T 专属，缺陷 7）
+  let missScenarios = null;
+  if (!isForward) {
+    missScenarios = [3, 6, 10].map(u => {
+      const loss = shares * buyPrice * (u / 100);
+      return {
+        upside: u + '%',
+        loss: round2(loss),
+        act: u <= 3 ? '回落接回（情景A）' : u <= 6 ? '不回落，可接受损失离场' : '大幅踏空，需记录实际损失并停止反T'
+      };
+    });
+  }
+
+  // 三行口径
+  const marketValue = base.price * sharesAfter;
+  const realized = net;                 // 本次兑现现金
+  const totalAsset = marketValue + realized;
+
+  // 踏空损失（期望值校验用）
+  const lossIfFail = isForward
+    ? shares * buyPrice * 0.05         // 正T：加仓后继续跌 5% 的追加敞口
+    : shares * buyPrice * 0.03;        // 反T：不回落损失
+
+  const ev = evCheck({ pSuccess, gainIfSuccess: net, lossIfFail, costTotal });
+
+  return {
+    direction: isForward ? '正T（先买后卖）' : '反T（先卖后买）',
+    shares,
+    buyPrice, sellPrice,
+    buyAmt: round2(buyAmt), sellAmt: round2(sellAmt),
+    gross: round2(gross),
+    costTotal: round2(costTotal),
+    costBreakdown: { buy: cBuy, sell: cSell },
+    net: round2(net),
+    newCostPerShare: round3(newCostPerShare),
+    costReduction: round3(base.cost - newCostPerShare),
+    // 三行口径 —— 强制
+    threeLines: {
+      marketValue: round2(marketValue),
+      realizedCash: round2(realized),
+      totalAsset: round2(totalAsset)
+    },
+    cashUsed: isForward ? round2(buyAmt + cBuy.total) : 0,
+    missScenarios,
+    ev
+  };
+}
+
+/* ============================================================================
+ * 8. 仓位分档（§4 五）— v1 只有全量/不做二选一（缺陷 26）
+ * ==========================================================================*/
+function positionLadder({ base, gate, ratios = [1 / 3, 1 / 2, 1] }) {
+  return ratios.map(r => {
+    const want = floorLot(base.shares * r);
+    const g = marginGate({ currentShares: base.shares, minBaseShares: gate.minBaseShares, planShares: want });
+    return {
+      ratioLabel: `${Math.round(r * 100)}%`,
+      planShares: want,
+      allowedShares: g.allowedShares,
+      allowed: g.allowed,
+      remainingExposure: pct((base.shares - g.allowedShares) / base.shares),
+      note: g.reason[0] || '底仓保护通过'
+    };
+  });
+}
+
+/* ============================================================================
+ * 9. 操作必要性评分 + 频率熔断（§4 四 / §5.3）
+ *    对抗产品自身的成瘾性设计（缺陷 10 / 11 —— 第三条高风险隐患）
+ * ==========================================================================*/
+function necessityScore({ status, evPositive, volState, pSuccess }) {
+  let s = 100;
+  const notes = [];
+
+  if (!status.canReverseT && !status.canForwardT) {
+    s -= 60; notes.push(`行情状态为「${status.state}」，不具备做T条件（-60）`);
+  } else if (status.volState === '缩量') {
+    s -= 20; notes.push('缩量状态下价差难以覆盖滑点（-20）');
+  } else if (status.volState === '放量') {
+    s += 10; notes.push('放量，价差空间相对充足（+10）');
+  }
+
+  if (!evPositive) { s -= 35; notes.push('期望值校验未通过（-35）'); }
+  s += Math.round((pSuccess - 0.5) * 40);
+  notes.push(`胜率假设 ${(pSuccess * 100).toFixed(0)}% 相对基准 50% 调整 ${((pSuccess - 0.5) * 40).toFixed(0)}`);
+
+  s = Math.max(0, Math.min(100, Math.round(s)));
+  const verdict = s < 40 ? 'no-action' : (s < 70 ? 'observe' : 'scenario-ok');
+  return {
+    score: s, verdict, notes,
+    verdictText: verdict === 'no-action'
+      ? '今日操作必要性不足，建议不操作'
+      : verdict === 'observe'
+        ? '条件未充分满足，建议仅观察，等待更明确信号'
+        : '具备情景评估价值（仍为推演，非操作建议）'
+  };
+}
+
+/** 频率熔断（§5.3） */
+function circuitBreaker({ recentAdviceCount = 0, monthCount = 0, baseReductionNow, firstReduction }) {
+  if (recentAdviceCount > 3) {
+    return { tripped: true, level: 'cooldown', text: `近 ${recentAdviceCount} 个交易日已连续给出操作建议，做T边际效果正在衰减，建议休整 2 个交易日` };
+  }
+  if (monthCount > 10) {
+    return { tripped: true, level: 'monthly', text: `本月操作建议 ${monthCount} 次已超阈值，建议重新评估做T是否适合该股` };
+  }
+  let decay = '';
+  if (firstReduction > 0 && baseReductionNow > 0) {
+    const d = (1 - baseReductionNow / firstReduction) * 100;
+    decay = `当前底仓下，每 1% 价差仅能降本 ${baseReductionNow.toFixed(3)} 元，相较首次操作已衰减 ${d.toFixed(0)}%`;
+  }
+  return { tripped: false, level: 'none', text: decay };
+}
+
+/* ============================================================================
+ * 10. 情景模拟器主字段（§5.2）— 用「减仓回笼」替代「回本目标价」锚点
+ * ==========================================================================*/
+function reduceScenario({ base, ratios = [0.3, 0.5, 1] }) {
+  return ratios.map(r => {
+    const s = floorLot(base.shares * r);
+    if (s <= 0) return null;
+    const c = calcCost(s * base.price, 'sell', DEFAULT_RATES);
+    return {
+      ratioLabel: `${Math.round(r * 100)}%`,
+      shares: s,
+      grossCash: round2(s * base.price),
+      netCash: round2(s * base.price - c.total),
+      remainShares: base.shares - s,
+      cost: c.total,
+      note: `按现价减仓 ${Math.round(r * 100)}%，净回笼现金 ${(s * base.price - c.total).toFixed(0)} 元`
+    };
+  }).filter(Boolean);
+}
+
+/* ============================================================================
+ * 输入校验（§1）— 含小资金门槛（缺陷 22 / 4）
+ * ==========================================================================*/
+function validateInput({ shares, minBaseShares, cashUsed, base }) {
+  const errs = [];
+  if (!isLotMultiple(shares)) errs.push(`持股数量 ${shares} 非 100 整数倍，A股最小交易单位为 100 股`);
+  if (minBaseShares >= shares) errs.push(`最低底仓 ${minBaseShares} ≥ 持股 ${shares}，将自动进入静态持有模式`);
+  if (!isLotMultiple(minBaseShares) && minBaseShares !== 0) errs.push(`最低底仓 ${minBaseShares} 应为 100 整数倍`);
+
+  const mv = base.price * shares;
+  if (mv < 50000) errs.push(`持仓市值 ${mv.toFixed(0)} 元 < 5 万：最低佣金 5 元对小额交易费率影响显著，做T经济性存疑`);
+
+  return errs;
+}
+
+/* ============================================================================
+ * 辅助
+ * ==========================================================================*/
+function avgVol(bars, n) {
+  const s = bars.slice(-n);
+  return s.length ? s.reduce((a, b) => a + b.vol, 0) / s.length : 0;
+}
+function round2(x) { return Math.round(x * 100) / 100; }
+function round3(x) { return Math.round(x * 1000) / 1000; }
+function round1(x) { return Math.round(x * 10) / 10; }
+function pct(x) { return Math.round(x * 10000) / 10000; }
+
+/* 浏览器 / Node 双导出 */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    DEFAULT_RATES, VOL_THRESHOLD,
+    calcBasic, calcCost, isLotMultiple, floorLot,
+    judgeStatus, blocked, marginGate, t1Gate,
+    evCheck, simulateT, positionLadder,
+    necessityScore, circuitBreaker, reduceScenario, validateInput
+  };
+}
+
+</script>
+<script>
+const $ = id => document.getElementById(id);
+const f2 = n => (Math.round(n*100)/100).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const f3 = n => (Math.round(n*1000)/1000).toLocaleString('zh-CN',{minimumFractionDigits:3,maximumFractionDigits:3});
+const pc = n => (n*100).toFixed(2)+'%';
+const cls = n => n>0?'g':(n<0?'r':'');
+let guard = { adviceCount:0, monthCount:0, firstReduction:0 };
+
+/* ============================================================================
+ * 合规拦截层（P0-3）— v1 仅靠提示词自律，v2 改为输出后强制扫描
+ * 命中禁词 → 该句替换为中性表述并在报告中披露（不静默删除）
+ * ==========================================================================*/
+const BANWORDS = ['建议买入','建议卖出','建议持有','可以买','可以卖','可以买进','逢低','逢高',
+  '目标价（操作','切勿','满仓','抄底','追高','杀跌','主力在','主力资金','利好出尽','利空出尽',
+  '该股值得','值得关注','加仓建议','减仓建议','推荐'];
+const BAN_RE = new RegExp('('+BANWORDS.join('|')+')','g');
+let banHits = [];
+
+function enforceCompliance(html){
+  banHits = [];
+  const walk = node => {
+    if(node.nodeType === 3){
+      if(BAN_RE.test(node.nodeValue)){
+        BAN_RE.lastIndex = 0;
+        const m = node.nodeValue.match(BAN_RE);
+        if(m) banHits.push(...m);
+        node.nodeValue = node.nodeValue.replace(BAN_RE, '〔已按合规规则替换〕');
+      }
+      BAN_RE.lastIndex = 0;
+      return;
+    }
+    if(node.nodeType !== 1) return;
+    for(const c of Array.from(node.childNodes)) walk(c);
+  };
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  walk(tmp);
+  return tmp.innerHTML;
+}
+
+function banBanner(){
+  if(!banHits.length) return '';
+  const uniq = [...new Set(banHits)];
+  return '<div class="warnbox"><b>合规拦截已触发</b><br>检测到 ' + uniq.length
+    + ' 处操作性措辞（' + uniq.map(w=>'「'+w+'」').join('、')
+    + '），已替换为中性表述。本工具不输出投资建议。</div>';
+}
+
+function run(){
+  const v = id => $(id).value.trim();
+  const num = id => parseFloat(v(id));
+  const errs=[];
+  const code=v('code'), price=num('price'), cost=num('cost'), shares=num('shares'), minbase=num('minbase');
+  if(!code) errs.push('请填写股票代码');
+  if(!(price>0)) errs.push('请填写当前价');
+  if(!(cost>0)) errs.push('请填写持仓成本价');
+  if(!(shares>0)) errs.push('请填写持股数量');
+  if(isNaN(minbase)) errs.push('请填写最低底仓');
+  if(errs.length){ $('out').innerHTML='<div class="warnbox"><b>输入不完整</b><br>'+errs.join('<br>')+'</div>'; return; }
+
+  const rates={commission:num('r_comm')||0.00025,minCommission:num('r_min')??5,stampDuty:num('r_stamp')||0.0005,transferFee:num('r_tr')??0.00001,slippage:num('r_slip')??0.001};
+  const cash=Math.max(0,num('cash')||0), minvol=num('minvol')||0.015, psucc=num('psucc')||0.5;
+  const base={shares, cost, price};
+  let H='';
+
+  /* ---- 输入校验 ---- */
+  const ierr = core.validateInput({shares,minBaseShares:minbase,base});
+  if(ierr.length) H+='<div class="warnbox"><b>输入校验提示</b><br>'+ierr.map(e=>'· '+e).join('<br>')+'</div>';
+
+  /* ---- 1. 基础测算 ---- */
+  const b=core.calcBasic({cost,shares,price,rates});
+  H+='<div class="sect">一、基础持仓测算</div><div class="card">';
+  H+=`<div style="text-align:center;padding:6px 0 12px">
+    <div style="font-size:12.5px;color:var(--ink2)">当前${b.pnl<0?'浮亏':'浮盈'}</div>
+    <div class="big ${cls(b.pnl)}">${f2(b.pnl)} 元</div>
+    <div style="font-size:13px;color:var(--ink2);margin-top:2px">${b.pnlRatio>0?'+':''}${pc(b.pnlRatio)}</div>
+  </div>`;
+  H+=`<div class="kv"><span class="k">持仓市值</span><span class="v">${f2(b.marketValue)} 元</span></div>`;
+  H+=`<div class="kv"><span class="k">投入成本</span><span class="v">${f2(b.invested)} 元</span></div>`;
+  H+=`<div class="kv"><span class="k">回本需涨</span><span class="v">${pc(b.recoverGain)}</span></div>`;
+  H+=`<div class="kv"><span class="k">回本目标价</span><span class="v">${f3(b.breakEvenPrice)} 元</span></div>`;
+  if(b.asymmetry!==null){
+    H+=`<div class="kv"><span class="k">解套非对称倍数</span><span class="v ${b.asymmetry>2?'r':'a'}">${b.asymmetry}×</span></div>`;
+    H+=`<div class="note">浮亏 ${pc(b.pnlRatio).replace('-','')} 需上涨 ${pc(b.recoverGain).replace('+','')} 才能回本，是浮亏幅度的 ${b.asymmetry} 倍。该关系为非线性，深度套牢的解套难度远高于线性直觉。</div>`;
+  }
+  if(b.deepTrap) H+='<div class="warnbox"><b>深度套牢警示</b><br>解套所需涨幅已超过 50%。此时任何做T手段都只能改变成本价的显示口径，无法改变持仓的真实市值暴露。请优先阅读下方「减仓回笼情景」。</div>';
+  H+='</div>';
+
+  /* ---- 2. 行情状态熔断 ---- */
+  let status=null;
+  const ms=v('mstate');
+  if(ms && ms!=='auto'){
+    const m={ '箱体震荡':[true,true],'单边上涨':[false,true],'单边下跌':[false,false],'长期横盘':[false,false],'停牌':[false,false],'一字涨停':[false,false],'一字跌停':[false,false]};
+    status={state:ms,canReverseT:m[ms][0],canForwardT:m[ms][1],reason:['用户手动指定状态为「'+ms+'」，已按该状态执行熔断判定'],volState:'—',drift:0,volatility:0,blocked:!m[ms][0]&&!m[ms][1]};
+  }else{
+    const cs=v('closes').split(/[,，\s]+/).map(Number).filter(x=>!isNaN(x));
+    if(cs.length>=20){
+      const bars=cs.map(c=>({high:c*1.02,low:c*0.98,close:c,vol:1000}));
+      const vr=num('volr');
+      status=core.judgeStatus({bars,minVolatility:minvol,...(vr?{volBase:1000/vr}:{})});
+    }
+  }
+
+  if(status){
+    const pill = status.canReverseT||status.canForwardT ? 'pill-g':'pill-r';
+    H+=`<div class="sect">二、行情状态熔断判定</div><div class="card">`;
+    H+=`<div><span class="pill ${pill}">${status.state}</span> <span class="pill pill-n">量能 ${status.volState||'—'}</span></div>`;
+    H+='<ul class="rl">'+status.reason.map(r=>'<li>'+r+'</li>').join('')+'</ul>';
+    const fused=!status.canReverseT&&!status.canForwardT;
+    if(fused){
+      H+=`<div class="stopbox"><b>当前状态不具备做T条件</b>本工具不输出做T情景方案。<br>状态为「${status.state}」时，做的对手方是趋势本身，不是价差。<br>请直接查看下方「四、减仓回笼情景」。</div>`;
+    }
+    H+='</div>';
+  }
+
+  /* ---- 3. 做T情景 ---- */
+  if(!status||status.canReverseT||status.canForwardT){
+    H+='<div class="sect">三、做T情景推演（条件句式，非操作建议）</div>';
+    const gate=core.marginGate({currentShares:shares,minBaseShares:minbase,planShares:core.floorLot(shares/2)});
+    const sellableBase=shares;
+
+    H+='<div class="card"><b>校验链与分档</b>';
+    H+=`<table><thead><tr><th>档位</th><th>计划股数</th><th>实际可操作</th><th>剩余敞口</th></tr></thead><tbody>`;
+    core.positionLadder({base,gate:{minBaseShares:minbase}}).forEach(l=>{
+      H+=`<tr><td>${l.ratioLabel} 底仓</td><td>${l.planShares}</td><td class="v ${l.allowed?'':'r'}">${l.allowed?l.allowedShares:'禁止'}</td><td class="v">${(l.remainingExposure*100).toFixed(0)}%</td></tr>`;
+    });
+    H+='</tbody></table>';
+    H+=`<div class="note"><b>底仓保护校验</b><br>${core.marginGate({currentShares:shares,minBaseShares:minbase,planShares:core.floorLot(shares)}).reason.map(r=>'· '+r).join('<br>')||'· 通过'}</div>`;
+    H+=`<div class="note"><b>T+1 制度校验</b><br>· 可卖底仓（昨日及之前持仓）${sellableBase} 股<br>· 正T本质为「当日买入 + 卖出等量旧底仓」，当日买入部分不可当日卖出<br>${core.t1Gate({addShares:core.floorLot(shares/2),sellableBase:sellableBase}).reason.map(r=>'· '+r).join('<br>')}</div>`;
+    H+='</div>';
+
+    /* 反T情景 */
+    if(status?status.canReverseT:true){
+      const sh=gate.allowed?gate.allowedShares:0;
+      if(sh>0){
+        const sellP=price*1.03, buyP=price*0.99;
+        const rt=core.simulateT({direction:'reverse',shares:sh,buyPrice:buyP,sellPrice:sellP,base,rates,pSuccess:psucc});
+        H+=scenarioCard(rt,status?'若价格上探至 '+f2(sellP)+' 区间':'若价格上行 3%',0.99);
+      }
+    }
+    /* 正T情景 */
+    if(status?status.canForwardT:true){
+      const sh=core.t1Gate({addShares:core.floorLot(shares/2),sellableBase:sellableBase}).allowedShares;
+      if(sh>0 && cash>0){
+        const bp=price*0.99, sp=price*1.02;
+        const ft=core.simulateT({direction:'forward',shares:sh,buyPrice:bp,sellPrice:sp,base,rates,pSuccess:psucc});
+        const need=ft.cashUsed;
+        H+=scenarioCard(ft,'若价格回落至 '+f2(bp)+' 区间',0.5,need,cash);
+      }else if(sh<=0){
+        H+='<div class="warnbox">T+1 限制：当前可卖底仓不足，正T方案不可执行。</div>';
+      }else{
+        H+='<div class="warnbox">可用备用资金为 0，正T功能不可用（v1 未为无备用资金用户提供替代路径，此处亦为已知缺口）。反T情景仍可评估。</div>';
+      }
+    }
+  }
+
+  /* ---- 4. 减仓回笼（主字段） ---- */
+  H+='<div class="sect">四、减仓回笼情景</div><div class="card">';
+  H+='<div class="note" style="margin:0 0 10px">本板块是本工具的<b>主输出</b>。核心问题不是「什么时候回本」，而是「现价能回笼多少现金、留下多少敞口」。</div>';
+  H+='<table><thead><tr><th>比例</th><th>股数</th><th>净回笼现金</th><th>剩余股数</th></tr></thead><tbody>';
+  core.reduceScenario({base,rates:[0.3,0.5,1]}).forEach(s=>{
+    H+=`<tr><td>${s.ratioLabel}</td><td>${s.shares}</td><td class="v g">${f2(s.netCash)}</td><td>${s.remainShares}</td></tr>`;
+  });
+  H+='</tbody></table><div class="note">回笼金额已扣除佣金（含最低佣金）、印花税、过户费与滑点。</div></div>';
+
+  /* ---- 5. 必要性评分 + 熔断 ---- */
+  if(status){
+    const evPos = true;
+    const ns=core.necessityScore({status,evPositive:evPos,volState:status.volState,pSuccess:psucc});
+    const cb=core.circuitBreaker({recentAdviceCount:guard.adviceCount,monthCount:guard.monthCount,baseReductionNow:0,firstReduction:guard.firstReduction});
+    H+='<div class="sect">五、今日操作必要性</div><div class="card">';
+    H+=`<div class="score"><div style="font-size:24px;font-weight:600;${ns.score<40?'color:var(--red)':(ns.score<70?'color:var(--amber)':'color:var(--green)')}">${ns.score}</div><div class="bar"><i style="width:${ns.score}%;background:${ns.score<40?'var(--red)':(ns.score<70?'var(--amber)':'var(--green)')}"></i></div><span style="font-size:12px;color:var(--ink2)">/100</span></div>`;
+    H+=`<div class="note" style="margin-top:10px"><b>${ns.verdictText}</b></div>`;
+    H+='<ul class="rl">'+ns.notes.map(n=>'<li>'+n+'</li>').join('')+'</ul>';
+    if(cb.tripped){
+      H+=`<div class="warnbox"><b>频率熔断已触发</b><br>${cb.text}</div>`;
+    }else if(cb.text){
+      H+=`<div class="warnbox"><b>边际递减提示</b><br>${cb.text}</div>`;
+    }
+    H+='</div>';
+  }
+
+  /* ---- 6. 失败预案 ---- */
+  H+='<div class="sect">六、失败预案</div><div class="card"><ul class="rl">';
+  H+='<li><b>执行反T后股价持续上涨不回调</b>：按买入价上浮 3% / 6% / 10% 三档记录实际损失，触发 +6% 即停止反T并记录台账。</li>';
+  H+='<li><b>执行正T后股价继续下跌</b>：立即停止追加资金；触达你预设的止损底线浮亏比例时转为静态持有。</li>';
+  H+='<li><b>连续两次做T失败</b>：强制停手 5 个交易日，仅保留静态持有。</li>';
+  H+='<li><b>成本口径存疑</b>：若近期有除权除息而你未确认成本价已调整，全部结果作废，先核对券商App。</li>';
+  H+='</ul></div>';
+
+  $('out').innerHTML = enforceCompliance(H) + banBanner();
+  window.scrollTo({top:$('out').offsetTop-10,behavior:'smooth'});
+}
+
+function scenarioCard(r,cond,ratio,need,cash){
+  let H='<div class="card">';
+  H+=`<b>${r.direction}｜${cond}</b>`;
+  H+=`<div class="kv"><span class="k">情景股数</span><span class="v">${r.shares} 股</span></div>`;
+  H+=`<div class="kv"><span class="k">买卖价差</span><span class="v">${f2(r.sellPrice)} − ${f2(r.buyPrice)} = ${f2(r.sellPrice-r.buyPrice)}</span></div>`;
+  H+=`<div class="kv"><span class="k">价差毛利</span><span class="v ${cls(r.gross)}">${f2(r.gross)} 元</span></div>`;
+  H+=`<div class="kv"><span class="k">全部成本</span><span class="v r">−${f2(r.costTotal)} 元</span></div>`;
+  H+=`<div class="kv"><span class="k">情景净收益</span><span class="v ${cls(r.net)}">${f2(r.net)} 元</span></div>`;
+  H+=`<div class="kv"><span class="k">成本变化</span><span class="v">${f3(base(r))} → ${f3(r.newCostPerShare)}</span></div>`;
+  if(r.direction.indexOf('正T')===0&&need){
+    H+=`<div class="kv"><span class="k">需动用备用资金</span><span class="v ${need>cash?'r':'a'}">${f2(need)} 元${need>cash?'（超出可用 '+f2(cash)+' 元）':''}</span></div>`;
+  }
+  H+='<div class="note" style="margin-top:12px"><b>三行口径（真实结果看这里）</b></div>';
+  H+=`<div class="kv"><span class="k">持仓市值</span><span class="v">${f2(r.threeLines.marketValue)} 元</span></div>`;
+  H+=`<div class="kv"><span class="k">累计兑现现金</span><span class="v ${cls(r.threeLines.realizedCash)}">${f2(r.threeLines.realizedCash)} 元</span></div>`;
+  H+=`<div class="kv"><span class="k">总资产合计</span><span class="v">${f2(r.threeLines.totalAsset)} 元</span></div>`;
+  H+=`<div class="warnbox">成本下降 ${r.costReduction} 元/股，但持仓市值未发生任何变化。降本只是把浮亏从「持仓口径」挪到「现金口径」，真实增量仅等于兑现现金 ${f2(r.net)} 元。</div>`;
+  H+=`<div class="note" style="margin-top:12px"><b>期望值校验</b><br>接回概率假设 ${pc(r.ev.pSuccess)} → 期望值 <b class="${r.ev.valid?'g':'r'}">${r.ev.ev} 元</b><br>${r.ev.note}</div>`;
+  if(r.missScenarios){
+    H+='<details><summary>踏空情景量化表</summary><div class="dbody"><table><thead><tr><th>涨幅</th><th>处理方式</th><th>损失</th></tr></thead><tbody>';
+    r.missScenarios.forEach(s=>{H+=`<tr><td>${s.upside}</td><td>${s.act}</td><td class="v r">${f2(s.loss)} 元</td></tr>`;});
+    H+='</tbody></table></div></details>';
+  }
+  H+='</div>';
+  return H;
+}
+function base(r){ return r.newCostPerShare + r.costReduction; }
+</script>
+</body>
+</html>
