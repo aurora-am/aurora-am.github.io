@@ -8111,6 +8111,19 @@ function applyPayload(res) {
   if (d.limitUp) {
     DATA.limitUp = d.limitUp;
     if (!DATA.limitUp.attempted) DATA.limitUp.attempted = DATA.limitUp.count || 1;
+    /* 兼容 {streak,count} 形状的梯队（导出器回归时）：用 list 本地重建为 [{level,stocks}] */
+    (function () {
+      var st = DATA.limitUp.streaks;
+      if (!Array.isArray(st) || !st.length) return;
+      if (st[0] && Array.isArray(st[0].stocks)) return;
+      var by = {};
+      (DATA.limitUp.list || []).forEach(function (x) {
+        if (!x) return; var lv = parseInt(x.streak, 10) || 0; (by[lv] = by[lv] || []).push(x.name);
+      });
+      var out = Object.keys(by).map(Number).sort(function (a, b) { return b - a; })
+        .map(function (lv) { return { level: lv, count: by[lv].length, stocks: by[lv] }; });
+      if (out.length) DATA.limitUp.streaks = out;
+    })();
     DATA.breadthDistribution[0].count = DATA.limitUp.count || 0;
     DATA.breadthDistribution[10].count = DATA.limitUp.limitDown || 0;
   }
