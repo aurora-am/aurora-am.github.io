@@ -21591,18 +21591,30 @@ var WB_META = {};   // {date: {provisional, phase, snapshotAt}} —— fetch 来
 var WBData = (function () {
   // ⚠️ 用 wbdata/ 而非 data/：data/ 是仓库里用户已有的目录，不复用
   var BASE = 'wbdata/';
-  var MEM = 'wb_day_v1_';
+  var MEM = 'wb_day_v2_';   // v2：作废旧版残缺 schema 的 localStorage 缓存（2026-10-16 三面板事故）
   var memAvail = (function () { try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); return true; } catch (e) { return false; } })();
 
   function file(date) { return BASE + date + '.json'; }
 
   function readMem(date) {
     if (!memAvail) return null;
-    try { var s = localStorage.getItem(MEM + date); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+    try {
+      var s = localStorage.getItem(MEM + date); if (!s) return null;
+      var c = JSON.parse(s);
+      /* TTL：最新日 / 盘中临时（provisional）快照 10 分钟过期，防止修复后的分片被旧缓存永久压住（2026-10-16 三面板事故）；
+         历史定稿日（phase=after 且非今天）不可变，缓存永久有效。 */
+      if (c && typeof c === 'object') {
+        var _n = new Date();
+        var _today = _n.getFullYear() + '-' + String(_n.getMonth() + 1).padStart(2, '0') + '-' + String(_n.getDate()).padStart(2, '0');
+        var _volatile = c.provisional === true || c.phase !== 'after' || date === _today;
+        if (_volatile && Date.now() - (c._cachedAt || 0) > 600000) return null;
+      }
+      return c;
+    } catch (e) { return null; }
   }
   function writeMem(date, obj) {
     if (!memAvail) return;
-    try { localStorage.setItem(MEM + date, JSON.stringify(obj)); } catch (e) {}
+    try { localStorage.setItem(MEM + date, JSON.stringify(Object.assign({}, obj, { _cachedAt: Date.now() }))); } catch (e) {}
   }
 
   /** 拉某日 JSON 分片；force=true 时忽略缓存 */
