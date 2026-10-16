@@ -15,6 +15,29 @@
      本地副本 1MB / gzip 338KB，同步加载会把 DOMContentLoaded 推迟数秒 → 配合门禁白屏 = 进入极慢。
      defer 保证在 DOMContentLoaded 前执行完，页面 init() 里 renderAll() 仍能拿到 window.echarts。 -->
 <script src="echarts.min.js" defer></script>
+<!-- ============================================================
+     内容兜底解锁（当前为「临时模式 · 为爱发电」，不鉴权）
+     背景：整个 .app-layout 由 CSS 规则 body:not(.miao-unlocked) 默认隐藏，
+           解锁依赖外链 workbench_gate.js。一旦该脚本被浏览器缓存成旧版、
+           加载失败、或它等待的 supabase-js 不可用，内容就永远不显示 = 整页空白。
+     兜底：本内联脚本不依赖任何外部资源，2.5 秒内若仍无人解锁就强制解锁。
+     ⚠️ 恢复付费会员墙时，必须同步删除本兜底（否则会绕过会员墙）。
+     ============================================================ -->
+<script>
+(function () {
+  function u() {
+    try {
+      if (document.body && !document.body.classList.contains('miao-unlocked')) {
+        document.body.classList.add('miao-unlocked');
+      }
+    } catch (e) { /* 忽略 */ }
+  }
+  if (document.body) u();
+  else if (document.addEventListener) document.addEventListener('DOMContentLoaded', u);
+  setTimeout(u, 2500);
+  if (window.addEventListener) window.addEventListener('load', u);
+})();
+</script>
 <link rel="stylesheet" href="miao_supabase.css?v=0516d1e0">
 <style>
 /* ===== CSS Variables: Light Theme ===== */
@@ -9495,7 +9518,7 @@ window.addEventListener('DOMContentLoaded', init);
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="miao_auth_v2.js?v=0516d1e0"></script>
   <!-- 工作台全屏权限遮罩：未登录 / 未会员则隐藏全部内容 -->
-  <script src="workbench_gate.js?v=wb20261013"></script>
+  <script src="workbench_gate.js?v=wb20261016c"></script>
 
 
 
