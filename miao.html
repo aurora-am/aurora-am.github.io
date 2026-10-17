@@ -6936,9 +6936,26 @@ function saveNotes() {
     auction: document.getElementById('notesAuction').value,
     reflection: document.getElementById('notesReflection').value
   };
-  try { localStorage.setItem(notesKey(notesCurDate), JSON.stringify(obj)); } catch (e) {}
+  /* 🛡️ 2026-10-17 P2：原实现 `try{...}catch(e){}` 吞掉异常后**照样提示「已保存 ✓」**——
+     隐私模式 / 配额写满 / 存储被禁时，用户以为存上了，刷新即丢。
+     现在：写后回读校验；失败如实红色告警并引导立刻导出。 */
   var st = document.getElementById('notesSaveState');
-  if (st) st.textContent = '已保存 ' + notesCurDate + ' ✓';
+  var _raw = JSON.stringify(obj);
+  var ok = false, errMsg = '';
+  try {
+    localStorage.setItem(notesKey(notesCurDate), _raw);
+    ok = localStorage.getItem(notesKey(notesCurDate)) === _raw;
+    if (!ok) errMsg = '写入后回读不一致（存储被拦或已满）';
+  } catch (e) { errMsg = (e && e.message) || '本机存储不可用'; }
+
+  if (st) {
+    if (ok) { st.textContent = '已保存 ' + notesCurDate + ' ✓'; st.style.color = ''; }
+    else {
+      st.textContent = '⚠️ 保存失败：' + errMsg + ' —— 请立即点「📥 导出 Markdown」备份';
+      st.style.color = '#dc2626';
+    }
+  }
+  if (!ok) showNotify('⚠️ 笔记保存失败：' + errMsg + '。内容仅在当前页面内存中，刷新即丢，请马上导出 Markdown 备份。', 9000);
   renderNotesCal();
 }
 function onNotesInput() {
@@ -8849,7 +8866,14 @@ function renderPreMarketBanner() {
 function loadDay(date, force) {
   if (_isFetching) { showNotify('⏳ 正在加载中，请稍候…', 2000); return; }
   var cached = _dayCache[date];
-  if (!force && cached && (Date.now() - cached.ts < CACHE_TTL_HISTORY)) {
+  /* 🛡️ 2026-10-17 P1：内存缓存 TTL 分档（此前一律用 24h，导致盘中「更新数据」后 60s 内仍回放旧快照，
+     修复上线后浏览器内存缓存还会把旧结果按 24h 压住）。规则与 localStorage readMem 保持一致：
+     当日 / provisional / phase≠after → 60s；历史定稿日 → 24h。 */
+  var _volatile = !!(cached && (cached.res && (cached.res.provisional === true
+    || cached.res.phase !== 'after' || date === fmtDate(new Date())
+    || (typeof LATEST_TRADE_DAY !== 'undefined' && date === LATEST_TRADE_DAY))));
+  var _ttl = _volatile ? CACHE_TTL_LATEST : CACHE_TTL_HISTORY;
+  if (!force && cached && (Date.now() - cached.ts < _ttl)) {
     applyPayload(cached.res);
     renderAll();
     showNotify('📦 ' + date + '（' + weekdayCN(date) + '）会话缓存命中，涨停 '
@@ -8865,10 +8889,26 @@ function loadDay(date, force) {
       function _latestSnap() { var ks = Object.keys(EMBEDDED_SNAPSHOT || {}); for (var i = 0; i < ks.length; i++) { if (EMBEDDED_SNAPSHOT[ks[i]] && EMBEDDED_SNAPSHOT[ks[i]].isLatest) return ks[i]; } return null; }
       var _lk = _latestSnap();
       var payload = null, fromBackend = false;
-      try { payload = await WBData.fetchDay(date, force); } catch (e) { payload = null; }
-      if (!payload) { try { payload = await MiaoApi.fetchDay(date); } catch (e) { payload = null; } }
+      /* 🛡️ 2026-10-17 P0-2：跨日串数据拦截（guard:date-mismatch）
+         背景：WBData 分片缺失、MiaoApi 兜底、EMBEDDED_SNAPSHOT 兜底链都可能返回「最新一天」，
+         而 applyPayload 首行「DATA.date = res.date」会把日期悄悄改写 →
+         查 10-09 却显示 10-16 的数据，不报错、极难发现。
+         规则：payload 自带日期与请求日期不一致 → 丢弃，走诚实空态，绝不张冠李戴。 */
+      var _reqDate = date, _mismatch = '';
+      function _payloadDate(p) {
+        return (p && (p.date || (p.data && (p.data.date || p.data.tradeDate)))) || '';
+      }
+      function _dateGuard(p, srcName) {
+        if (!p) return null;
+        var pd = _payloadDate(p);
+        if (pd && pd !== _reqDate) { _mismatch = srcName + ' 实为 ' + pd; return null; }
+        return p;   /* 无日期字段则放行（宽松，避免误杀老格式） */
+      }
+      try { payload = _dateGuard(await WBData.fetchDay(date, force), '分片'); } catch (e) { payload = null; }
       fromBackend = !!payload;
-      if (!payload) payload = EMBEDDED_SNAPSHOT[date] || (_lk && EMBEDDED_SNAPSHOT[_lk]) || (cached && cached.res);
+      if (!payload) { try { payload = _dateGuard(await MiaoApi.fetchDay(date), '后端'); } catch (e) { payload = null; } }
+      fromBackend = !!payload;
+      if (!payload) payload = _dateGuard(EMBEDDED_SNAPSHOT[date] || (_lk && EMBEDDED_SNAPSHOT[_lk]) || (cached && cached.res), '内嵌快照');
       if (payload) {
         _dayCache[date] = { res: payload, ts: Date.now() };
         applyPayload(payload);
@@ -8898,7 +8938,11 @@ function loadDay(date, force) {
         if (CURRENT_IS_LATEST && AUTO_REFRESH_ON) fetchQuotes();
       } else {
         hideLoading();
-        showNoDataModal(date, '该交易日后端与内嵌均无数据；请先在后端执行盘后预计算，或让智能体经【通达信MCP / 东方财富妙想MCP】重新拉取并内嵌后再查看');
+        if (_mismatch) {
+          showNoDataModal(date, '已拦截一次跨日串数据（' + _mismatch + '），为避免把别的交易日数据当本日展示，此处如实留空。请点「更新数据」重新采集，或改选有数据的日期。');
+        } else {
+          showNoDataModal(date, '该交易日后端与内嵌均无数据；请先在后端执行盘后预计算，或让智能体经【通达信MCP / 东方财富妙想MCP】重新拉取并内嵌后再查看');
+        }
         updateSourceBadge({ source: 'none' });
       }
       _isFetching = false;
@@ -21644,6 +21688,12 @@ var WBData = (function () {
   var BASE = 'wbdata/';
   var MEM = 'wb_day_v2_';   // v2：作废旧版残缺 schema 的 localStorage 缓存（2026-10-16 三面板事故）
   var memAvail = (function () { try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); return true; } catch (e) { return false; } })();
+  /* 最新有数据日：由 wbMergeIndex() 从 index.json 回填。
+     ⚠️ 2026-10-17：历史定稿日「永久缓存」的前提是「不再变化」，但**最新一日仍会因补采/修正而变**
+     （如收盘后才补的涨停/龙虎榜）。此前只按 provisional/phase 判断，最新一日一旦被打成 phase=after
+     就永久锁死旧分片 → 修复上线后用户浏览器永远看不到新数据。 */
+  var _latestDay = '';
+  function setLatestDay(d) { _latestDay = d || ''; }
 
   function file(date) { return BASE + date + '.json'; }
 
@@ -21657,7 +21707,7 @@ var WBData = (function () {
       if (c && typeof c === 'object') {
         var _n = new Date();
         var _today = _n.getFullYear() + '-' + String(_n.getMonth() + 1).padStart(2, '0') + '-' + String(_n.getDate()).padStart(2, '0');
-        var _volatile = c.provisional === true || c.phase !== 'after' || date === _today;
+        var _volatile = c.provisional === true || c.phase !== 'after' || date === _today || (_latestDay && date === _latestDay);
         if (_volatile && Date.now() - (c._cachedAt || 0) > 600000) return null;
       }
       return c;
@@ -21694,6 +21744,7 @@ var WBData = (function () {
   }
 
   return { fetchDay: fetchDay, fetchIndex: fetchIndex, mem: readMem,
+    setLatestDay: setLatestDay,
     incomplete: [] };   // 当日缺失的数据源名（如实告知用户，不做估算填充）
 })();
 
@@ -21719,6 +21770,8 @@ function wbMergeIndex(idx) {
   }
   var lt = idx.latest;
   if (lt && TRADE_DAY_SET[lt]) LATEST_TRADE_DAY = lt;   // 直接采用索引声明的最新有数据日
+  /* 告诉缓存层「哪一天是最新有数据日」：该日不享受永久缓存（补采/修正后要能刷新） */
+  try { if (typeof WBData !== 'undefined' && WBData.setLatestDay) WBData.setLatestDay(LATEST_TRADE_DAY); } catch (e) {}
   var dp = document.getElementById('datePicker');
   if (dp && TRADE_DAYS.length) {
     dp.min = TRADE_DAYS[0];
