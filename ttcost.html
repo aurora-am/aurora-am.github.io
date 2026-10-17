@@ -150,6 +150,7 @@ details .dbody>input{margin-top:2px}
 <summary>行情状态（已拉取行情时自动判定，也可手动覆盖）</summary>
 <div class="dbody">
 <input type="hidden" id="autoStatus" value="0">
+<input type="hidden" id="barsJson" value="">
 <div class="row3">
   <div><label>近20根振幅%</label><input id="vola" type="number" step="0.1" placeholder="自动" inputmode="decimal"></div>
   <div><label>20根漂移%</label><input id="drift" type="number" step="0.1" placeholder="自动" inputmode="decimal"></div>
@@ -171,6 +172,33 @@ details .dbody>input{margin-top:2px}
 </div>
 </details>
 </div>
+
+<details class="card">
+<summary>做T与回本参数（可选，影响推演口径）</summary>
+<div class="dbody">
+<div class="row">
+  <div><label>可卖底仓（股·T+1）</label><input id="sellbase" type="number" step="100" placeholder="默认=持股数" inputmode="numeric"></div>
+  <div><label>计划T价差（%）</label><input id="tspread" type="number" step="0.1" value="1.0" inputmode="decimal"></div>
+</div>
+<div class="hint">可卖底仓：T+1 制度下，当日买入的股份当日不可卖。此处填「昨日及之前买入、今天能卖」的股数（默认等于总持仓，即假设你今天没新买）。填真实值后，正T的 T+1 校验才会真正生效。<br>
+计划T价差：做T 一买一卖能捕捉的<b>毛</b>价差百分比（默认 1.0%）。这是你对自己执行力的估计，不是保证。A股日内真实可捕捉价差（扣费后）普遍低于 1%，请勿填过大。</div>
+<div class="row">
+  <div><label>计划回本周期（月）</label><input id="planmonths" type="number" step="1" placeholder="默认12" inputmode="decimal"></div>
+</div>
+<div class="hint">计划回本周期用于「回本路线图」换算月化/年化所需涨幅（不预测能否达到）。接回概率假设在上方「费率与参数设置」里。</div>
+
+<div class="sect" style="margin:14px 0 6px">情境约束（可选，仅做中性提示，不预测涨跌）</div>
+<div class="hint" style="margin-top:0">勾选你已知的事实。它们会作为「不利情境」在输出中提示，并扣减操作必要性评分——工具仍不预测涨跌、不推荐买卖。</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px;font-size:13px">
+  <label style="display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer"><input type="checkbox" id="ctx_badnews" style="width:auto;margin:0"> 近期有利空公告/待披露重大事项</label>
+  <label style="display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer"><input type="checkbox" id="ctx_sector" style="width:auto;margin:0"> 所属板块资金净流出/走弱</label>
+  <label style="display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer"><input type="checkbox" id="ctx_market" style="width:auto;margin:0"> 大盘单边下跌/系统性回撤</label>
+  <label style="display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer"><input type="checkbox" id="ctx_report" style="width:auto;margin:0"> 临近财报/业绩预告披露窗口</label>
+  <label style="display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer"><input type="checkbox" id="ctx_ops" style="width:auto;margin:0"> 公司经营状况恶化</label>
+  <label style="display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer"><input type="checkbox" id="ctx_profit" style="width:auto;margin:0"> 利润同比/环比下滑或转亏</label>
+</div>
+</div>
+</details>
 
 <button onclick="run()">开始测算</button>
 
@@ -574,7 +602,7 @@ function positionLadder({ base, gate, ratios = [1 / 3, 1 / 2, 1] }) {
  * 9. 操作必要性评分 + 频率熔断（§4 四 / §5.3）
  *    对抗产品自身的成瘾性设计（缺陷 10 / 11 —— 第三条高风险隐患）
  * ==========================================================================*/
-function necessityScore({ status, evPositive, volState, pSuccess }) {
+function necessityScore({ status, evPositive, volState, pSuccess, ctxPenalty = 0 }) {
   let s = 100;
   const notes = [];
 
@@ -590,6 +618,11 @@ function necessityScore({ status, evPositive, volState, pSuccess }) {
   s += Math.round((pSuccess - 0.5) * 40);
   notes.push(`胜率假设 ${(pSuccess * 100).toFixed(0)}% 相对基准 50% 调整 ${((pSuccess - 0.5) * 40).toFixed(0)}`);
 
+  if (ctxPenalty) {
+    s -= ctxPenalty;
+    notes.push(`情境约束额外扣分 ${ctxPenalty}（基本面/事件/环境不利，未计入任何涨跌预测）`);
+  }
+
   s = Math.max(0, Math.min(100, Math.round(s)));
   const verdict = s < 40 ? 'no-action' : (s < 70 ? 'observe' : 'scenario-ok');
   return {
@@ -599,6 +632,38 @@ function necessityScore({ status, evPositive, volState, pSuccess }) {
       : verdict === 'observe'
         ? '条件未充分满足，建议仅观察，等待更明确信号'
         : '具备情景评估价值（仍为推演，非操作建议）'
+  };
+}
+
+/** 回本路线图（R7）— 纯数学推演，不做任何涨跌预测
+ *  给定：当前浮亏、回本所需涨幅、每轮T典型净收益、计划回本周期(月)
+ *  输出：① 静态回本（靠股价上涨）所需的月化/年化涨幅
+ *        ② 靠做T降本抹平浮亏所需的轮次数（乐观假设每轮都能达成）
+ *  两项都只是"数学换算"，不构成可行性判断或操作建议。 */
+function recoveryRoadmap({ pnl, recoverGain, netPerRound, planMonths }) {
+  const months = (planMonths > 0) ? planMonths : 12;       // 未填默认按 12 个月估算
+  const pnlAbs = Math.abs(pnl);
+  // 静态回本：现价涨到回本目标价需 recoverGain；三种时间口径
+  // ① 简单均摊（线性，仅供直观参考，非复利）
+  const monthlySimple = recoverGain / months;
+  // ② 月化复利（复利口径）：(1+r)^months = 1+recoverGain
+  const monthlyCompound = recoverGain > 0 ? Math.pow(1 + recoverGain, 1 / months) - 1 : 0;
+  // ③ 对应年化（复利）：(1+月化)^12 - 1
+  const annualCompound = Math.pow(1 + monthlyCompound, 12) - 1;
+  // 做T降本：每轮净收益 netPerRound，要抹平 |浮亏| 需多少轮（乐观上限）
+  const rounds = (netPerRound > 0) ? Math.ceil(pnlAbs / netPerRound) : null;
+  return {
+    pnlAbs: round2(pnlAbs),
+    recoverGain,
+    months,
+    monthlySimple,        // 分数（页面用 pc() 转百分比）
+    monthlyCompound,      // 分数
+    annualCompound,       // 分数
+    netPerRound: (netPerRound != null) ? round2(netPerRound) : null,
+    rounds,
+    note: rounds === null
+      ? '当前情景净收益为负或为零，做T无法回笼现金，请优先查看「减仓回笼情景」'
+      : '轮次为乐观上限：假设每轮都能达成该净收益，实际受行情状态、手续费与踏空约束'
   };
 }
 
@@ -621,11 +686,11 @@ function circuitBreaker({ recentAdviceCount = 0, monthCount = 0, baseReductionNo
 /* ============================================================================
  * 10. 情景模拟器主字段（§5.2）— 用「减仓回笼」替代「回本目标价」锚点
  * ==========================================================================*/
-function reduceScenario({ base, ratios = [0.3, 0.5, 1] }) {
+function reduceScenario({ base, ratios = [0.3, 0.5, 1], rates = DEFAULT_RATES }) {
   return ratios.map(r => {
     const s = floorLot(base.shares * r);
     if (s <= 0) return null;
-    const c = calcCost(s * base.price, 'sell', DEFAULT_RATES);
+    const c = calcCost(s * base.price, 'sell', rates);
     return {
       ratioLabel: `${Math.round(r * 100)}%`,
       shares: s,
@@ -676,7 +741,7 @@ const __CORE_EXPORTS = {
   calcBasic, calcCost, isLotMultiple, floorLot,
   judgeStatus, blocked, marginGate, t1Gate,
   evCheck, simulateT, positionLadder,
-  necessityScore, circuitBreaker, reduceScenario, validateInput
+  necessityScore, circuitBreaker, reduceScenario, recoveryRoadmap, validateInput
 };
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = __CORE_EXPORTS;
@@ -868,6 +933,15 @@ function setBusy(on){
 /* ---------- 拉取并填充现价（核心） ---------- */
 /* 取数中标记：用于按钮禁用与加载态，防止重复点击 */
 let fetching = false;
+/* 输入框里的「当前价/成本」当前属于哪只股票。
+   restore 时记为恢复出来的代码，取价成功后记为该次代码。
+   换股取价时据此强制覆盖旧值——否则会残留成截图事故那样：
+   行情框显示最新价 25.26，「当前价」框里却还是上一只股票的 14.32。 */
+let fieldsCode = null;
+/* 价格/成本是否由本工具自动带入（用户手改后置 false，同股再次取价不再覆盖） */
+let priceAuto = false, costAuto = false;
+/* 最近一次行情框的基础 HTML（不含差异提示行），供 overwritePrice 复用 */
+let lastQuoteHtml = '';
 
 async function fetchQuote(code, silent){
   // ⚠️ 类型守卫：误传事件对象时 String(event) 会变成 "[object PointerEvent]"，
@@ -892,23 +966,35 @@ async function fetchQuote(code, silent){
       return false;
     }
 
-    // 自动填充现价（保留用户手动改过的能力：仅在为空或用户勾选"自动"时覆盖）
+    // 自动填充现价。覆盖规则（按优先级）：
+    //  ① 换股了（fieldsCode 是另一只代码）→ 强制覆盖：旧价属于另一只股票，
+    //     留着就是脏数据（截图事故：行情框 25.26、当前价框 14.32）
+    //  ② 输入框为空 → 填入
+    //  ③ 用户勾了"刷新时自动覆盖现价" → 覆盖，用完取消勾选
+    //  ④ 静默刷新（盘中 60 秒自动刷新）且价格还是本工具带的 → 跟随最新价
+    // 除此之外一律不碰输入框：用户手改过的价格必须被尊重
     const inp = $('price');
     const autoPriceBox = $('autoPrice');          // ⚠️ 不可命名为 auto：与下方状态判定的 auto 同名会触发语法错误
-    if (inp && (!inp.value || (autoPriceBox && autoPriceBox.checked))) {
+    const codeChanged = fieldsCode !== null && fieldsCode !== code;
+    if (inp && (codeChanged || !inp.value || (autoPriceBox && autoPriceBox.checked) || (silent && priceAuto))) {
       inp.value = q.price;
+      priceAuto = true;
       if (autoPriceBox) autoPriceBox.checked = false;   // 填完取消勾选，之后归用户手动
     }
 
-    // 持仓成本 / 股数：首次从行情带入成本（取 prevClose 或开盘价），不覆盖已有值
+    // 持仓成本：仅"为空"或"换股且成本仍是本工具自动带入的"时覆盖。
+    // 用户手填过的真实成本价永远不覆盖（那是他的持仓事实，不是行情数据）。
     const costEl = $('cost');
-    if (costEl && !costEl.value) costEl.value = q.prevClose || q.open || '';
+    if (costEl && (!costEl.value || (codeChanged && costAuto))) {
+      costEl.value = q.prevClose || q.open || '';
+      costAuto = true;
+    }
 
     const ss = sessionState();
     const bars = parseKline(dayRes, 'day');
 
     const dir = q.chgPct > 0 ? 'r' : (q.chgPct < 0 ? 'g' : '');
-    setFetch({ tone: ss.live ? 'g' : 'a', html:
+    const baseHtml =
       '<b>'+esc(q.name||'')+' '+esc(code)+' · 现价 '+q.price.toFixed(2)
       + ' <span class="'+dir+'">'+q.chgPct.toFixed(2)+'%</span></b>'
       + '<br>昨收 '+q.prevClose+' ｜ 今开 '+q.open+' ｜ 最高 '+q.high+' ｜ 最低 '+q.low
@@ -916,8 +1002,23 @@ async function fetchQuote(code, silent){
       + '<br>涨停 '+q.limitUp+' ｜ 跌停 '+q.limitDown
       + ' ｜ '+(q.time||'—')
       + '<br>数据时点：'+ss.label+'（'+(ss.live?'盘中实时':'非交易时段，为最近收盘/静态数据')+'）'
-      + (bars.length>=20 ? '<br>已载入 '+bars.length+' 根前复权日K，行情状态将自动判定' : '')
-    });
+      + (bars.length>=20 ? '<br>已载入 '+bars.length+' 根前复权日K，行情状态将自动判定' : '');
+
+    // 价差核对：输入框里的当前价与刚取到的最新价不一致时，明示差异并给一键覆盖入口。
+    // 只在手动点击时提示（静默刷新不重复弹，避免 60 秒一刷的噪音）；
+    // 换股场景已在上面强制覆盖，走不到这里。
+    let notice = '';
+    const cur = inp ? Number(inp.value) : NaN;
+    if (!silent && inp && inp.value && isFinite(cur) && cur > 0 && Math.abs(cur - q.price) > 0.005) {
+      notice = '<br><span style="color:#b45309">⚠ 当前价输入框里是 '+f2(cur)
+        + '，与刚获取的最新价 '+q.price.toFixed(2)+' 不一致</span>'
+        + '<button type="button" style="margin-left:6px;padding:2px 10px;border:1px solid #b45309;'
+        + 'background:#fffbeb;border-radius:6px;cursor:pointer;font-size:12px;color:#b45309"'
+        + ' onclick="overwritePrice('+q.price.toFixed(2)+')">用 '+q.price.toFixed(2)+' 覆盖当前价</button>';
+    }
+    lastQuoteHtml = baseHtml;
+    fieldsCode = code;
+    setFetch({ tone: ss.live ? 'g' : 'a', html: baseHtml + notice });
 
     // 自动填入行情状态（供 judgeStatus 用）
     if (bars.length >= 20) {
@@ -936,6 +1037,21 @@ async function fetchQuote(code, silent){
     // ⚠️ 必须在 finally 复位：否则任一 return 路径都会让按钮永久卡在"获取中"
     fetching = false;
     setBusy(false);
+  }
+}
+
+/** 一键覆盖：把行情框里的最新价写进「当前价」输入框。
+ *  保留原行情信息，只在末尾追加一行确认，不把用户刚看到的行情冲掉。 */
+function overwritePrice(p){
+  const x = Number(p);
+  if (!isFinite(x) || x <= 0) return;
+  const el = $('price'); if (!el) return;
+  el.value = x;
+  priceAuto = true;
+  const box = $('fetch');
+  if (box && lastQuoteHtml){
+    box.innerHTML = lastQuoteHtml
+      + '<br><span style="color:#15803d">✓ 已将当前价输入框更新为 '+f2(x)+'</span>';
   }
 }
 
@@ -972,6 +1088,11 @@ function applyAutoStatus(bars){
   $('autoStatus').value = '1';                  // 标记：状态来自真实K线
   $('closes').value = c.map(x=>x.toFixed(2)).join(',');
   if (volr === null) $('volr').placeholder = '无成交量数据';
+  // 存真实 K 线（含真实 high/low/vol）供 run() 判定，避免合成 ±2% 振幅导致
+  // 波动率被锁死、量能判定恒为"平量"的死代码问题（F2 缺陷修复）
+  try {
+    $('barsJson').value = JSON.stringify(bars.slice(-60).map(b=>({h:b.high,l:b.low,c:b.close,v:b.vol||0})));
+  } catch(e){}
 }
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -994,6 +1115,13 @@ function bindInputs(){
     });
     codeEl.addEventListener('blur', function(){ setTimeout(hideSugg, 200); });
   }
+  // 用户手动改过价格/成本 → 标记为非自动值：之后同股取价不再覆盖它们
+  // （换股取价仍会强制覆盖价格，因为旧价属于另一只股票，没有任何保留价值）
+  const pe = $('price');
+  if (pe) pe.addEventListener('input', function(){ priceAuto = false; });
+  const ce = $('cost');
+  if (ce) ce.addEventListener('input', function(){ costAuto = false; });
+
   const sg = $('suggBox');
   if (sg) sg.addEventListener('click', function(e){
     const row = e.target && e.target.closest ? e.target.closest('.sug') : null;
@@ -1048,6 +1176,10 @@ function restoreInputs(){
       if (saved.name && !/\[object [A-Za-z]+\]/.test(String(saved.name))) {
         const nm = $('stockName'); if (nm) nm.textContent = saved.name;
       }
+      // 记录：当前输入框里的价/成本属于这只（上次的）股票。
+      // 用户若换成别的代码再取价，旧价/旧成本会被强制覆盖，不会残留错位。
+      fieldsCode = valid;
+      costAuto = true;
     } else {
       dirty = true;
     }
@@ -1085,6 +1217,8 @@ function restoreInputs(){
 /** 手动清空所有输入与本地缓存 */
 function clearAll(){
   try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  // 取价归属状态一并复位：清空后下一个代码就是"第一个股票"，按全新会话处理
+  fieldsCode = null; priceAuto = false; costAuto = false; lastQuoteHtml = '';
   ['code','cost','shares','minbase','price','closes','vola','drift','volr'].forEach(function (k) {
     const el = $(k); if (el) el.value = '';
   });
@@ -1093,6 +1227,44 @@ function clearAll(){
   hideSugg();
   setFetch({ tone:'n', html:'已清空。输入股票代码 / 名称 / 拼音即可自动获取当日最新价。' });
   const c = $('code'); if (c) c.focus();
+}
+
+/* ============================================================================
+ * 频率熔断持久化（F4 修复）— v2 设计的 "对抗成瘾性" safeguard 之前从未累加/持久化，
+ * 导致 guard 永远读到 0/0/0，熔断与边际递减全是死功能。这里把计数落到 localStorage，
+ * 并按自然月重置月度计数。跨月不清零历史，但 monthCount 会重置。
+ * ==========================================================================*/
+const LS_FREQ = 'ttc_freq';
+function loadGuard(){
+  const now = new Date();
+  const mk = now.getFullYear() + '-' + (now.getMonth() + 1);
+  let g = { adviceCount:0, monthCount:0, firstReduction:0, monthKey:mk };
+  try {
+    const raw = localStorage.getItem(LS_FREQ);
+    if (raw){
+      const o = JSON.parse(raw);
+      if (o && typeof o === 'object'){
+        if (o.monthKey === mk){
+          g.adviceCount = Math.max(0, Number(o.adviceCount) || 0);
+          g.monthCount  = Math.max(0, Number(o.monthCount)  || 0);
+          g.firstReduction = Math.max(0, Number(o.firstReduction) || 0);
+        }
+      }
+    }
+  } catch(e){}
+  return g;
+}
+function saveGuard(g){
+  try { localStorage.setItem(LS_FREQ, JSON.stringify(g)); } catch(e){}
+}
+/* 每次成功完成一次测算就 +1（跨月自动重置月度） */
+function bumpFreq(){
+  const now = new Date();
+  const mk = now.getFullYear() + '-' + (now.getMonth() + 1);
+  if (guard.monthKey !== mk){ guard.monthCount = 0; guard.monthKey = mk; }
+  guard.adviceCount += 1;
+  guard.monthCount  += 1;
+  saveGuard(guard);
 }
 
 /** 输入既非 6 位代码也搜不到时：先尝试当名称解析出唯一结果 */
@@ -1178,7 +1350,7 @@ const f2 = n => (Math.round(n*100)/100).toLocaleString('zh-CN',{minimumFractionD
 const f3 = n => (Math.round(n*1000)/1000).toLocaleString('zh-CN',{minimumFractionDigits:3,maximumFractionDigits:3});
 const pc = n => (n*100).toFixed(2)+'%';
 const cls = n => n>0?'g':(n<0?'r':'');
-let guard = { adviceCount:0, monthCount:0, firstReduction:0 };
+let guard = loadGuard();
 
 /* ============================================================================
  * 合规拦截层（P0-3）— v1 仅靠提示词自律，v2 改为输出后强制扫描
@@ -1221,8 +1393,10 @@ function banBanner(){
 }
 
 function run(){
-  const v = id => $(id).value.trim();
-  const num = id => parseFloat(v(id));
+  // 安全取值：新增的可选字段若未加进 DOM 桩也不抛异常（兼容旧版/测试）
+  const v = id => { const el=$(id); return el?el.value.trim():''; };
+  const num = id => { const el=$(id); const x=el?parseFloat(el.value):NaN; return x; };
+  const chk = id => { const el=$(id); return !!(el && el.checked); };
   const errs=[];
   const code=v('code'), price=num('price'), cost=num('cost'), shares=num('shares'), minbase=num('minbase');
   if(!code) errs.push('请填写股票代码');
@@ -1235,11 +1409,27 @@ function run(){
   const rates={commission:num('r_comm')||0.00025,minCommission:num('r_min')??5,stampDuty:num('r_stamp')||0.0005,transferFee:num('r_tr')??0.00001,slippage:num('r_slip')??0.001};
   const cash=Math.max(0,num('cash')||0), minvol=num('minvol')||0.015, psucc=num('psucc')||0.5;
   const base={shares, cost, price};
+  // F1：计划T价差（%），默认 1.0；转换为单边幅度比例
+  const tspread = (isFinite(num('tspread')) && num('tspread')>0) ? num('tspread') : 1.0;
+  const tsHalf = tspread/100/2;
+  // F3：可卖底仓（T+1），默认 = 持股（即假设今日未新买）
+  let sellBase = num('sellbase');
+  if(!isFinite(sellBase) || sellBase<0) sellBase = shares;
   let H='';
+  let evPositive=false;   // F5：根据真实情景 EV 判定，不再硬编码 true
 
   /* ---- 输入校验 ---- */
   const ierr = core.validateInput({shares,minBaseShares:minbase,base});
   if(ierr.length) H+='<div class="warnbox"><b>输入校验提示</b><br>'+ierr.map(e=>'· '+e).join('<br>')+'</div>';
+
+  /* ---- 防错位警告：输入框里的价/成本可能属于另一只股票 ---- */
+  const curCode = toTencentCode(v('code'));
+  if (fieldsCode && curCode && curCode !== fieldsCode) {
+    H+='<div class="warnbox"><b>注意：价格/成本可能还是另一只股票的数值</b><br>'
+      + '本工具记录的取价标的为 '+esc(fieldsCode)+'，而当前代码是 '+esc(curCode)+'。<br>'
+      + '若你换过股票但没有重新点「获取行情」，「当前价 / 持仓成本价」很可能还是旧股票的，测算结果会失真。<br>'
+      + '处理：点上方「获取行情」自动更新；或手动把这两个价格改成本股的数值后再测算。</div>';
+  }
 
   /* ---- 1. 基础测算 ---- */
   const b=core.calcBasic({cost,shares,price,rates});
@@ -1267,11 +1457,24 @@ function run(){
     const m={ '箱体震荡':[true,true],'单边上涨':[false,true],'单边下跌':[false,false],'长期横盘':[false,false],'停牌':[false,false],'一字涨停':[false,false],'一字跌停':[false,false]};
     status={state:ms,canReverseT:m[ms][0],canForwardT:m[ms][1],reason:['用户手动指定状态为「'+ms+'」，已按该状态执行熔断判定'],volState:'—',drift:0,volatility:0,blocked:!m[ms][0]&&!m[ms][1]};
   }  else{
-    const cs=v('closes').split(/[,，\s]+/).map(Number).filter(x=>!isNaN(x));
-    if(cs.length>=20){
-      const bars=cs.map(c=>({high:c*1.02,low:c*0.98,close:c,vol:1000}));
-      const vb=num('volr');
-      status=core.judgeStatus({bars,minVolatility:minvol,...(vb?{volBase:1000/vb}:{})});
+    // 优先用真实 K 线（取数时存入 barsJson）；仅手动粘贴收盘价时退化为合成振幅
+    const bj=$('barsJson');
+    let realBars=null;
+    if(bj && bj.value){
+      try{
+        const arr=JSON.parse(bj.value);
+        if(Array.isArray(arr) && arr.length>=20) realBars=arr.map(b=>({high:b.h,low:b.l,close:b.c,vol:b.v||0}));
+      }catch(e){}
+    }
+    if(realBars){
+      status=core.judgeStatus({bars:realBars,minVolatility:minvol});
+    } else {
+      const cs=v('closes').split(/[,，\s]+/).map(Number).filter(x=>!isNaN(x));
+      if(cs.length>=20){
+        const bars=cs.map(c=>({high:c*1.02,low:c*0.98,close:c,vol:1000}));
+        const vb=num('volr');
+        status=core.judgeStatus({bars,minVolatility:minvol,...(vb?{volBase:1000/vb}:{})});
+      }
     }
   }
   if(status){
@@ -1290,7 +1493,8 @@ function run(){
   if(!status||status.canReverseT||status.canForwardT){
     H+='<div class="sect">三、做T情景推演（条件句式，非操作建议）</div>';
     const gate=core.marginGate({currentShares:shares,minBaseShares:minbase,planShares:core.floorLot(shares/2)});
-    const sellableBase=shares;
+    const sellableBase=sellBase;
+    // evPositive 已在函数作用域声明，此处仅赋值
 
     H+='<div class="card"><b>校验链与分档</b>';
     H+=`<table><thead><tr><th>档位</th><th>计划股数</th><th>实际可操作</th><th>剩余敞口</th></tr></thead><tbody>`;
@@ -1302,21 +1506,23 @@ function run(){
     H+=`<div class="note"><b>T+1 制度校验</b><br>· 可卖底仓（昨日及之前持仓）${sellableBase} 股<br>· 正T本质为「当日买入 + 卖出等量旧底仓」，当日买入部分不可当日卖出<br>${core.t1Gate({addShares:core.floorLot(shares/2),sellableBase:sellableBase}).reason.map(r=>'· '+r).join('<br>')}</div>`;
     H+='</div>';
 
-    /* 反T情景 */
+    /* 反T情景（先卖高、后买回低） */
     if(status?status.canReverseT:true){
       const sh=gate.allowed?gate.allowedShares:0;
       if(sh>0){
-        const sellP=price*1.03, buyP=price*0.99;
+        const sellP=price*(1+tsHalf), buyP=price*(1-tsHalf);
         const rt=core.simulateT({direction:'reverse',shares:sh,buyPrice:buyP,sellPrice:sellP,base,rates,pSuccess:psucc});
-        H+=scenarioCard(rt,status?'若价格上探至 '+f2(sellP)+' 区间':'若价格上行 3%',0.99);
+        evPositive = evPositive || !!rt.ev.valid;
+        H+=scenarioCard(rt,status?'若价格上探至 '+f2(sellP)+' 区间':'若价格上行 '+tspread+'%',0.99);
       }
     }
-    /* 正T情景 */
+    /* 正T情景（先买低、后卖高） */
     if(status?status.canForwardT:true){
       const sh=core.t1Gate({addShares:core.floorLot(shares/2),sellableBase:sellableBase}).allowedShares;
       if(sh>0 && cash>0){
-        const bp=price*0.99, sp=price*1.02;
+        const bp=price*(1-tsHalf), sp=price*(1+tsHalf);
         const ft=core.simulateT({direction:'forward',shares:sh,buyPrice:bp,sellPrice:sp,base,rates,pSuccess:psucc});
+        evPositive = evPositive || !!ft.ev.valid;
         const need=ft.cashUsed;
         H+=scenarioCard(ft,'若价格回落至 '+f2(bp)+' 区间',0.5,need,cash);
       }else if(sh<=0){
@@ -1331,15 +1537,34 @@ function run(){
   H+='<div class="sect">四、减仓回笼情景</div><div class="card">';
   H+='<div class="note" style="margin:0 0 10px">本板块是本工具的<b>主输出</b>。核心问题不是「什么时候回本」，而是「现价能回笼多少现金、留下多少敞口」。</div>';
   H+='<table><thead><tr><th>比例</th><th>股数</th><th>净回笼现金</th><th>剩余股数</th></tr></thead><tbody>';
-  core.reduceScenario({base}).forEach(s=>{
+  core.reduceScenario({base,rates}).forEach(s=>{
     H+=`<tr><td>${s.ratioLabel}</td><td>${s.shares}</td><td class="v g">${f2(s.netCash)}</td><td>${s.remainShares}</td></tr>`;
   });
-  H+='</tbody></table><div class="note">回笼金额已扣除佣金（含最低佣金）、印花税、过户费与滑点。</div></div>';
+  H+='</tbody></table><div class="note">回笼金额已扣除佣金（含最低佣金）、印花税、过户费与滑点（已应用你在「费率与参数设置」中填写的费率）。</div></div>';
+
+  /* ---- 情境约束（R1-R6，函数作用域；与行情状态 status 解耦，始终可见）---- */
+  const ctxMap = [
+    ['ctx_market','大盘单边下跌/系统性回撤',20],
+    ['ctx_sector','板块资金净流出/走弱',12],
+    ['ctx_badnews','近期有利空公告/待披露重大事项',15],
+    ['ctx_report','临近财报/业绩预告披露窗口',8],
+    ['ctx_ops','公司经营状况恶化',10],
+    ['ctx_profit','利润同比/环比下滑或转亏',10]
+  ];
+  let ctxPenalty=0; const ctxHits=[];
+  ctxMap.forEach(([id,label,w])=>{ if(chk(id)){ ctxPenalty+=w; ctxHits.push({label,w}); } });
+  if(ctxHits.length){
+    H+='<div class="sect">四·B 情境约束提示（仅提示，不预测涨跌）</div><div class="card">';
+    H+='<div class="note">以下为你勾选的已知不利事实。它们不改变任何价量测算，仅作风险提示。勾选任意一项后，本工具会在「五、今日操作必要性」评分中扣减对应分值。</div>';
+    H+='<ul class="rl">';
+    ctxHits.forEach(c=>{ H+='<li>'+c.label+'（−'+c.w+' 分）</li>'; });
+    H+='</ul><div class="note" style="margin-top:10px">工具仍不预测涨跌、不推荐买卖。情境约束用于提醒：基本面/事件/环境不利时，做T只是技术层面的降本，无法对冲信息不对称与系统性风险。</div></div>';
+  }
 
   /* ---- 5. 必要性评分 + 熔断 ---- */
   if(status){
-    const evPos = true;
-    const ns=core.necessityScore({status,evPositive:evPos,volState:status.volState,pSuccess:psucc});
+    const evPos = evPositive;   // F5：用真实情景 EV 结果，而非硬编码 true
+    const ns=core.necessityScore({status,evPositive:evPos,volState:status.volState,pSuccess:psucc,ctxPenalty});
     const cb=core.circuitBreaker({recentAdviceCount:guard.adviceCount,monthCount:guard.monthCount,baseReductionNow:0,firstReduction:guard.firstReduction});
     H+='<div class="sect">五、今日操作必要性</div><div class="card">';
     H+=`<div class="score"><div style="font-size:24px;font-weight:600;${ns.score<40?'color:var(--red)':(ns.score<70?'color:var(--amber)':'color:var(--green)')}">${ns.score}</div><div class="bar"><i style="width:${ns.score}%;background:${ns.score<40?'var(--red)':(ns.score<70?'var(--amber)':'var(--green)')}"></i></div><span style="font-size:12px;color:var(--ink2)">/100</span></div>`;
@@ -1361,7 +1586,32 @@ function run(){
   H+='<li><b>成本口径存疑</b>：若近期有除权除息而你未确认成本价已调整，全部结果作废，先核对券商App。</li>';
   H+='</ul></div>';
 
+  /* ---- 7. 回本路线图（R7）---- 纯数学时间维度推演，不预测能否达到 */
+  const planMonths = (isFinite(num('planmonths')) && num('planmonths') > 0) ? num('planmonths') : 12;
+  const planSharesR = core.floorLot(shares / 2);
+  const grossRound = planSharesR * price * (tspread / 100);
+  const feeRound = core.calcCost(grossRound, 'sell', rates).total + core.calcCost(grossRound, 'buy', rates).total;
+  const netPerRound = Math.max(0, grossRound - feeRound);
+  const road = core.recoveryRoadmap({ pnl: b.pnl, recoverGain: b.recoverGain, netPerRound, planMonths });
+  H+='<div class="sect">七、回本路线图（纯数学推演，不预测能否达到）</div><div class="card">';
+  H+=`<div class="note">本板块把「回本需涨 ${pc(road.recoverGain)}」换算成时间维度，仅作静态推演——真实路径取决于价格走势，工具不预测涨跌。</div>`;
+  H+=`<div class="kv"><span class="k">当前${b.pnl<0?'浮亏':'浮盈'}绝对值</span><span class="v ${cls(b.pnl)}">${f2(road.pnlAbs)} 元</span></div>`;
+  H+=`<div class="kv"><span class="k">回本需涨（一次性）</span><span class="v">${pc(road.recoverGain)}</span></div>`;
+  H+=`<div class="kv"><span class="k">按月简单均摊（${road.months}月）</span><span class="v">月均 +${pc(road.monthlySimple)}</span></div>`;
+  H+=`<div class="kv"><span class="k">月化复利</span><span class="v">+${pc(road.monthlyCompound)}/月</span></div>`;
+  H+=`<div class="kv"><span class="k">对应年化（复利）</span><span class="v ${road.annualCompound>0.3?'r':''}">+${pc(road.annualCompound)}</span></div>`;
+  if(road.rounds){
+    H+=`<div class="kv"><span class="k">每轮T（半仓）净降本</span><span class="v g">约 ${f2(road.netPerRound)} 元</span></div>`;
+    H+=`<div class="kv"><span class="k">按此节奏回本所需轮次</span><span class="v">约 ${road.rounds} 轮</span></div>`;
+    H+=`<div class="note">「轮次」是假设每轮都能按计划价差完成且不失败的理想计数。真实做T有失败率与踏空损失，实际所需轮次会更多。</div>`;
+  } else {
+    H+=`<div class="note">未生成可行做T情景（当前价差/底仓条件下净降本≤0），无法计入轮次推演。请参考「四、减仓回笼情景」。</div>`;
+  }
+  if(road.annualCompound>0.3) H+='<div class="warnbox">年化所需涨幅超过 30%，意味着当前价格水平下的回本对收益要求极高。请优先重新审视「是否值得继续持有」，而非仅依赖做T降本。</div>';
+  H+='</div>';
+
   $('out').innerHTML = enforceCompliance(H) + banBanner();
+  bumpFreq();   // F4：每次成功测算累加频率计数（跨月自动重置）
   window.scrollTo({top:$('out').offsetTop-10,behavior:'smooth'});
 }
 
