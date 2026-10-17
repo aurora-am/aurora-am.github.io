@@ -98,12 +98,14 @@ details .dbody>input{margin-top:2px}
   <span id="stockName" style="font-size:13px;color:var(--blue);font-weight:500"></span>
   <button type="button" id="fetchBtn" style="width:auto;padding:7px 14px;font-size:13px;margin:0;background:var(--blue)">获取行情</button>
   <button type="button" id="refreshBtn" style="width:auto;padding:7px 14px;font-size:13px;margin:0;background:#fff;color:var(--blue);border:1px solid var(--line)">刷新</button>
+  <button type="button" id="clearBtn" style="width:auto;padding:7px 14px;font-size:13px;margin:0;background:#fff;color:var(--ink2);border:1px solid var(--line)">清空</button>
   <label style="display:inline-flex;align-items:center;gap:5px;margin:0;font-size:12.5px;cursor:pointer">
     <input type="checkbox" id="autoRefresh" style="width:auto;margin:0"> 盘中每 60 秒自动刷新
   </label>
 </div>
 <div id="fetch" class="fetchbox" style="display:none"></div>
-<div class="hint">输入代码 / 名称 / 拼音首字母均可；回车自动解析。取数失败时下方「当前价」可手动填写兜底。</div>
+<div class="hint">输入代码 / 名称 / 拼音首字母均可；回车自动解析。取数失败时下方「当前价」可手动填写兜底。<br>
+输入框内容会保存在本机浏览器，下次打开自动填回；不想保留点「清空」即可清除。</div>
 
 <div class="row" style="margin-top:6px">
   <div><label>当前价（元）<span class="req">*</span></label><input id="price" type="number" step="0.01" placeholder="自动获取，或手动填" inputmode="decimal">
@@ -987,7 +989,10 @@ function bindInputs(){
   if (sg) sg.addEventListener('click', function(e){
     const row = e.target && e.target.closest ? e.target.closest('.sug') : null;
     if (!row) return;
-    codeEl.value = row.getAttribute('data-code');
+    // ⚠️ DOM 属性缺失时会返回 null，直接写会把输入框清成 "null" → 必须校验
+    const dc = toTencentCode(row.getAttribute('data-code') || '');
+    if (!dc) { setFetch({ tone:'r', html:'该条目数据不完整，请重新输入搜索。' }); return; }
+    codeEl.value = dc;
     const nm = $('stockName'); if (nm) nm.textContent = row.getAttribute('data-name') || '';
     hideSugg();
     doFetch();
@@ -999,14 +1004,86 @@ function bindInputs(){
   if (btn) btn.addEventListener('click', function(){ doFetch(); });
   const rb = $('refreshBtn');
   if (rb) rb.addEventListener('click', function(){ doFetch(); });
+  const cb = $('clearBtn');
+  // 与上面保持一致：包一层，避免把事件对象当参数传入任何处理函数
+  if (cb) cb.addEventListener('click', function(){ clearAll(); });
 
-  // 恢复上次输入
-  try {
-    const saved = JSON.parse(localStorage.getItem('ttc_in')||'null');
-    if (saved){ ['code','cost','shares','minbase'].forEach(function(k){
-      const el=$(k); if(el && saved[k]) el.value = saved[k];
-    }); const nm=$('stockName'); if(nm&&saved.name) nm.textContent=saved.name; }
-  } catch(e){}
+  restoreInputs();
+}
+
+/* ============================================================================
+ * 恢复上次输入（localStorage）
+ * ----------------------------------------------------------------------------
+ * ⚠️ 三条铁律（都是踩过坑才加的）：
+ *  ① 回填的 code 必须通过 toTencentCode 校验 —— 不可信来源（localStorage 可能
+ *     被旧版本写入 "[object PointerEvent]" 这类垃圾）绝不能直接塞进输入框。
+ *  ② 发现脏数据要主动清掉，否则每次刷新都重现。
+ *  ③ 回填后必须显式告知用户"这是上次输入"，否则用户会以为是系统随机填的。
+ * ==========================================================================*/
+const LS_KEY = 'ttc_in';
+
+function restoreInputs(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); }
+  catch (e) { try { localStorage.removeItem(LS_KEY); } catch (e2) {} return; }
+  if (!saved || typeof saved !== 'object') return;
+
+  let dirty = false;
+
+  // ① code：必须校验。非法（含 [object X]）→ 丢弃并清库
+  if (saved.code) {
+    const valid = toTencentCode(String(saved.code));
+    if (valid) {
+      const el = $('code'); if (el) el.value = valid;
+      // name 必须与 code 同时有效才回填，否则会出现「代码空、名字有」的错配
+      if (saved.name && !/\[object [A-Za-z]+\]/.test(String(saved.name))) {
+        const nm = $('stockName'); if (nm) nm.textContent = saved.name;
+      }
+    } else {
+      dirty = true;
+    }
+  }
+
+  // ② 数值字段：必须能解析成有限正数，否则丢弃
+  ['cost','shares','minbase'].forEach(function (k) {
+    if (saved[k] === undefined || saved[k] === null || saved[k] === '') return;
+    const n = Number(saved[k]);
+    if (!isFinite(n) || n < 0 || /\[object [A-Za-z]+\]/.test(String(saved[k]))) { dirty = true; return; }
+    const el = $(k); if (el) el.value = saved[k];
+  });
+
+  // ② 脏数据 → 主动清理，避免每次刷新重现
+  if (dirty) {
+    try { localStorage.removeItem(LS_KEY); } catch (e) {}
+    const ss = sessionState();
+    setFetch({ tone:'a', html:
+      '<b>已清除上次残留的无效输入</b><br>'
+      + '检测到本地保存的数据里含有非法值（如事件对象残留），已清空，请重新输入股票代码。<br>'
+      + '当前时段：' + ss.label });
+  } else if (saved.code) {
+    // ③ 明确告知这是"上次输入"，并给清除入口
+    const nm = $('stockName');
+    if (nm && nm.textContent){
+      nm.title = '来自你上次的输入（保存在本机浏览器）';
+    }
+    setFetch({ tone:'n', html:
+      '已载入你上次输入的 <b>' + esc(String(saved.name || '')) + ' ' + esc(String(toTencentCode(saved.code) || '')) + '</b>'
+      + '（保存在本机浏览器）。<br>要查别的股票，直接覆盖上面这一行即可；'
+      + '若想清空，点下面「清空」按钮。' });
+  }
+}
+
+/** 手动清空所有输入与本地缓存 */
+function clearAll(){
+  try { localStorage.removeItem(LS_KEY); } catch (e) {}
+  ['code','cost','shares','minbase','price','closes','vola','drift','volr'].forEach(function (k) {
+    const el = $(k); if (el) el.value = '';
+  });
+  const nm = $('stockName'); if (nm) nm.textContent = '';
+  const ap = $('autoPrice'); if (ap) ap.checked = true;
+  hideSugg();
+  setFetch({ tone:'n', html:'已清空。输入股票代码 / 名称 / 拼音即可自动获取当日最新价。' });
+  const c = $('code'); if (c) c.focus();
 }
 
 /** 输入既非 6 位代码也搜不到时：先尝试当名称解析出唯一结果 */
@@ -1066,11 +1143,23 @@ async function doFetch(explicit){
   await fetchQuote(code);
 }
 
+/** 写入本地缓存
+ *  ⚠️ 只存「已通过校验的规范化代码」。绝不存事件对象、空串或非法值，
+ *     否则会像之前那样每次刷新都把垃圾值回填进输入框。 */
 function saveInputs(){
   try {
-    localStorage.setItem('ttc_in', JSON.stringify({
-      code: $('code').value, name: ($('stockName')||{}).textContent,
-      cost: $('cost').value, shares: $('shares').value, minbase: $('minbase').value
+    const codeRaw = String($('code').value || '').trim();
+    const code = toTencentCode(codeRaw);          // 校验：非法 → null
+    if (!code) { localStorage.removeItem(LS_KEY); return; }   // 非法则清库，不留脏数据
+    const nm = $('stockName');
+    const name = (nm && nm.textContent && !/\[object [A-Za-z]+\]/.test(nm.textContent))
+      ? nm.textContent : '';
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      code: code,
+      name: name,
+      cost: Number($('cost').value) || null,
+      shares: Number($('shares').value) || null,
+      minbase: Number($('minbase').value) || null
     }));
   } catch(e){}
 }
@@ -1340,10 +1429,18 @@ document.addEventListener('DOMContentLoaded', function(){
     bindInputs();
     const ar = $('autoRefresh');
     if (ar) ar.addEventListener('change', scheduleRefresh);
-    // 有存过的代码就自动取一次行情
-    const saved = $('code').value;
-    if (toTencentCode(saved)) { doFetch(toTencentCode(saved)); scheduleRefresh(); }
-    else { const ss = sessionState(); setFetch({ tone:'a', html:'输入股票代码 / 名称 / 拼音即可自动获取当日最新价。当前时段：'+ss.label }); }
+
+    // 回填了合法代码 → 自动取一次行情（用户打开就能看到现价）
+    const saved = toTencentCode($('code').value);
+    if (saved) {
+      doFetch(saved);
+      scheduleRefresh();
+    } else {
+      const ss = sessionState();
+      setFetch({ tone:'a', html:
+        '输入股票代码 / 名称 / 拼音即可自动获取当日最新价。<br>当前时段：' + ss.label
+        + '<br><span style="color:var(--ink3)">若下面输入框已有内容，那是本机浏览器保存的上次输入，可直接覆盖或点「清空」。</span>' });
+    }
   } catch (e) {
     // 初始化失败必须显式暴露，否则表现为"所有按钮都没用"
     const box = $('fetch');
