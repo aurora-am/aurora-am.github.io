@@ -3218,7 +3218,7 @@ function generateAISummary() {
     lvlTxt = '上证关注 MA5 ' + ma(5) + ' / MA20 ' + ma(20) + ' 支撑得失';
   }
 
-  var _dispDay = (typeof LATEST_TRADE_DAY !== 'undefined' && LATEST_TRADE_DAY) || DATA.date || '';
+  var _dispDay = DATA.date || (typeof LATEST_TRADE_DAY !== 'undefined' && LATEST_TRADE_DAY) || '';
   var s = '【' + _dispDay + ' ' + tone + '】';
   s += '上证' + (idx.sh ? idx.sh.chgPct : 0) + '%、深证' + (idx.sz ? idx.sz.chgPct : 0) + '%、创业' + (idx.cyb ? idx.cyb.chgPct : 0) + '%，' + volTxt + '。';
   if (hasBreadth) s += '涨' + br.up + '/跌' + br.down + '家，涨跌比' + br.upDownRatio + '。';
@@ -6656,10 +6656,11 @@ function renderLimitDown() {
 function renderYesterdayPremium() {
   var el = document.getElementById('yesterdayPremiumBox');
   if (!el) return;
-  var hasPrev = !!(EMBEDDED_SNAPSHOT && EMBEDDED_SNAPSHOT[DATA.date] && EMBEDDED_SNAPSHOT[DATA.date].prevLimitUpPool);
+  // Issue 6 根治：历史字段改从 DATA 读取（分片已预计算注入），不再依赖不存在的 EMBEDDED_SNAPSHOT[date]
+  var hasPrev = !!(DATA.prevLimitUpPool);
   var h = '<div class="ml2-sec-h">📊 昨涨停今溢价（上一交易日涨停池 → 今日表现）</div>';
   if (hasPrev) {
-    var p = EMBEDDED_SNAPSHOT[DATA.date].prevLimitUpPool;
+    var p = DATA.prevLimitUpPool;
     h += '<div class="metric-row"><span>样本数</span><span class="fw-bold">' + (p.count || 0) + ' 只</span></div>'
       + '<div class="metric-row"><span>今日平均涨跌幅</span><span class="fw-bold ' + (p.avgChgPct >= 0 ? 'text-red' : 'text-green') + '">' + (p.avgChgPct != null ? (p.avgChgPct >= 0 ? '+' : '') + p.avgChgPct + '%' : '-') + '</span></div>'
       + '<div class="metric-row"><span>红盘率</span><span class="fw-bold">' + (p.redRatio != null ? p.redRatio + '%' : '-') + '</span></div>';
@@ -6672,10 +6673,11 @@ function renderYesterdayPremium() {
 function renderPromoteHistory() {
   var el = document.getElementById('promoteHistoryBox');
   if (!el) return;
-  var hasHist = !!(EMBEDDED_SNAPSHOT && EMBEDDED_SNAPSHOT[DATA.date] && EMBEDDED_SNAPSHOT[DATA.date].promoteHistory);
+  // Issue 6 根治：历史字段改从 DATA 读取（分片已预计算注入），不再依赖不存在的 EMBEDDED_SNAPSHOT[date]
+  var hasHist = !!(DATA.promoteHistory && DATA.promoteHistory.length);
   var h = '<div class="ml2-sec-h">🔁 晋级率历史（N 进 N+1 近 20 日成功率）</div>';
   if (hasHist) {
-    var ph = EMBEDDED_SNAPSHOT[DATA.date].promoteHistory;
+    var ph = DATA.promoteHistory;
     h += '<div class="table-wrap"><table class="data-table"><thead><tr><th>晋级梯度</th><th>成功 / 样本</th><th>成功率</th></tr></thead><tbody>';
     ph.forEach(function (r) {
       h += '<tr><td>' + r.from + '进' + r.to + '</td><td>' + (r.success || 0) + ' / ' + (r.total || 0) + '</td><td class="' + (r.rate >= 50 ? 'text-red' : 'text-green') + '">' + (r.rate != null ? r.rate + '%' : '-') + '</td></tr>';
@@ -8232,6 +8234,12 @@ function applyPayload(res) {
   } else {
     try { buildSectorsFromLimitUp(); } catch (e) {}
   }
+
+  // Issue 6 根治：历史晋级率 / 昨涨停溢价在分片内已预计算（buildLimitUpHistory），直接注入 DATA。
+  // ⚠️ 必须放在 if/else 之外——原代码误置在 else 分支，导致「有题材板块的交易日」永远进不了这段，
+  //    DATA.promoteHistory / DATA.prevLimitUpPool 恒为 undefined → 战法阁两块历史面板长期空显。
+  if (d.promoteHistory) DATA.promoteHistory = d.promoteHistory;
+  if (d.prevLimitUpPool) DATA.prevLimitUpPool = d.prevLimitUpPool;
   // 由真实板块主力净流派生 Top5（保证资金流向页 Top5 与快照/实时一致）
   if (hasRealSectorFlow()) {
     var _sf = DATA.sectorFlow.slice().sort(function (a, b) { return b.netInflow - a.netInflow; });
