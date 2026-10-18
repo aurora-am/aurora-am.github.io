@@ -23,7 +23,8 @@
 html,body{margin:0;padding:0;background:var(--bg-grad);background-attachment:fixed;color:var(--fg);
   font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
 body{padding-bottom:40px}
-main{max-width:860px;margin:0;padding:12px}
+/* ⚠️ margin 必须是 0 auto：原来写 margin:0，大屏上整个面板贴左边缘、右侧空一大片 */
+main{max-width:860px;margin:0 auto;padding:12px}
 section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
   padding:16px 18px;margin:14px 0;box-shadow:var(--shadow);backdrop-filter:blur(6px)}
 h2{font-size:14px;color:var(--dim);font-weight:700;margin:0 0 12px;letter-spacing:.5px;
@@ -93,14 +94,17 @@ ul.whyList li{margin:2px 0;font-size:13px;color:var(--warn)}
 .sh-tag.bad{background:var(--red-light,#fde8e8);color:#c0392b;border:1px solid rgba(227,77,89,.45)}
 
 canvas{width:100%;display:block;border-radius:10px;background:#fff;border:1px solid var(--line);
-  touch-action:none;box-shadow:var(--shadow)}
+  /* ⚠️ 原为 touch-action:none —— 手机上手指落在 360px 高的图表上无法上下滑动页面，
+     而图表本身并没有任何触摸手势功能（只有 pointermove 十字光标）。
+     改为 pan-y：保留垂直滚动手势给页面，横向仍可拖动看十字光标。 */
+  touch-action:pan-y;box-shadow:var(--shadow)}
 
 /* 记录 */
 #logList{max-height:280px;overflow:auto;font-size:13px}
 .logi{border-bottom:1px solid var(--line);padding:7px 0;font-variant-numeric:tabular-nums}
 .logi:last-child{border-bottom:0}
 .logi .lt{color:var(--dim);font-size:12px}
-footer{max-width:860px;margin:16px 0 0;padding:0 12px;color:var(--dim);font-size:12.5px}
+footer{max-width:860px;margin:16px auto 0;padding:0 12px;color:var(--dim);font-size:12.5px}
 footer ul{margin:6px 0 0 18px;padding:0}
 footer li{margin:3px 0}
 .banner{background:var(--red-light,#fde8e8);border:1px solid rgba(227,77,89,.35);border-radius:10px;
@@ -145,6 +149,19 @@ footer li{margin:3px 0}
 .big{letter-spacing:-.5px}
 section{transition:box-shadow .2s}
 section:hover{box-shadow:var(--shadow-hover)}
+
+/* ⚠️ #eventBar 在 <main> 之外，原文件只有窄屏(165)与打印(187)两条覆盖，
+   没有任何基础样式 —— 顶栏文字会紧贴视口左上角 0px，
+   且 ebClock 的 margin-left:auto 在非 flex 父元素上无效、时钟不会靠右。
+   打印规则 position:static 也是在覆盖一个不存在的属性（纯死代码）。 */
+#eventBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  max-width:860px;margin:0 auto;padding:8px 12px;
+  background:var(--card);border:1px solid var(--line);border-radius:0 0 var(--radius) var(--radius);
+  font-size:12.5px;box-shadow:var(--shadow)}
+#eventBar .eb-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+#eventBar .eb-name{font-weight:700;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 时钟靠右由它自己的行内 margin-left:auto 完成（它位于 .eb-top 内部），
+   这里只保证容器是 flex 且允许收缩，避免长事件名把时钟挤出屏幕 */
 
 /* 窄屏（手机 / 侧栏展开的工作台） */
 @media (max-width:640px){
@@ -217,9 +234,16 @@ section:hover{box-shadow:var(--shadow-hover)}
       <div style="flex:1;display:flex;align-items:flex-end"><button class="primary" id="loadBtn" style="width:100%">加载</button></div>
     </div>
     <div class="row" style="margin-top:8px">
-      <div><label for="costInput">成本价（元）</label><input id="costInput" inputmode="decimal" placeholder="选填"></div>
+    <div><label for="costInput">成本价（元）</label><input id="costInput" inputmode="decimal" placeholder="选填"></div>
       <div><label for="sharesInput">股数</label><input id="sharesInput" inputmode="numeric" placeholder="选填"></div>
-      <div><label for="stopInput">止损价（元）</label><input id="stopInput" inputmode="decimal" placeholder="选填"></div>
+   <div><label for="stopInput">止损价（元）</label><input id="stopInput" inputmode="decimal" placeholder="选填"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div><label for="sellableInput">可卖底仓（股 · T+1）</label><input id="sellableInput" inputmode="numeric" placeholder="留空 = 全部可卖"></div>
+      <div class="dim" style="font-size:11.5px;align-self:flex-end;padding-bottom:6px">
+   A股 T+1：当日新买的股票当天不可卖。<b>正T 必须有老仓才能「买后卖等量」</b>，
+        若你今天大部分是刚买的，请把昨日及之前的持股数填进来，否则工具会按总股数给建议、而你根本卖不出来。
+      </div>
     </div>
 
     <div class="io mini" style="margin-top:8px">
@@ -275,23 +299,23 @@ section:hover{box-shadow:var(--shadow-hover)}
     <div class="netbar" id="netBar"></div>
   </section>
 
-  <section>
+  <section id="chartSection">
     <h2>分时图（价格 / 均价 / MA5·MA10 / 成交量）</h2>
     <canvas id="chart" height="360"></canvas>
     <div class="dim" style="font-size:12px;margin-top:6px" id="chartNote"></div>
   </section>
 
-  <section>
+  <section id="signalSection">
     <h2>信号明细（5分 / 15分 / 30分）</h2>
     <div id="signalsBox"></div>
   </section>
 
-  <section>
+  <section id="tplanSection">
     <h2>做T参考位</h2>
     <div id="tplanBox"></div>
   </section>
 
-  <section>
+  <section id="trackSection">
     <h2>今日做T战绩</h2>
     <div id="trackBox"><div class="nosig">完成第一笔做T后，这里会自动累计胜率与净收益——这是检验「做T到底划不划算」的硬证据。</div></div>
   </section>
@@ -301,14 +325,14 @@ section:hover{box-shadow:var(--shadow-hover)}
     <div id="posBox"></div>
   </section>
 
-  <section>
+  <section id="logSection">
     <h2>信号记录</h2>
     <div class="dim" style="font-size:12.5px">每次点「记录当前信号」都会存一条。事后用真实数据算胜率——这是判断规则是否有效的唯一依据。</div>
     <div id="logList" style="margin-top:8px"></div>
     <div class="dim" style="font-size:12.5px;margin-top:6px" id="logNote"></div>
   </section>
 
-  <section>
+  <section id="bandSection">
     <h2>📈 日线波段扫描（金叉 / 止跌 → 波段机会）</h2>
     <div class="dim" style="font-size:12.5px;margin-bottom:8px">
       扫描日线 MACD：<b>已金叉 ✅</b>（可建底仓持有）｜<b>止跌信号 🔔</b>（底部区域 + DIF 上拐 + 绿柱缩短，<b>领先金叉 1~3 天</b>提前提示，应对 MACD 滞后）｜<b>逼近金叉 ⚡</b>。
@@ -338,7 +362,9 @@ section:hover{box-shadow:var(--shadow-hover)}
   <ul>
     <li>底仓不动——做T只用 T 仓，不交出底仓</li>
     <li>当日必须归位——当天买了的当天卖回，不留过夜敞口</li>
-    <li>尾盘无条件补齐——14:57 前没接回就按纪律补齐</li>
+    <li>尾盘无条件补齐——<b>14:45</b> 前没接回就按纪律补齐（这个时间是 CFG.T_LAST_OPEN_HM，
+      与页面上的"距归位线"倒计时同源；早于此补齐能留出尾盘流动性不足时的余量，
+      留到 14:57 再动常常已经滑不进理想价格）</li>
   </ul>
   <b>事件预期豁免层（当前状态见页首）</b>
   <ul>
@@ -393,6 +419,26 @@ const r1 = (x) => Math.round(x * 10) / 10;
 const r2 = (x) => Math.round(x * 100) / 100;
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+/* 涨跌幅限制（按板块 + ST 状态）。
+   ⚠️ 优先用接口给的涨停价/跌停价反推——那是交易所的真实口径，含 ST 与新股特殊处理；
+   反推不出来才按代码段兜底。写死单一数值（如 9.5%）会让创业板/科创板/北交所/ST 全部误判：
+   创业板涨 10% 被误判「接近涨停」而封锁做T，ST 股真跌到 -4.8% 反而不会封锁。 */
+function limitPctOf(q) {
+  if (!q) return null;
+  const pc = Number(q.prevClose);
+  if (!(pc > 0)) return null;
+  const up = Number(q.limitUp), dn = Number(q.limitDown);
+  if (up > 0) { const p = (up - pc) / pc; if (isFinite(p) && p > 0) return p; }
+  if (dn > 0) { const p = (pc - dn) / pc; if (isFinite(p) && p > 0) return p; }
+  const code = String(q.code || '');
+  const name = String(q.name || '');
+  if (/ST|退/i.test(name)) return 0.05;          // 覆盖 ST / *ST / 退市整理
+  const digits = code.replace(/\D/g, '');
+  if (/^(30|68)/.test(digits)) return 0.20;               // 创业板 / 科创板
+  if (/^(43|83|87|92)/.test(digits)) return 0.30;         // 北交所
+  return 0.10;                                   // 沪主板 / 深主板
+}
+
 const CN_OFFSET = 8 * 3600 * 1000;                       // 坑四：中国日期必须补 8 小时
 function toCN(dateStr) { return new Date(new Date(dateStr + 'T00:00:00Z').getTime() + CN_OFFSET); }
 function daysBetween(fromStr, toStr) { return Math.round((toCN(toStr) - toCN(fromStr)) / 86400000); }
@@ -406,12 +452,19 @@ function tradingMinsElapsed(hhmm) {
   if (!hhmm) return CFG.FULL_DAY_MINS;
   const m = (t) => parseInt(t.slice(0, 2), 10) * 60 + parseInt(t.slice(2), 10);
   const OPEN = m('0930'), AM_END = m('1130'), PM_OPEN = m('1300'), CLOSE = m('1500');
-  const now = m(hhmm);
-  if (now <= OPEN) return 1;                    // 刚开盘，兜底避免除零
+  const s = String(hhmm);
+  // ⚠️ 必须校验格式：q.time 的取法是 String(q.time).slice(8,12)，
+  // 接口字段缺失或格式变化时会切出 '' / 'abc' / '10:3' 这类垃圾，
+  // parseInt 得 NaN，而 NaN 参与全部比较恒为 false → 直接落到最后一行 `120 + NaN` = NaN，
+  // 接着量比也变 NaN，页面显示成"NaN 倍"。这里钳到合法区间，绝不放 NaN 出去。
+  if (!/^\d{4}$/.test(s)) return CFG.FULL_DAY_MINS;
+  const now = m(s);
+  if (!isFinite(now)) return CFG.FULL_DAY_MINS;
+  if (now <= OPEN) return 1;      // 刚开盘，兜底避免除零
   if (now >= CLOSE) return CFG.FULL_DAY_MINS;
   if (now <= AM_END) return now - OPEN;         // 09:31→1 … 11:30→120
-  if (now < PM_OPEN) return 120;                // 午休
-  return 120 + (now - PM_OPEN);                 // 13:00→120 … 15:00→240
+  if (now < PM_OPEN) return 120;             // 午休
+  return 120 + (now - PM_OPEN);      // 13:00→120 … 15:00→240
 }
 function isTradingTime() {
   const d = new Date(Date.now() + CN_OFFSET);
@@ -635,9 +688,15 @@ function engineOf(parts) {
 /* 坑五：必须多段枚举。「差值 > 0 就算进行中」那种写法在这里会把未来事件判成已开始 */
 function phaseOf(ev, today) {
   if (!ev || !ev.startDate || !ev.endDate) return { phase: 'noevent' };
+  // ⚠️ 区间填反的对象（currentEvent 返回的 __invalid）没有合法 startDate/endDate 语义，
+  // 必须按「无事件」处理，否则 daysBetween 会算出负天数落到 after 分支，
+  // 让人误以为"事件已结束、豁免已解除"。
+  if (ev.__invalid) return { phase: 'noevent', invalid: true };
   if (ev.cancelled) return { phase: 'cancelled' };
   const toStart = daysBetween(today, ev.startDate);
   const toEnd = daysBetween(today, ev.endDate);
+  // 兜底：日期非法导致 NaN 时也按无事件处理，不能让 NaN 静默穿透
+  if (!isFinite(toStart) || !isFinite(toEnd)) return { phase: 'noevent', invalid: true };
   if (toStart > 0) return { phase: 'expect', days: toStart, nature: ev.nature };
   if (toEnd >= 0) return { phase: 'live', days: toEnd, nature: ev.nature };
   return { phase: 'after' };
@@ -711,13 +770,16 @@ function tContext(q, dayBars, engineNet, hhmm) {
 }
 
 /* 主引擎。返回 { state, main, alt, why[], ctx } ——只给一个主方向 */
-function tPlan(q, minutes, dayBars, engineNet, hhmm, on, posture, hasPosition) {
+function tPlan(q, minutes, dayBars, engineNet, hhmm, on, posture, hasPosition, t1, tSize) {
   const out = { state: 'idle', main: null, alt: null, why: [], ctx: null, ok: false };
   if (!q || !q.vwap || !q.price) { out.why.push('行情未就绪'); return out; }
   const c = tContext(q, dayBars, engineNet, hhmm);
   out.ctx = c;
   const P = posture || { key: 'normal', note: '' };
   const rounding = (x) => r2(x);
+  // T+1 / T 仓规模：缺省时保持旧行为（全部可卖、1/3 仓位）
+  const T1 = t1 || t1Gate(0, null, null);
+  const SIZE = tSize || tSizeCap(0, null, CFG.T_SIZE_FRAC);
 
   // ---- 先判「今天能不能做」----
   const trading = isTradingTime();
@@ -729,9 +791,14 @@ function tPlan(q, minutes, dayBars, engineNet, hhmm, on, posture, hasPosition) {
       + '扣掉往返成本 ' + CFG.COST_ROUNDTRIP + '% 只剩 ' + r1(netTarget) + '%，不到 ' + CFG.T_MIN_NET
       + '% —— 这只票现在的空间不值得做T');
   }
-  if (q.prevClose && Math.abs(q.price - q.prevClose) / q.prevClose > 0.095) {
+// ⚠️ 涨跌停幅度必须按板块取，不能一律写死 9.5%：
+  // 主板 ±10%、创业板/科创板 ±20%、北交所 ±30%、ST ±5%。
+  // 写死主板口径会导致两类错判：创业板涨 10% 被误判「接近涨停」而封锁做T；
+  // ST 股真跌到 -4.8%（离跌停只差 0.2%）反而不会封锁。
+  const lim = limitPctOf(q);
+  if (q.prevClose && isFinite(lim) && lim > 0 && Math.abs(q.price - q.prevClose) / q.prevClose > lim - 0.005) {
     out.state = 'blocked';
-    out.why.push('已接近涨跌停，流动性单向（涨停买不到、跌停卖不出），不适合做T');
+  out.why.push('已接近涨跌停（该股涨跌幅限制 ' + r1(lim * 100) + '%），流动性单向（涨停买不到、跌停卖不出），不适合做T');
   }
   if (!trading) out.why.push('当前非交易时段，下面是按最新价算的次日计划，开盘后以实时价为准');
   if (c.minsLeft <= 0) {
@@ -741,7 +808,15 @@ function tPlan(q, minutes, dayBars, engineNet, hhmm, on, posture, hasPosition) {
     out.why.push('距 ' + CFG.T_LAST_OPEN_HM.slice(0, 2) + ':' + CFG.T_LAST_OPEN_HM.slice(2)
       + ' 只剩 ' + c.minsLeft + ' 分钟，不够走完一个来回');
   }
-  if (!hasPosition) out.why.push('没填股数：做T必须有底仓（正T靠卖出老仓、反T靠先卖后买），填上股数才能给T仓建议');
+if (!hasPosition) out.why.push('没填股数：做T必须有底仓（正T靠卖出老仓、反T靠先卖后买），填上股数才能给T仓建议');
+  // ⚠️ T+1 硬闸门：可卖底仓为 0 时必须直接封锁，不能只提示。
+  // 只提示仍会往下走到方向计算、给出买卖点，而正T 的卖出腿根本不存在 → 会变成无法执行的建议。
+  if (hasPosition && T1 && T1.ok === false) {
+  out.state = 'blocked';
+    out.why.push(T1.reason);
+  } else if (hasPosition && T1 && T1.reason) {
+    out.why.push(T1.reason);
+  }
 
   // 硬闸门命中就直接结束，不再算方向 ——
   // 否则「振幅不足」会被后面算出来的方向覆盖成 buy-zone/sell-zone，
@@ -764,6 +839,17 @@ function tPlan(q, minutes, dayBars, engineNet, hhmm, on, posture, hasPosition) {
 
   const vup = rounding(c.vwap * (1 + c.need / 100));
   const vdn = rounding(c.vwap * (1 - c.need / 100));
+
+  // ⚠️ 兜底防护：tContext 依赖 q.high/q.low/q.prevClose/q.vwap，
+  // 接口字段缺失时 need 会是 NaN（Math.max(NaN,x) === NaN），
+  // 而 NaN 参与全部比较恒为 false → 会一路穿到「涨到 NaN」这种输出。
+  // 这里必须显式判掉，不能指望上游一定给全字段。
+  if (!isFinite(c.need) || !isFinite(c.devNow) || !isFinite(c.vwap) || c.vwap <= 0) {
+    out.state = 'nospace';
+    out.why.push('行情字段不完整（' + (isFinite(c.need) ? '' : '参考振幅 ')
+      + (!isFinite(c.vwap) ? '均价' : '') + (isFinite(c.need) && isFinite(c.vwap) ? '偏离' : '') + '无法计算），不做T推演');
+    return out;
+  }
 
   if (dir === '反T') {
     // 卖出腿用现价（已经在均价线上方偏离够了），回补目标就是均价线
@@ -801,27 +887,110 @@ function tPlan(q, minutes, dayBars, engineNet, hhmm, on, posture, hasPosition) {
   if (noSellT.length && dir !== '反T') out.why.push('暂不做反T：' + noSellT.join('；'));
 
   // ---- T 仓规模与时间窗口 ----
-  const size = CFG.T_SIZE_FRAC;
+  // ⚠️ 规模必须受 T+1 可卖底仓约束，不能只看「总持仓的 1/3」：
+  // 当日新买的部分今天卖不出，而正T/反T 都要先卖出。
+  const size = SIZE && SIZE.shares != null ? SIZE.shares : Math.floor((hasPosition ? q.shares || 0 : 0) * CFG.T_SIZE_FRAC);
   out.sizing = size;
+  out.t1 = T1;
+  out.tSize = SIZE;
+  // T 仓为 0（可卖不足 1 手 / 持股不足 1 手）时必须显式说明，否则「0 股以内」会被读成笔误
+  if (out.main && size <= 0) {
+    out.why.push('T 仓规模为 0 股：可动用的底仓不足 1 手（100 股），做T 会被最小交易单位卡死，本日不建议动手');
+  }
+  if (out.main && SIZE && SIZE.capBy === 'base' && SIZE.byFrac > SIZE.byBase) {
+    out.why.push('T 仓按 T+1 可卖底仓 ' + SIZE.byBase + ' 股封顶（总仓位 1/3 是 '
+      + SIZE.byFrac + ' 股，但可卖的只有 ' + SIZE.byBase + ' 股，取更小者）');
+  }
   out.ok = !!out.main;
   return out;
 }
 
 /* ======================= 九、持仓数字（先算清真实数字） ======================= */
+
+/* T+1 可卖底仓闸门 —— 决定 T 仓到底能做多大。
+   ⚠️ 为什么必须单独算：A股 T+1 下「持股数」≠「可卖数」。今天新买的部分今天卖不出，
+     而正T 的定义就是「当日买入 + 卖出等量老仓」，反T 也要先卖掉。
+     若把可卖量错当成总持仓，工具给出的 T 仓规模可能数倍于你实际能动的量。
+   sellableBase 为空 = 假设全部可卖（今日未新买），保持原行为。 */
+function t1Gate(shares, sellableBase, dir) {
+  if (!(shares > 0)) return { ok: false, allowed: 0, reason: '没填股数' };
+  // ⚠️ 必须显式判 null/undefined，不能用 !(x >= 0)：
+  //   JS 里 null >= 0 是 true、undefined >= 0 是 false，
+  //   前者会让「未填可卖底仓」被当成"可卖 0 股"→ 今天直接被封锁做T（正好和意图相反）。
+  const hasBase = !(sellableBase === null || sellableBase === undefined || sellableBase === '');
+  // 未填可卖底仓 → 退化为「全部可卖」，并在结果里标明这是默认假设
+  if (!hasBase) {
+    return { ok: true, allowed: shares, assumed: true,
+      reason: '未填可卖底仓，按全部持仓可卖计算（若今日有新买入，请填写昨日及之前的持股数）' };
+  }
+  const nBase = Number(sellableBase);
+  // ⚠️ 填了但不是数字（如 "abc"）同样按未填处理，而不是当 0 封锁
+  if (!isFinite(nBase)) {
+    return { ok: true, allowed: shares, assumed: true,
+      reason: '可卖底仓填的是「' + sellableBase + '」，不是数字，已按全部持仓可卖计算' };
+  }
+  const base = Math.floor(nBase);
+  if (base <= 0) {
+    return { ok: false, allowed: 0, reason: '可卖底仓为 0：T+1 下当日新买部分不可卖，今天做不了T' };
+  }
+  if (base > shares) {
+    return { ok: true, allowed: shares, assumed: false,
+      reason: '可卖底仓 ' + base + ' 股 大于总持股 ' + shares + ' 股，已按总持股计' };
+  }
+  return { ok: true, allowed: base, assumed: false,
+    reason: 'T+1 可卖 ' + base + ' 股（总持股 ' + shares + ' 股，其中 ' + (shares - base) + ' 股为当日新买、今天不可卖）'
+      + (dir === '正T' ? '；正T 是「当日买入 + 卖出等量老仓」，卖出腿受这个数约束' : '；反T 的卖出腿受这个数约束') };
+}
+
+/* T 仓规模：同时受「可卖底仓」与「总仓位的 1/3」两条约束，取更小者。
+   这是修 1498 行那个 bug——原来直接用总持仓算 T 仓，
+   今天大比例新买时会给出超出实际可卖量的建议。 */
+function tSizeCap(shares, sellableBase, frac) {
+  const f = (frac == null) ? CFG.T_SIZE_FRAC : frac;
+  const byFrac = Math.floor((shares || 0) * f / 100) * 100;
+  // ⚠️ 同 t1Gate：null >= 0 为 true，用 !(x >= 0) 判「未填」会把 null 误当成可卖 0 股，
+  // 结果 T 仓直接被压成 0 —— 未填时本应保持原有的 1/3 分档行为。
+  const hasBase = !(sellableBase === null || sellableBase === undefined || sellableBase === '');
+  const nBase = Number(sellableBase);
+  if (!hasBase || !isFinite(nBase)) return { shares: byFrac, capBy: 'frac', byFrac: byFrac, byBase: null };
+  const byBase = Math.floor(nBase / 100) * 100;
+  return {
+    shares: Math.max(0, Math.min(byFrac, byBase)),
+    capBy: byBase < byFrac ? 'base' : 'frac',
+    byFrac: byFrac, byBase: byBase,
+  };
+}
+
 function positionMath(cost, shares, price, stop) {
   if (!cost || !shares || !price) return null;
+  // ⚠️ 输入卫生：负数成本 / 非整手股数 / 止损高于成本，任何一个都会让下面的
+  // pnl、needPct、risk 变成误导性的数字。原实现是裸 parseFloat，负数会原样进入计算。
+  const bad = [];
+  if (!(cost > 0)) bad.push('成本价必须为正数');
+  if (!(shares > 0)) bad.push('股数必须为正整数');
+  else if (shares % 100 !== 0) bad.push('股数 ' + shares + ' 不是 100 整数倍，A 股最小交易单位为 100 股');
+  if (stop != null && !(stop > 0)) bad.push('止损价必须为正数');
+  else if (stop != null && stop >= cost) bad.push('止损价 ' + stop + ' 高于或等于成本价 ' + cost + '，止损会立即触发');
   const pnl = (price - cost) * shares;
   const plan = (extra) => {
     const total = shares + extra;
     const newCost = (cost * shares + price * extra) / total;
     return {
       label: extra === 0 ? '不加仓' : (extra >= shares ? '加满（等量）' : '加一部分（半量）'),
-      extra: extra, newCost: r2(newCost), needPct: r1((newCost / price - 1) * 100),
+  extra: extra, newCost: r2(newCost), needPct: r1((newCost / price - 1) * 100),
       risk: stop ? Math.round((stop - price) * total) : null,
     };
   };
+  // ⚠️ 三档会重复：shares=50 时 round(50/2/100)=0 → 第2档 extra=0 与第1档完全相同；
+  //   shares=100 时第2档 extra=100 与第3档相同。重复行会被读成"两个一样的方案"，
+  //   这里按 extra 去重，并对不足半仓的极端小持仓给出说明。
+  const half = Math.floor(shares / 2 / 100) * 100;
+  const plans = [plan(0)];
+  const seen = { '0': true };
+  if (half > 0 && !seen[half]) { plans.push(plan(half)); seen[half] = true; }
+  if (shares !== half && !seen[shares]) { plans.push(plan(shares)); seen[shares] = true; }
   return { pnl: Math.round(pnl), pnlPct: r2((price / cost - 1) * 100), cost: cost, shares: shares,
-    plans: [plan(0), plan(Math.round(shares / 2 / 100) * 100), plan(shares)] };
+    plans: plans, bad: bad };
 }
 
 /* 放量加速：催化型事件进行中时，唯一由技术面夺回判断权的情形 */
@@ -829,7 +998,14 @@ function accelOf(q, dayBars) {
   if (!q || !dayBars || dayBars.length < 6) return false;
   const avg5 = avg(dayBars.slice(-6, -1).map(b => b.vol)) || 0;
   if (!avg5) return false;
-  return ((q.vol || 0) / avg5) >= CFG.ACCEL_VOL && (q.chgPct || 0) >= CFG.ACCEL_CHG;
+  // ⚠️ 必须做时间折算：q.vol 是【今日累计】量，avg5 是【过去 5 日全天】量。
+  // 直接相除在 10:00 几乎不可能达到 ACCEL_VOL=1.8，等于把放量检测推迟到尾盘。
+  // 口径对齐 analyze() 里的量比折算：同样除以全天进度。
+  const hhmm = q.time ? String(q.time).slice(8, 12) : '';
+  const elapsed = tradingMinsElapsed(hhmm);
+  const projected = (elapsed > 0 && isFinite(elapsed))
+    ? (q.vol / elapsed) * CFG.FULL_DAY_MINS : (q.vol || 0);
+  return (projected / avg5) >= CFG.ACCEL_VOL && (q.chgPct || 0) >= CFG.ACCEL_CHG;
 }
 
 /* ======================= 十、组装一次完整判断 ======================= */
@@ -844,26 +1020,33 @@ function analyze(input) {
   const per30 = scorePeriod(input.k30, 'm30');
   const eng = engineOf([per5, per15, per30]);
   const ex = applyExemption(eng.advice, on);
-  // 做T引擎要吃「周期信号的方向」和「现在几点」，才能给出这一刻该做哪个方向
+// 做T引擎要吃「周期信号的方向」和「现在几点」，才能给出这一刻该做哪个方向
+  const hasPos = !!(input.shares && input.shares > 0);
+  // T+1 可卖底仓闸门：决定正反T 的卖出腿最多能动多少（未填 = 全部可卖）
+  const t1 = t1Gate(input.shares, input.sellable, null);
+  const tSize = tSizeCap(input.shares, input.sellable, CFG.T_SIZE_FRAC);
   const plan = tPlan(q, input.minutes, dayBars, eng.net,
-    input.nowHM || nowHHMM(), on, posture, !!(input.shares && input.shares > 0));
+ input.nowHM || nowHHMM(), on, posture, hasPos, t1, tSize);
   const pos = positionMath(input.cost, input.shares, q && q.price, input.stop);
 
-  // 量比：坑二，按时间进度折算；时间用时间戳推，不用数据点个数
+// 量比：坑二，按时间进度折算；时间用时间戳推，不用数据点个数
   let pace = null;
   if (q && q.vol && dayBars && dayBars.length >= 6) {
     const hhmm = q.time ? String(q.time).slice(8, 12) : '';
-    const elapsed = tradingMinsElapsed(hhmm);
+  const elapsed = tradingMinsElapsed(hhmm);       // 已保证不会返回 NaN
     const avg5Full = avg(dayBars.slice(-6, -1).map(b => b.vol)) || 0;
-    pace = {
-      naive: r2(avg5Full ? q.vol / avg5Full : 0),
-      adjusted: r2(avg5Full ? (q.vol / elapsed) / (avg5Full / CFG.FULL_DAY_MINS) : 0),
+    // ⚠️ 分母为 0 或 elapsed 异常时不能输出 NaN，统一退回"未开盘/无成交量"标记
+    const adjusted = (avg5Full > 0 && elapsed > 0)
+      ? (q.vol / elapsed) / (avg5Full / CFG.FULL_DAY_MINS) : null;
+ pace = {
+      naive: avg5Full > 0 ? r2(q.vol / avg5Full) : null,
+      adjusted: adjusted == null ? null : r2(adjusted),
       elapsed: elapsed,
     };
   }
   return { phase: ph, phaseLabel: PHASE_LABEL[ph.phase], phaseClass: PHASE_CLASS[ph.phase],
     exemption: on, accel: accel, posture: posture, engine: eng, final: ex,
-    plan: plan, position: pos, pace: pace, q: q };
+    plan: plan, position: pos, pace: pace, t1: t1, tSize: tSize, q: q };
 }
 
 /* ======================= 十·甲、日线级别：金叉 / 止跌 → 波段机会 =======================
@@ -914,11 +1097,18 @@ function dailyBandSignal(dayBars, q) {
   // 领先信号：MACD 滞后，所以底部区域 + DIF 上拐 + 绿柱缩短 就在金叉前 1~3 天提示
   const reversal = !goldNow && ctx === '底部区域' && up && histShrink;
   const near = !goldNow && !reversal && up && histShrink;
-  const low20 = Math.min.apply(null, dayBars.slice(-20).map(function (b) { return b.low; }));
-  const high60 = Math.max.apply(null, dayBars.slice(-60).map(function (b) { return b.high; }));
+  const lows20 = dayBars.slice(-20).map(function (b) { return b.low; }).filter(function (v) { return isFinite(v) && v > 0; });
+  const highs60 = dayBars.slice(-60).map(function (b) { return b.high; }).filter(function (v) { return isFinite(v) && v > 0; });
+  // ⚠️ 空数组时 Math.min.apply 返回 Infinity，会把止损位渲染成 "Infinity"。
+  // 这里过滤无效值后再取极值，取不到就返回 null（UI 已有"需补数据"分支）。
+  const low20 = lows20.length ? Math.min.apply(null, lows20) : null;
+  const high60 = highs60.length ? Math.max.apply(null, highs60) : null;
   const cost = q && q.cost;
-  const stop = cost ? Math.min(r2(cost * 0.95), r2(low20)) : r2(low20);
-  const target = r2(high60);
+  // 止损口径：以成本为锚优先（成本×0.95 是「亏5%认错」的纪律线），
+  // 成本缺失才退回近20日最低。原实现取 Math.min(两者)，实际是"谁低用谁"，
+  // 与页面上"成本价 ×0.95 优先"的说明不符 —— 文档与行为必须一致。
+  const stop = cost ? r2(cost * 0.95) : (low20 == null ? null : r2(low20));
+  const target = high60 == null ? null : r2(high60);
   let strength = 0, advice = '', reason = '';
   if (gold) {
     strength = 3;
@@ -972,7 +1162,7 @@ const LS = (function () {
 /* ======================= 十二、状态 ======================= */
 const S = {
   code: '', q: null, minutes: [], dayBars: [], k5: [], k15: [], k30: [],
-  result: null, loading: false, timer: null, hover: null,
+  result: null, loading: false, scanning: false, timer: null, hover: null,
 };
 
 /* ======================= 十三、DOM ======================= */
@@ -1005,7 +1195,9 @@ function setText(id, t) { const el = $(id); if (el) el.textContent = t; }
 function showErr(msg) {
   const b = $('errBox');
   if (!b) return;
-  b.innerHTML = msg ? '<div class="err">' + esc(msg) + '</div>' : '';
+  // ⚠️ 保留换行：多行提示（如"哪些数据缺失"）压成一行会看不清条目。
+  // 仍然走 esc()，只把 \n 转成 <br>，不引入 HTML 注入面。
+  b.innerHTML = msg ? '<div class="err">' + esc(msg).replace(/\n/g, '<br>') + '</div>' : '';
 }
 
 /* 事件从页面读。四个字段任意缺失 → 当成没绑事件，豁免层不生效（见技能 §7.2 的 noevent） */
@@ -1015,13 +1207,20 @@ function currentEvent() {
   const endDate = ($('evEnd') || {}).value || '';
   const nature = ($('evNature') || {}).value || '催化';
   if (!name.trim() || !startDate || !endDate) return null;
-  if (endDate < startDate) return null;                  // 起止填反了就当没绑，别算出负天数
+  // ⚠️ 起止填反不能静默当"没绑事件"：那会让用户以为豁免层还在生效，
+  // 实际是失效的 —— 明明有催化却按无催化给出仓位意见，且界面毫无提示。
+  // 这里给出明确原因，由调用方展示。
+  if (endDate < startDate) {
+    return { __invalid: '结束日（' + endDate + '）早于开幕日（' + startDate + '），事件区间无效，豁免层未生效' };
+  }
   return { name: name.trim(), startDate: startDate, endDate: endDate, nature: nature };
 }
 function renderEventSummary() {
   const ev = currentEvent();
   const sum = $('evSummary');
   if (!sum) return;
+  // ⚠️ 区间填反必须显式提示，不能只显示"未绑定"——两者风险完全不同
+  if (ev && ev.__invalid) { sum.textContent = '⚠ ' + ev.__invalid; sum.className = 'err'; return; }
   if (!ev) { sum.textContent = '未绑定（豁免不生效）'; sum.className = 'dim'; return; }
   const ph = phaseOf(ev, todayCN());
   sum.textContent = ev.name + ' · ' + ev.startDate + ' · ' + ev.nature + '型 · ' + PHASE_LABEL[ph.phase]
@@ -1112,7 +1311,13 @@ async function searchStocks(qstr) {
    所以记下第一腿之后，页面会一直盯着它，实时告诉你还差多少、剩多少时间。 */
 function tGet() {
   const v = LS.get('tt_t');
-  return (v && v.date === todayCN()) ? v : null;   // 跨日自动作废
+  if (!v || v.date !== todayCN()) return null;   // 跨日自动作废
+  // ⚠️ 必须校验类型：localStorage 是外部可写源，被写成对象/字符串时，
+  // 后面读 v.dir / v.price 会得到 undefined，渲染出"undefined 进行中"。
+  // 非对象一律丢弃，绝不把脏数据当成有效台账。
+  if (typeof v !== 'object' || Array.isArray(v)) return null;
+  if (!(Number(v.price) > 0)) return null;
+  return v;
 }
 function tLeg1() {
   const r = S.result;
@@ -1143,11 +1348,17 @@ function tReset() { LS.set('tt_t', null); render(); }
 /* ---------- 做T战绩（按日累计，独立持久化） ----------
    每完成一次做T（记下第二腿）自动累计；这是验证"做T到底划不划算"的硬证据。 */
 function trackGet() {
-  const all = LS.get('tt_legs') || [];
-  return all.filter(function (l) { return l.date === todayCN(); });
+  const all = LS.get('tt_legs');
+  // ⚠️ 必须是数组才继续：原来 `LS.get('tt_legs') || []` 在脏数据（被写成对象/字符串）
+  // 时会返回那个对象，紧接着 .filter 就抛 TypeError → render() 崩 → 整页白屏。
+  // localStorage 属外部可写源，这里做类型守卫并顺手清理脏值。
+  const arr = Array.isArray(all) ? all : [];
+  if (!Array.isArray(all) && all != null) LS.set('tt_legs', []);
+  return arr.filter(function (l) { return l && l.date === todayCN(); });
 }
 function trackAdd(rec) {
-  const all = LS.get('tt_legs') || [];
+  const all0 = LS.get('tt_legs');
+  const all = Array.isArray(all0) ? all0 : [];
   all.push(rec);
   if (all.length > 2000) all.splice(0, all.length - 2000);
   LS.set('tt_legs', all);
@@ -1194,13 +1405,21 @@ function onHoldSelect() {
   if (!p) return;
   const c = toTencentCode(code);
   if (!c) { showErr('持仓代码 ' + code + ' 无法识别'); return; }
+  // ⚠️ 顺序必须是「先定 S.code，再改输入框，最后 saveInputs」。
+   // saveInputs 读的是 S.code（见 1813 行），若在 S.code 赋值前调用，
+   // 存进 localStorage 的就是【上一只股票的代码 + 这一只股票的成本/股数】，
+  // 刷新页面后会自动加载错股票并用错成本算「持仓的真实数字」。
+  S.code = c;
   $('codeInput').value = c;
   $('costInput').value = (p.cost != null) ? p.cost : '';
   $('sharesInput').value = (p.shares != null) ? p.shares : '';
-  $('stopInput').value = (p.stop != null) ? p.stop : '';
+  // ⚠️ 止损价：持仓记录里有就填，没有就【保留原值】而不是清空。
+  // 原来无条件写 '' 会把用户刚设的止损线无声抹掉 —— 止损被悄悄取消，比没有止损更危险。
+  if (p.stop != null) $('stopInput').value = p.stop;
+  // 可卖底仓：持仓记录未带该字段时清空（它是 T+1 专属信息，不能跨股沿用）
+  if ($('sellableInput')) $('sellableInput').value = (p.sellable != null) ? p.sellable : '';
   saveInputs();
   hideSugg();
-  S.code = c;
   loadAll(c, false).then(schedule);
 }
 
@@ -1223,42 +1442,75 @@ function pickNode(json) {
 }
 
 async function loadAll(code, silent) {
-  if (S.loading) return;
+  // ⚠️ 原来这里直接静默 return：轮询在途时用户点「加载」换股票，
+  // S.code 已被改成新代码但请求被丢弃 → 界面毫无反应，
+  // 非交易时段要干等 5 分钟轮询。现在明确告知，并允许强制发起。
+  if (S.loading) {
+    if (silent) return;                 // 轮询自己撞车：静默跳过是对的
+    showErr('上一次取数还在进行（' + S.q ? '当前显示 ' + S.q.code : '' + '）。稍等片刻，或检查网络后重试。');
+    return;
+  }
   S.loading = true;
+  setBusy(true);
   if (!silent) showErr('');
   try {
     // 分时（含 qt 快照）+ 日K + 三个周期分钟K，并行取
+    // ⚠️ 必须逐项兜底、不能用 Promise.all 一刀切：
+    // 原来 5 个接口任一失败（哪怕只是 m30 被限频）就整次抛错，
+    // 结果是快照、图表、信号、做T 全空白，只留一行错误 —— 明明快照已经拿到了却什么都看不到。
+    // 现在：minute 失败 = 真的没行情（必须报错）；其余失败只丢该周期并在页面明示。
+    const names = ['分时/快照', '日K', '5分K', '15分K', '30分K'];
     const res = await Promise.all([
       apiGet(code, 'minute'), apiGet(code, 'day'),
       apiGet(code, 'm5'), apiGet(code, 'm15'), apiGet(code, 'm30'),
-    ]);
+    ].map(function (p, i) { return p.catch(function (e) { return { __err: (e && e.message) || '请求失败' }; }); }));
+
     const minNode = pickNode(res[0]);
     const qtArr = minNode && minNode.qt && minNode.qt[code];
     if (!qtArr) throw new Error('没有取到 ' + code + ' 的行情，代码可能不对或该股停牌');
 
+    const degraded = [];
+    const take = function (i, fn) {
+      if (res[i] && res[i].__err) { degraded.push(names[i] + '：' + res[i].__err); return null; }
+      try { return fn(res[i]); } catch (e) { degraded.push(names[i] + '：数据解析失败'); return null; }
+    };
+
     S.q = parseQt(qtArr);
-    const m = parseMinutes(res[0]);
+    const m = take(0, parseMinutes) || { points: [] };
     S.minutes = m.points;
-    S.dayBars = parseKline(res[1], 'day');
-    S.k5 = parseKline(res[2], 'm5');
-    S.k15 = parseKline(res[3], 'm15');
-    S.k30 = parseKline(res[4], 'm30');
+    S.dayBars = take(1, function (j) { return parseKline(j, 'day'); }) || [];
+    S.k5 = take(2, function (j) { return parseKline(j, 'm5'); }) || [];
+    S.k15 = take(3, function (j) { return parseKline(j, 'm15'); }) || [];
+    S.k30 = take(4, function (j) { return parseKline(j, 'm30'); }) || [];
+    // 日K 是波段扫描与止损位的依赖，缺了要说清楚
+    if (!S.dayBars.length) degraded.push('日K：无数据，日线波段扫描与 20 日止损位本次不可用');
 
-    const cost = parseFloat($('costInput').value) || null;
+const cost = parseFloat($('costInput').value) || null;
     const shares = parseInt($('sharesInput').value, 10) || null;
-    const stop = parseFloat($('stopInput').value) || null;
+  const stop = parseFloat($('stopInput').value) || null;
+    // T+1 可卖底仓：留空 = 全部可卖（null 而非 0，否则会被当成"今天全买的"而封锁做T）
+    const sellEl = $('sellableInput');
+    const sellable = (sellEl && String(sellEl.value).trim() !== '') ? (parseInt(sellEl.value, 10) || 0) : null;
 
-    S.result = analyze({
+  S.result = analyze({
       q: S.q, minutes: S.minutes, dayBars: S.dayBars,
       k5: S.k5, k15: S.k15, k30: S.k30,
       today: todayCN(), ev: currentEvent(), cost: cost, shares: shares, stop: stop,
+      sellable: sellable,
     });
     render();
-    showErr('');
+    // 部分接口失败时必须明说：静默留空会让用户以为"这只票没信号"，实际是数据没取到
+    if (degraded.length) {
+      showErr('已取到行情并完成推演，但以下数据缺失，相关结论本次不可用：\n· ' + degraded.join('\n· '));
+    } else {
+      showErr('');
+    }
   } catch (e) {
     showErr(e && e.message ? e.message : '加载失败');
   } finally {
     S.loading = false;
+    // ⚠️ 必须在 finally 复位：任何一条异常路径漏掉都会让按钮永久卡在"取数中"
+    setBusy(false);
   }
 }
 
@@ -1272,10 +1524,13 @@ function recompute() {
   const cost = parseFloat($('costInput').value) || null;
   const shares = parseInt($('sharesInput').value, 10) || null;
   const stop = parseFloat($('stopInput').value) || null;
+  const sellEl = $('sellableInput');
+  const sellable = (sellEl && String(sellEl.value).trim() !== '') ? (parseInt(sellEl.value, 10) || 0) : null;
   S.result = analyze({
     q: S.q, minutes: S.minutes, dayBars: S.dayBars,
     k5: S.k5, k15: S.k15, k30: S.k30,
     today: todayCN(), ev: currentEvent(), cost: cost, shares: shares, stop: stop,
+    sellable: sellable,
   });
   render();
 }
@@ -1286,9 +1541,11 @@ function fmtPct(v) { return (v > 0 ? '+' : '') + r2(v) + '%'; }
 
 function renderEventBar() {
   const r = S.result;
-  const ev = currentEvent();
+  const ev0 = currentEvent();
+  // ⚠️ currentEvent 对"日期填反"返回 {__invalid}（无 name），直接读会显示 undefined
+  const ev = (ev0 && !ev0.__invalid) ? ev0 : null;
   setText('ebName', ev ? ev.name : '做T助手');
-  const ph = r ? r.phase : phaseOf(ev, todayCN());
+  const ph = r ? r.phase : phaseOf(ev0, todayCN());
   setText('ebPhase', PHASE_LABEL[ph.phase]);
   const pc = $('ebPhase'); if (pc) pc.className = 'chip ' + (PHASE_CLASS[ph.phase] || 'off');
 
@@ -1299,6 +1556,8 @@ function renderEventBar() {
     : '豁免已解除 · 兑现型已开幕';
   else if (ph.phase === 'after') exText = '豁免已解除 · 事件已结束';
   else if (ph.phase === 'cancelled') exText = '豁免已解除 · 事件已取消';
+  // ⚠️ 区间填反要单独一条：不能混进"未绑定"，两者风险不同（后者是本就没有事件）
+  else if (ph.invalid) exText = '⚠ 事件区间无效 · 豁免未生效（起止日期填反了）';
   else if (ph.phase === 'noevent') exText = '未绑定事件 · 技术面说什么就是什么';
   setText('ebExempt', exText);
   const ec = $('ebExempt'); if (ec) ec.className = 'chip ' + ((r && r.exemption) ? 'on' : 'off');
@@ -1436,6 +1695,11 @@ function renderBand(rows) {
 }
 
 async function scanRun() {
+  // ⚠️ 并发保护：原来没有禁用按钮，连点会并发跑两遍扫描（21 只 × 每日K，很容易被限频）
+  if (S.scanning) { showErr('上一次波段扫描还在进行，请等它跑完'); return; }
+  S.scanning = true;
+  setBusy(true, '扫描中…');
+  try {
   const raw = (($('bandCodes') || {}).value || '').trim();
   let codes = [];
   if (raw) {
@@ -1468,6 +1732,16 @@ async function scanRun() {
     errEl.style.display = 'block';
     errEl.textContent = '有 ' + failed + ' 只拉取失败（可能停牌/代码错/限频），已跳过。';
   }
+  } catch (e) {
+    const errEl = $('bandErr');
+    const msg = e && e.message ? e.message : '扫描失败';
+    if (errEl) { errEl.style.display = 'block'; errEl.textContent = msg; }
+    else showErr(msg);
+  } finally {
+    // ⚠️ 复位放在 finally：中途抛错也会解锁，否则按钮永久禁用
+    S.scanning = false;
+    setBusy(false);
+  }
 }
 
 function renderTPlan() {
@@ -1494,9 +1768,16 @@ function renderTPlan() {
       + '<div class="lv">' + (m.dir === '反T'
           ? '卖出 ' + m.sell + '　→　回补 ' + m.buy
           : '买入 ' + m.buy + '　→　卖出 ' + m.sell) + '</div>'
-      + '<div class="ex">T 仓建议：不超过底仓的 1/3'
-      + (r.position && r.position.shares ? '，即 ' + (Math.floor(r.position.shares / 3 / 100) * 100) + ' 股以内' : '')
-      + '</div>'
+      // ⚠️ T 仓规模必须用 plan.tSize（T+1 封顶后的结果），不能直接用总持仓 ÷3。
+      // 原来这里算 Math.floor(shares/3/100)*100，今天大比例新买时会给出超出可卖量的建议。
+      const sz = p.tSize || null;
+      html += '<div class="ex">T 仓建议：不超过底仓的 1/3'
+      + (sz && sz.shares != null
+          ? '，即 ' + sz.shares + ' 股以内'
+            + (sz.capBy === 'base' && sz.byFrac > sz.byBase
+? '（受 T+1 可卖底仓 ' + sz.byBase + ' 股封顶，总仓位 1/3 是 ' + sz.byFrac + ' 股）' : '')
+  : (r.position && r.position.shares ? '，即 ' + (Math.floor(r.position.shares / 3 / 100) * 100) + ' 股以内' : ''))
+   + '</div>'
       + m.why.map(function (w) { return '<div class="ex">' + esc(w) + '</div>'; }).join('')
       + '<div class="ex" style="margin-top:9px"><span class="lbl">做砸了怎么办</span>' + esc(m.risk) + '</div>'
       + '</div>';
@@ -1545,9 +1826,11 @@ function renderTPlan() {
       + p.why.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>';
   }
   box.innerHTML = html;
-  const b1 = $('tLeg1Btn'); if (b1) b1.addEventListener('click', tLeg1);
-  const b2 = $('tLeg2Btn'); if (b2) b2.addEventListener('click', tLeg2);
-  const b3 = $('tResetBtn'); if (b3) b3.addEventListener('click', tReset);
+  // ⚠️ 一律包一层匿名函数：把具名函数直接当回调传，一旦该函数将来加了形参，
+  // 事件对象就会被当作实参传进去（[object PointerEvent] 那类事故的根源）
+  const b1 = $('tLeg1Btn'); if (b1) b1.addEventListener('click', function () { tLeg1(); });
+  const b2 = $('tLeg2Btn'); if (b2) b2.addEventListener('click', function () { tLeg2(); });
+  const b3 = $('tResetBtn'); if (b3) b3.addEventListener('click', function () { tReset(); });
 }
 
 function renderTrack() {
@@ -1562,15 +1845,31 @@ function renderTrack() {
   const avgNet = avg(legs.map(function (l) { return l.netPct; }));
   let amt = 0, haveShares = true;
   legs.forEach(function (l) { if (l.shares) amt += l.netPct / 100 * l.enter * l.shares; else haveShares = false; });
+  // ⚠️ 语义色必须区分「涨跌」与「好坏」：
+// 主题里 --up 是红（A股红涨）、--down 是绿。用涨跌色去表达「胜率高 / 收益为正」，
+// 会得到"胜率 60% 显示红色、赚钱显示红色"的拧巴结果 —— 用户容易误读成在亏。
+  // 这里的四格都是"做得好不好"，统一用 --acc（蓝，达成）与 --warn（橙，未达成）。
+  const GOOD = 'style="color:var(--acc)";font-weight:700"';
+  const BAD = 'style="color:var(--warn);font-weight:700"';
   let html = '<div class="grid2">'
     + '<div class="kv"><div class="k">完成次数</div><div class="v">' + legs.length + ' 次</div></div>'
-    + '<div class="kv"><div class="k">胜率（净收益>0）</div><div class="v ' + (wins / legs.length >= 0.5 ? 'up' : 'down') + '">' + Math.round(wins / legs.length * 100) + '%</div></div>'
-    + '<div class="kv"><div class="k">平均单次净收益</div><div class="v ' + (avgNet >= 0 ? 'up' : 'down') + '">' + (avgNet >= 0 ? '+' : '') + r2(avgNet) + '%</div></div>'
-    + '<div class="kv"><div class="k">' + (haveShares ? '累计净收益额' : '累计净收益%') + '</div><div class="v ' + (amt >= 0 ? 'up' : 'down') + '">' + (haveShares ? ((amt >= 0 ? '+' : '') + Math.round(amt) + ' 元') : '需填股数') + '</div></div>'
+    + '<div class="kv"><div class="k">胜率（净收益>0）</div><div class="v" ' + (wins / legs.length >= 0.5 ? GOOD : BAD) + '>'
+      + Math.round(wins / legs.length * 100) + '%</div></div>'
+    + '<div class="kv"><div class="k">平均单次净收益</div><div class="v" ' + (avgNet >= 0 ? GOOD : BAD) + '>'
+      + (avgNet >= 0 ? '+' : '') + r2(avgNet) + '%</div></div>'
+    + '<div class="kv"><div class="k">' + (haveShares ? '累计净收益额' : '累计净收益%') + '</div><div class="v" '
+      + (amt >= 0 ? GOOD : BAD) + '>' + (haveShares ? ((amt >= 0 ? '+' : '') + Math.round(amt) + ' 元') : '需填股数') + '</div></div>'
     + '</div>'
     + '<div class="dim" style="font-size:12.5px;margin-top:8px">明细：' + legs.map(function (l) {
         return l.dir + ' ' + l.enter + '→' + l.exit + ' ' + (l.netPct >= 0 ? '+' : '') + l.netPct + '%';
-      }).join('，') + '</div>';
+      }).join('，') + '</div>'
+  // ⚠️ 胜率不足 6 成是书里的停手线，必须显式提示，不能只给一个百分比让用户自己判断
+    + (legs.length >= 2 && wins / legs.length < 0.6
+        ? '<div class="warn" style="margin-top:8px">⚠ 胜率不到六成。铁律里写明这种胜率就该考虑停掉做T —— 胜率低意味着靠单次大赢补亏损，长期期望很可能为负。</div>'
+        : '')
+    + (legs.length >= 2 && wins / legs.length < 0.6
+        ? '<div class="dim" style="font-size:12px;margin-top:6px">注：此处颜色表示"做得好/不好"，与页面里代表涨跌的红绿是两套语义。</div>'
+        : '');
   box.innerHTML = html;
 }
 
@@ -1584,6 +1883,13 @@ function renderPosition() {
   }
   const p = r.position;
   let html = '';
+  // ⚠️ 输入非法时必须拦在数字前面说：负数成本、非整手股数、止损高于成本，
+  // 会让下面的盈亏/摊薄/风险全部变成误导值。宁可不给数，也不能给错数。
+  if (p.bad && p.bad.length) {
+    html += '<div class="warnbox"><b>持仓输入有问题，下面的数字已不可信</b><br>'
+      + p.bad.map(function (b) { return '· ' + esc(b); }).join('<br>')
+      + '<br>请修正后再看盈亏与摊薄测算。</div>';
+  }
   // 换股票时最容易忘的就是改成本。拿上一只票的成本去算，会得出「浮盈 6263%」这种数字——
   // 离谱的数字比没有数字更糟。所以先提示再给数。
   if (p.cost && r.q && r.q.price && Math.abs(r.q.price / p.cost - 1) > 0.5) {
@@ -1605,8 +1911,19 @@ function renderPosition() {
   box.innerHTML = html;
 }
 
+/* 统一读取台账/记录数组。
+   ⚠️ localStorage 属外部可写源，被写成对象或字符串时，原来的 `LS.get(k) || []`
+   会把那个值原样返回，紧接着 .filter / .slice / .forEach 立刻抛 TypeError，
+   而这三个函数都在 render() 链路上 → 整页白屏。这里做类型守卫并顺手清理脏值。 */
+function logList() {
+  const v = LS.get('tt_log');
+  if (Array.isArray(v)) return v;
+  if (v != null) LS.set('tt_log', []);
+  return [];
+}
+
 function renderLog() {
-  const list = LS.get('tt_log') || [];
+  const list = logList();
   const box = $('logList');
   if (box) {
     box.innerHTML = list.length ? list.slice().reverse().map(function (l) {
@@ -1769,7 +2086,7 @@ function recordSignal() {
   const r = S.result;
   if (!r || !S.q) { showErr('还没有数据可记录'); return; }
   const d = new Date(Date.now() + CN_OFFSET);
-  const list = LS.get('tt_log') || [];
+  const list = logList();
   list.push({
     t: d.toISOString().slice(0, 16).replace('T', ' '),
     code: S.q.code || S.code, price: S.q.price,
@@ -1781,9 +2098,13 @@ function recordSignal() {
   else showErr('本地存储不可用，记录没存上——请用「复制记录」手动留存');
 }
 function exportLog() {
-  const list = LS.get('tt_log') || [];
-  const ev = currentEvent();
-  let txt = '做T助手 信号记录\n事件：' + (ev ? ev.name + ' ' + ev.startDate + '~' + ev.endDate + '（' + ev.nature + '型）' : '未绑定')
+  const list = logList();
+  const ev0 = currentEvent();
+  // ⚠️ currentEvent 对"日期填反"会返回 {__invalid}，它没有 name/startDate，
+  // 直接拼字符串会显示成 undefined —— 这里显式区分。
+  const ev = (ev0 && !ev0.__invalid) ? ev0 : null;
+  let txt = '做T助手 信号记录\n事件：' + (ev ? ev.name + ' ' + ev.startDate + '~' + ev.endDate + '（' + ev.nature + '型）'
+      : (ev0 && ev0.__invalid ? '⚠ 事件区间无效（' + ev0.__invalid + '）' : '未绑定'))
     + '\n导出时间：' + new Date(Date.now() + CN_OFFSET).toISOString().slice(0, 16).replace('T', ' ') + '\n\n';
   if (!list.length) txt += '（暂无记录）\n';
   list.forEach(function (l) {
@@ -1810,9 +2131,29 @@ function render() {
   renderTPlan(); renderTrack(); renderPosition(); drawChart();
 }
 
+/* 加载态：按钮禁用 + 文案变化 + 防止重复点击并发拉取。
+   ⚠️ 原来 loadBtn / refreshBtn / bandScanBtn 从不禁用，
+   用户连点会并发发起多次相同请求（腾讯有限频），且按钮毫无反馈 ——
+   「点了没反应」和「不知道在加载」是两类体验问题，这里一并解决。 */
+function setBusy(on, msg) {
+  ['loadBtn', 'refreshBtn', 'bandScanBtn'].forEach(function (id) {
+    const b = $(id); if (!b) return;
+    b.disabled = !!on;
+    if (on) {
+      if (!b.dataset.label) b.dataset.label = b.textContent;
+      b.textContent = msg || '取数中…';
+    } else if (b.dataset.label) {
+      b.textContent = b.dataset.label;
+    }
+  });
+  const snap = $('snapName');
+  if (on && snap && (!snap.textContent || snap.textContent === '—')) snap.textContent = '取数中…';
+}
+
 function saveInputs() {
   LS.set('tt_in', {
     code: S.code, cost: $('costInput').value, shares: $('sharesInput').value, stop: $('stopInput').value,
+    sellable: ($('sellableInput') || {}).value,        // T+1 可卖底仓
     evName: $('evName').value, evStart: $('evStart').value, evEnd: $('evEnd').value, evNature: $('evNature').value,
   });
 }
@@ -1823,6 +2164,7 @@ function restoreInputs() {
     if (v.cost) $('costInput').value = v.cost;
     if (v.shares) $('sharesInput').value = v.shares;
     if (v.stop) $('stopInput').value = v.stop;
+    if (v.sellable && $('sellableInput')) $('sellableInput').value = v.sellable;
     if (v.evName) $('evName').value = v.evName;
     if (v.evStart) $('evStart').value = v.evStart;
     if (v.evEnd) $('evEnd').value = v.evEnd;
@@ -1882,24 +2224,39 @@ function onLoad() {
     if (!e.target || !e.target.closest) { hideSugg(); return; }
     if (!e.target.closest('#suggBox') && e.target.id !== 'codeInput') hideSugg();
   });
-  $('refreshBtn').addEventListener('click', function () {
-    if (!S.code) { showErr('先输入股票代码'); return; }
-    loadAll(S.code, false);
+$('refreshBtn').addEventListener('click', function () {
+    // ⚠️ 必须以输入框为准并校验它与已加载的 S.code 一致。
+    // 直接用 S.code：用户在输入框敲了新代码但没点加载时，刷新的是旧股票，
+    // 而界面显示的是新代码 —— 看到的是 A 股价，标的却是 B。
+    const raw = $('codeInput').value;
+    const c = toTencentCode(raw);
+    if (!c) { showErr(S.code ? '当前已加载 ' + S.code + '，输入框里的「' + String(raw).trim() + '」不是有效代码' : '先输入股票代码'); return; }
+    if (c !== S.code) { showErr('输入框是 ' + c + '，当前加载的是 ' + S.code + '，请先点「加载」'); return; }
+    loadAll(c, false);
   });
-  $('logBtn').addEventListener('click', recordSignal);
-  $('exportBtn').addEventListener('click', exportLog);
+  $('logBtn').addEventListener('click', function () { recordSignal(); });
+  $('exportBtn').addEventListener('click', function () { exportLog(); });
   $('costNowBtn').addEventListener('click', function () {
-    if (S.q && S.q.price != null) { $('costInput').value = S.q.price.toFixed(2); saveInputs(); recompute(); }
-    else showErr('先加载一只股票');
+    // ⚠️ 必须校验 S.q 属于当前代码：S.q 只在 loadAll 成功时更新、切换代码时不清空。
+  // 用户改了输入框但没点加载就点这里，会把【上一只股票】的价格写进新股票的成本框，
+    // 而且 recompute() 会立刻用这个错成本重算并持久化。
+    const c = toTencentCode($('codeInput').value) || S.code;
+    if (!S.q || S.q.price == null) { showErr('先加载一只股票'); return; }
+    if (c && S.q.code && c !== S.q.code) { showErr('输入框是 ' + c + '，当前行情是 ' + S.q.code + '，请先点「加载」再取现价'); return; }
+    $('costInput').value = S.q.price.toFixed(2);
+    saveInputs(); recompute();
   });
   $('clearBtn').addEventListener('click', function () {
-    $('costInput').value = ''; $('sharesInput').value = ''; $('stopInput').value = ''; saveInputs(); recompute();
+    $('costInput').value = ''; $('sharesInput').value = ''; $('stopInput').value = '';
+    if ($('sellableInput')) $('sellableInput').value = '';   // T+1 可卖底仓一起清，避免留残留值
+    saveInputs(); recompute();
   });
-  $('trackBtn').addEventListener('click', clearTrack);
+  $('trackBtn').addEventListener('click', function () { clearTrack(); });
   $('holdSelect').addEventListener('change', onHoldSelect);
-  $('bandScanBtn').addEventListener('click', scanRun);
-  ['costInput', 'sharesInput', 'stopInput'].forEach(function (id) {
+  $('bandScanBtn').addEventListener('click', function () { scanRun(); });
+  ['costInput', 'sharesInput', 'stopInput', 'sellableInput'].forEach(function (id) {
     // input 事件：边打字边算，改成本立刻看到回本涨幅的变化
+    if (!$(id)) return;
     $(id).addEventListener('input', function () { saveInputs(); recompute(); });
     $(id).addEventListener('change', function () { saveInputs(); recompute(); });
   });
@@ -1947,6 +2304,8 @@ window.__TT__ = {
   avgDailyAmp: avgDailyAmp, tContext: tContext, tPlan: tPlan, minsUntil: minsUntil,
   legNetPct: legNetPct,
   emaArr: emaArr, macdOf: macdOf, dailyBandSignal: dailyBandSignal, scanBand: scanBand,
+  // T+1 与板块限幅：供回归测试直接断言（修复"可卖量=总持仓""涨跌停写死9.5%"两处缺陷）
+  t1Gate: t1Gate, tSizeCap: tSizeCap, limitPctOf: limitPctOf,
 };
 
 })();
