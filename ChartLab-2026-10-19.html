@@ -9640,7 +9640,9 @@ function init() {
     syncPicker(target);
     loadDay(target, false);
     setAutoToggleUI();
-    if (isTradeDay(today)) {
+    // 🛡️ 2026-10-19 P0：即使 today 尚未写入 TRADE_DAYS（日历补全失败），只要今天是可能交易日，
+    // 就在开盘时自动拉一次实时数据，避免页面空态等待用户手动刷新。
+    if (isTradeDay(today) || _isProbablyTradeDay(today)) {
       // 交易日每次访问：静默拉取一次实时数据（指数/涨停池/板块净流/指数资金流），失败回落内嵌快照
       setTimeout(function () { autoLiveRefreshOnce(); }, 1200);
     }
