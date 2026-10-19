@@ -8926,16 +8926,46 @@ function renderPreMarketBanner() {
   else { el.style.display = 'none'; }
 }
 
+/* 🛡️ 2026-10-19 P0：切日 / 首载时彻底清空所有「按日隔离」的数据字段，避免 DATA 初始硬编码的
+   上一交易日快照（HTML 里 DATA.limitUp 硬编码了 10-16 完整涨停池）或上一交易日的残留数据
+   被 renderAll 画到新日期页面。加载成功时 applyPayload 会整体填充，失败 / 无数据时保持空态。 */
+function _resetDailyData(date) {
+  DATA.date = date;
+  DATA.indices = {
+    sh: { name:'上证指数', code:'000001', price:0, chgPct:0, chgAmt:0, prevClose:0 },
+    sz: { name:'深证成指', code:'399001', price:0, chgPct:0, chgAmt:0, prevClose:0 },
+    cyb: { name:'创业板指', code:'399006', price:0, chgPct:0, chgAmt:0, prevClose:0 }
+  };
+  DATA.volume = { total:0, prevTotal:0, mainNetInflow:0 };
+  DATA.capitalFlowIndex = [];
+  DATA.sectorFlow = [];
+  DATA.capitalIndexNotes = [];
+  DATA.breadth = { up:0, down:0, flat:0, upRatio:0, upDownRatio:0 };
+  DATA.breadthDistribution.forEach(function (b) { b.count = 0; });
+  DATA.limitUp = { count:0, count20cm:0, limitDown:0, sealed:0, attempted:0, maxStreak:0, streaks:[], list:[] };
+  DATA.lhb = { hotMoney: [], institutions: [], flows: [], stats: {}, summary: '' };
+  DATA.candidatePool = null;
+  DATA.breakoutSupport = null;
+  DATA.macdPool = null;
+  DATA.chanBuyList = null;
+  DATA.themeRadar = { themes: [], note: '' };
+  if (!DATA.preMarket) DATA.preMarket = {};
+  DATA.preMarket.overseas = [];
+  ZS_MAP = {};
+  THEME_QUOTE_MAP = {};
+  LIVE_LIMITUP = false;
+  CURRENT_SOURCE = 'none';
+  CURRENT_SNAP_AT = '';
+}
+
 /* ===== 加载某一交易日（全局日期联动主入口） ===== */
 function loadDay(date, force) {
   if (_isFetching) { showNotify('⏳ 正在加载中，请稍候…', 2000); return; }
-  // 🛡️ 2026-10-19 P0：跨日切换时立即清空按日隔离的实时模块，防止「日期已切、数据未切」
-  // 背景：10.19 早盘无 10.19 分片，兜底/内嵌也缺 themeRadar，旧日 DATA.themeRadar 残留会
-  // 导致页面日期显示 10.19，题材卡片却展示 10.16 的涨停时间（跨日串数据）。
-  if (DATA.date && DATA.date !== date) {
-    DATA.themeRadar = { themes: [], note: '' };
-    ZS_MAP = {};
-    THEME_QUOTE_MAP = {};
+  // 🛡️ 2026-10-19 P0：切日 / 首载时彻底清空按日隔离数据，防止旧日数据残留到新日。
+  // 注意：DATA.date 初始即 today（见 DATA 定义），所以「DATA.date !== date」在首载时恒为 false，
+  // 必须用 CURRENT_SOURCE === 'none'（尚未加载过任何数据）作为首载判定，确保初始硬编码的 10-16 涨停池被清空。
+  if (CURRENT_SOURCE === 'none' || (DATA.date && DATA.date !== date)) {
+    _resetDailyData(date);
   }
   var cached = _dayCache[date];
   /* 🛡️ 2026-10-17 P1：内存缓存 TTL 分档（此前一律用 24h，导致盘中「更新数据」后 60s 内仍回放旧快照，
@@ -9045,12 +9075,14 @@ function forceRefresh() {
     showNotify('📅 已自动切换到今日 ' + today + '（实时接口不提供历史数据，避免把今日数据写入历史日期造成「昨天/今天混在一起」）', 4000);
   }
   delete _dayCache[date];
+  _resetDailyData(date);   // 🛡️ 刷新前彻底清空旧日数据，刷新失败则诚实空态，绝不残留
   _isFetching = true; setBusy(true);
   showLoading('🔄 强制刷新 ' + date + '（' + weekdayCN(date) + '）：正在向数据源拉取最新数据…');
 
   var settle = function () { _isFetching = false; setBusy(false); hideLoading(); refreshAutoState(); };
   var commit = function (payload) {
     var key = payload.date || date;
+    payload.date = date;            // 🛡️ 强制对齐到请求日，避免后端返回错误日期污染 DATA.date（跨日串数据）
     _dayCache[key] = { res: payload, ts: Date.now() };
     EMBEDDED_SNAPSHOT[key] = payload;
     applyPayload(payload);
@@ -9125,6 +9157,7 @@ function autoLiveRefreshOnce() {
   showNotify('📡 交易日自动刷新中：正在向实时数据源拉取最新行情…', 3000);
   var commitLive = function (payload, kind) {
     var key = payload.date || date;
+    payload.date = date;            // 🛡️ 强制对齐到请求日，避免后端返回错误日期污染 DATA.date（跨日串数据）
     _dayCache[key] = { res: payload, ts: Date.now() };
     EMBEDDED_SNAPSHOT[key] = payload;
     applyPayload(payload); renderAll();
