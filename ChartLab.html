@@ -4531,7 +4531,8 @@ function renderChanBuyTabs() {
     + '① <b>一买</b>：' + (c.buy1 || '最后下跌段价格新低而 MACD 柱不新低（底背驰）') + '<br>'
     + '② <b>二买</b>：' + (c.buy2 || '一买后回踩不破一买低（更高低）且回撤≤0.618') + '<br>'
     + '③ <b>三买</b>：' + (c.buy3 || '中枢突破后回踩不进中枢（低点≥中枢高企稳）')
-    + '<br><span style="color:var(--text-light);">全市场扫描 ' + (M.scanned || 0) + ' 只，命中 ' + (M.hits || all.length) + ' 只（初筛缩圈，四要件须人工复核，非买卖建议）。</span></div>';
+    + '<br><span style="color:var(--text-light);">全市场扫描 ' + (M.scanned || 0) + ' 只，命中 ' + (M.hits || all.length) + ' 只（初筛缩圈，四要件须人工复核，非买卖建议）。'
+    + '<br>🖱️ <b>悬停 / 点击卡片</b>：弹出该股近 70 日 K线 + MACD + 缠论笔/中枢/一·二·三买标注。</span></div>';
   /* 仅渲染当前激活标签（懒渲染，性能友好） */
   var list = byType(chanBuyActiveTab);
   var html = head;
@@ -4542,7 +4543,7 @@ function renderChanBuyTabs() {
     html += '<div class="chanbuy-count">共 ' + list.length + ' 只 · ' + tabName(chanBuyActiveTab) + '</div>';
     html += '<div class="chanbuy-grid">';
     list.forEach(function (x) {
-      html += '<div class="chanbuy-item">'
+      html += '<div class="chanbuy-item" data-code="' + (x.code || '') + '" style="cursor:pointer;" title="悬停/点击查看 K线·MACD·缠论标注">'
         + '<div class="cb-code">' + (x.code || '') + ' <span class="cb-name">' + (x.name || '') + '</span></div>'
         + '<div class="cb-meta">' + buyTag(x) + '</div>'
         + '</div>';
@@ -4558,10 +4559,179 @@ function renderChanBuyTabs() {
     b.classList.toggle('active', t === chanBuyActiveTab);
   });
   el.innerHTML = html;
+  bindChanHover(el);
 }
 function switchChanBuyTab(t) {
   chanBuyActiveTab = t;
   renderChanBuyTabs();
+}
+
+/* ===== WB_PATCH_CHAN_DETAIL:js · 缠论买点悬浮弹窗：K线+MACD+笔+中枢+一二三买标注 =====
+   明细文件 wbdata/chanbuy_detail_<date>.json（_build_chandetail.cjs 产出，与买点判定同源同算法）。
+   缺明细时诚实降级：腾讯 JSONP 实时K线+MACD（无缠论标注），不伪造结构。 */
+var CHAN_DETAIL = { date: '', data: null, loading: null, loadingDate: '', modal: null, chart: null, curCode: '' };
+function chanMktPrefix(code) { return (/^6/.test(code) ? 'sh' : (/^[03]/.test(code) ? 'sz' : '')); }
+function chanJsonp(url) {
+  return new Promise(function (resolve, reject) {
+    var cb = '__chanCb' + (Date.now() % 1e8);
+    var s = document.createElement('script');
+    var done = false;
+    var timer = setTimeout(function () { fin(new Error('jsonp timeout')); }, 12000);
+    function fin(err, val) { if (done) return; done = true; clearTimeout(timer); try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (s && s.parentNode) s.parentNode.removeChild(s); if (err) reject(err); else resolve(val); }
+    window[cb] = function (d) { fin(null, d); };
+    s.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_var=' + cb;
+    s.onerror = function () { fin(new Error('jsonp script error')); };
+    document.head.appendChild(s);
+  });
+}
+function chanEMA(arr, p) { var k = 2 / (p + 1), prev = arr[0], out = [prev]; for (var i = 1; i < arr.length; i++) { prev = arr[i] * k + prev * (1 - k); out.push(prev); } return out; }
+function chanMacd(closes) { var e12 = chanEMA(closes, 12), e26 = chanEMA(closes, 26); var dif = e12.map(function (v, i) { return v - e26[i]; }); var dea = chanEMA(dif, 9); var hist = dif.map(function (v, i) { return +((v - dea[i]) * 2).toFixed(4); }); return { dif: dif, dea: dea, hist: hist }; }
+function chanMA(closes, p) { var out = [], s = 0; for (var i = 0; i < closes.length; i++) { s += closes[i]; if (i >= p) s -= closes[i - p]; out.push(i >= p - 1 ? +(s / p).toFixed(3) : null); } return out; }
+function chanDetailEnsure() {
+  var date = DATA.date;
+  if (CHAN_DETAIL.date === date && CHAN_DETAIL.data) return Promise.resolve(CHAN_DETAIL.data);
+  if (CHAN_DETAIL.loading && CHAN_DETAIL.loadingDate === date) return CHAN_DETAIL.loading;
+  CHAN_DETAIL.loadingDate = date;
+  CHAN_DETAIL.loading = fetch('wbdata/chanbuy_detail_' + date + '.json')
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (j) { CHAN_DETAIL.date = j.date || date; CHAN_DETAIL.data = j; CHAN_DETAIL.loading = null; return j; })
+    .catch(function (e) { CHAN_DETAIL.loading = null; throw e; });
+  return CHAN_DETAIL.loading;
+}
+function chanModal() {
+  if (CHAN_DETAIL.modal) return CHAN_DETAIL.modal;
+  var root = document.createElement('div');
+  root.id = 'chanDetailModal';
+  root.style.cssText = 'position:fixed;inset:0;background:rgba(10,14,22,.62);z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;';
+  root.innerHTML = '<div style="background:var(--bg,#141a24);color:var(--text,#e8ecf2);border:1px solid var(--card-border,#2a3342);border-radius:12px;max-width:960px;width:100%;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 18px 60px rgba(0,0,0,.5);">'
+    + '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--card-border,#2a3342);flex:0 0 auto;">'
+    + '<b id="chanDTitle" style="font-size:14px;">—</b>'
+    + '<span id="chanDTag" style="font-size:11px;color:var(--text-secondary);"></span>'
+    + '<span style="flex:1;"></span>'
+    + '<button id="chanDClose" style="cursor:pointer;border:none;background:var(--input-bg,#222a36);color:inherit;border-radius:6px;padding:4px 10px;font-size:12px;">关闭 ✕</button>'
+    + '</div>'
+    + '<div id="chanDChart" style="flex:1 1 auto;min-height:420px;"></div>'
+    + '<div id="chanDNote" style="flex:0 0 auto;padding:6px 14px 10px;font-size:10.5px;color:var(--text-secondary);line-height:1.6;"></div>'
+    + '</div>';
+  document.body.appendChild(root);
+  root.querySelector('#chanDClose').addEventListener('click', closeChanDetail);
+  root.addEventListener('click', function (ev) { if (ev.target === root) closeChanDetail(); });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') closeChanDetail(); });
+  CHAN_DETAIL.modal = root;
+  return root;
+}
+function closeChanDetail() {
+  if (CHAN_DETAIL.modal) CHAN_DETAIL.modal.style.display = 'none';
+  if (CHAN_DETAIL.chart) { try { CHAN_DETAIL.chart.clear(); } catch (e) {} }
+}
+function openChanDetail(code) {
+  var m = chanModal();
+  m.style.display = 'flex';
+  var tEl = m.querySelector('#chanDTitle'), tagEl = m.querySelector('#chanDTag'), chartEl = m.querySelector('#chanDChart'), noteEl = m.querySelector('#chanDNote');
+  var row = ((DATA.chanBuyList || {}).list || []).find(function (x) { return x.code === code; });
+  tEl.textContent = code + ' ' + ((row && row.name) || '');
+  tagEl.textContent = row ? buyTag(row) : '';
+  noteEl.textContent = '加载明细…';
+  if (CHAN_DETAIL.chart) { try { CHAN_DETAIL.chart.dispose(); } catch (e) {} }
+  CHAN_DETAIL.chart = echarts.init(chartEl);
+  CHAN_DETAIL.curCode = code;
+  chanDetailEnsure().then(function (j) {
+    if (CHAN_DETAIL.curCode !== code) return;
+    var st = j.stocks && j.stocks[code];
+    if (!st || !st.bars || st.bars.length < 10) throw new Error('no stock data');
+    noteEl.textContent = '数据：' + j.source + '（' + (st.bars[0][0] || '') + ' ~ ' + st.bars[st.bars.length - 1][0] + '，' + j.window + '）。'
+      + '橙虚线=笔；橙虚线框=中枢[下沿,上沿]；图钉=一买(底背驰)/二买(更高低)/三买(不回中枢)。判定与「缠论买点」面板同源同算法，仅供复核，非买卖建议。';
+    CHAN_DETAIL.chart.setOption(chanDetailOption(st));
+  }).catch(function () {
+    var mk = chanMktPrefix(code);
+    if (!mk) { noteEl.textContent = '该股明细缺失（非沪深代码），无降级数据源。'; return; }
+    chanJsonp('https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=' + mk + code + ',day,,,80,qfq').then(function (res) {
+      if (CHAN_DETAIL.curCode !== code) return;
+      var d = res && res.data && res.data[mk + code];
+      var arr = d && (d.qfqday || d.day);
+      if (!arr || arr.length < 10) throw new Error('no kline');
+      var bars = arr.slice(-80).map(function (b) { return [b[0], +(+b[1]).toFixed(2), +(+b[3]).toFixed(2), +(+b[4]).toFixed(2), +(+b[2]).toFixed(2), +b[5] || 0]; });
+      noteEl.textContent = '⚠ 当日缠论明细文件缺失（' + DATA.date + '）：当前为腾讯实时K线+MACD（无缠论标注，不伪造结构）；定稿日数据将有完整标注。';
+      CHAN_DETAIL.chart.setOption(chanDetailOption({ bars: bars, strokes: [], segs: [], pivots: [], buys: [] }));
+    }).catch(function () {
+      noteEl.textContent = '明细加载失败且实时K线不可达（网络受限）。缠论标注依赖每日收盘链产出的明细文件，定稿日数据完整。';
+    });
+  });
+}
+function chanDetailOption(st) {
+  var bars = st.bars, cats = bars.map(function (b) { return b[0]; });
+  var closes = bars.map(function (b) { return b[4]; });
+  var kdata = bars.map(function (b) { return [b[1], b[4], b[3], b[2]]; });
+  var vols = bars.map(function (b) { return { value: b[5], itemStyle: { color: b[4] >= b[1] ? '#e05252' : '#3aa675' } }; });
+  var macd = chanMacd(closes);
+  var histData = macd.hist.map(function (v) { return { value: v, itemStyle: { color: v >= 0 ? '#e05252' : '#3aa675' } }; });
+  var mas = [{ p: 5, c: '#f0a020' }, { p: 10, c: '#5b8ff9' }, { p: 20, c: '#c26cd8' }].map(function (m) {
+    return { name: 'MA' + m.p, type: 'line', data: chanMA(closes, m.p), symbol: 'none', lineStyle: { width: 1, color: m.c }, xAxisIndex: 0, yAxisIndex: 0 };
+  });
+  var ml = (st.strokes || []).map(function (s) {
+    var p1 = s.dir === 1 ? s.sl : s.sh, p2 = s.dir === 1 ? s.sh : s.sl;
+    return [{ coord: [s.s, p1] }, { coord: [s.e, p2] }];
+  });
+  var pivots = st.pivots || [];
+  var buyMarks = (st.buys || []).map(function (b) {
+    var nm = b.buyType === 1 ? '一买' : (b.buyType === 2 ? '二买' : '三买');
+    var col = b.buyType === 1 ? '#9254de' : (b.buyType === 2 ? '#fa8c16' : '#f5222d');
+    return { coord: [b.idx, b.price], value: nm, symbol: 'pin', symbolSize: 30, itemStyle: { color: col }, label: { show: true, formatter: nm, color: '#fff', fontSize: 9, fontWeight: 700 } };
+  });
+  return {
+    animation: false, backgroundColor: 'transparent',
+    axisPointer: { link: [{ xAxisIndex: 'all' }] },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: 'rgba(20,26,36,.94)', borderColor: '#2a3342', textStyle: { color: '#e8ecf2', fontSize: 11 } },
+    legend: { data: ['MA5', 'MA10', 'MA20'], top: 2, textStyle: { color: '#9aa5b5', fontSize: 10 }, itemWidth: 14, itemHeight: 8 },
+    grid: [{ left: 46, right: 12, top: 24, height: '50%' }, { left: 46, right: 12, top: '63%', height: '11%' }, { left: 46, right: 12, top: '79%', height: '15%' }],
+    xAxis: [0, 1, 2].map(function (i) {
+      return { type: 'category', data: cats, gridIndex: i, boundaryGap: true, axisLine: { lineStyle: { color: '#39424f' } }, axisLabel: { show: i === 2, color: '#8a94a3', fontSize: 9 }, axisTick: { show: false }, splitLine: { show: false } };
+    }),
+    yAxis: [
+      { scale: true, gridIndex: 0, axisLabel: { color: '#8a94a3', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(120,130,150,.15)' } } },
+      { gridIndex: 1, axisLabel: { show: false }, splitLine: { show: false } },
+      { gridIndex: 2, axisLabel: { color: '#8a94a3', fontSize: 9 }, splitLine: { show: false } }
+    ],
+    dataZoom: [
+      { type: 'inside', xAxisIndex: [0, 1, 2], start: 30, end: 100 },
+      { type: 'slider', xAxisIndex: [0, 1, 2], bottom: 2, height: 14, borderColor: '#39424f', textStyle: { color: '#8a94a3', fontSize: 9 } }
+    ],
+    series: [
+      { name: 'K线', type: 'candlestick', data: kdata, xAxisIndex: 0, yAxisIndex: 0,
+        itemStyle: { color: '#e05252', color0: '#3aa675', borderColor: '#e05252', borderColor0: '#3aa675' },
+        markLine: { silent: true, symbol: 'none', animation: false, lineStyle: { type: 'dashed', width: 1.2, color: '#e6a23c' }, data: ml },
+        markArea: { silent: true, animation: false, itemStyle: { color: 'rgba(230,162,60,.10)', borderColor: '#e6a23c', borderWidth: 1, borderType: 'dashed' },
+          data: pivots.map(function (p) { return [{ coord: [p.s, p.zlo] }, { coord: [p.e, p.zhi] }]; }) },
+        markPoint: { animation: false, data: buyMarks } },
+      { name: '成交量', type: 'bar', data: vols, xAxisIndex: 1, yAxisIndex: 1 },
+      { name: 'MACD', type: 'bar', data: histData, xAxisIndex: 2, yAxisIndex: 2, barWidth: '55%' },
+      { name: 'DIF', type: 'line', data: macd.dif, xAxisIndex: 2, yAxisIndex: 2, symbol: 'none', lineStyle: { width: 1, color: '#f0a020' } },
+      { name: 'DEA', type: 'line', data: macd.dea, xAxisIndex: 2, yAxisIndex: 2, symbol: 'none', lineStyle: { width: 1, color: '#5b8ff9' } }
+    ].concat(mas)
+  };
+}
+function bindChanHover(el) {
+  if (!el || el.__chanBound) return;
+  el.__chanBound = true;
+  var timer = null;
+  el.addEventListener('mouseover', function (ev) {
+    var card = ev.target && ev.target.closest ? ev.target.closest('.chanbuy-item') : null;
+    if (!card) return;
+    var code = card.getAttribute('data-code');
+    if (!code) return;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(function () { timer = null; openChanDetail(code); }, 260);
+  });
+  el.addEventListener('mouseout', function (ev) {
+    var card = ev.target && ev.target.closest ? ev.target.closest('.chanbuy-item') : null;
+    if (card && timer) { clearTimeout(timer); timer = null; }
+  });
+  el.addEventListener('click', function (ev) {
+    var card = ev.target && ev.target.closest ? ev.target.closest('.chanbuy-item') : null;
+    if (!card) return;
+    var code = card.getAttribute('data-code');
+    if (code) { if (timer) { clearTimeout(timer); timer = null; } openChanDetail(code); }
+  });
 }
 
 /* ===== Generate Detail Analysis ===== */
