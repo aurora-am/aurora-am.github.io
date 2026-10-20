@@ -694,8 +694,11 @@ var snapshotFromRows = function snapshotFromRows(rows, dateC) {
 };
 var thsLbc = function thsLbc(highDays) {
   if (!highDays) return 1;
-  const m = /(\d+)\s*板/.exec(String(highDays));
-  return m ? Number(m[1]) : 1;
+  // 「N天M板」= N 个交易日里涨停 M 次；只有 N == M 才是真连板
+  const m = /(\d+)\s*天\s*(\d+)\s*板/.exec(String(highDays));
+  if (m) return Number(m[1]) === Number(m[2]) ? Number(m[2]) : 1;
+  const m2 = /(\d+)\s*板/.exec(String(highDays));
+  return m2 ? Number(m2[1]) : 1;
 };
 var computeJiezhi = function computeJiezhi(ySnap, todayRows, changeMap) {
   if (!ySnap) return null;
