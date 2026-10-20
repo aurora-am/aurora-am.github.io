@@ -8294,6 +8294,13 @@ function applyPayload(res) {
   if (d.chanBuyList) DATA.chanBuyList = d.chanBuyList;
   if (d.themeRadar) {
     DATA.themeRadar = d.themeRadar;
+    /* 🛡️ 2026-10-20 P0：分片导出器的后排字段名是 back，前端全链路只认 backRows —— 不归一化
+       则分片提供的后排补涨候选被静默丢弃，题材卡后排恒空（clist 被封时无任何通道可救）。 */
+    (DATA.themeRadar.themes || []).forEach(function (t) {
+      if (!Array.isArray(t.backRows) || !t.backRows.length) {
+        t.backRows = (Array.isArray(t.back) ? t.back : []).filter(function (b) { return b && !b.excluded; });
+      }
+    });
   } else if (CURRENT_SOURCE === 'live') {
     // 🛡️ 2026-10-19 P0：实时刷新 payload 不带 themeRadar 时，必须清空旧日 themeRadar，
     // 否则旧快照的题材卡片（含 10.16 涨停时间）会残留到今日页面。
