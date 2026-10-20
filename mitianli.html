@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>觅甜里 · 下午茶手作手记 · 原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --cream:#FBF7F0; --paper:#fff; --caramel:#B5793F; --caramel-d:#8A5628;
+  --cocoa:#3D342C; --straw:#E3A2A8; --matcha:#9FB392; --vanilla:#B3A6C4;
+  --line:#E5DED2; --mute:#A9A29A; --body:#5F5E5A; --soft:#F1EDE4;
+  --serif:Georgia,"Songti SC","STSong","Noto Serif SC",serif;
+  --sans:-apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+}
+body{background:var(--soft);font-family:var(--sans);color:var(--cocoa);min-height:100vh;padding:0 0 40px}
+#app{max-width:430px;margin:0 auto;background:var(--cream);min-height:100vh;position:relative;overflow:hidden}
+.sbar{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:11px;color:var(--cocoa);background:var(--cream);position:sticky;top:0;z-index:20}
+.sbar .mid{font-size:10px;color:var(--mute);letter-spacing:.1em}
+.nav{background:var(--paper);padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:26px;z-index:19;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.nav h1{font-family:var(--serif);font-size:17px;font-weight:400;letter-spacing:.04em}
+.navfav{display:inline-flex;align-items:center;gap:5px;background:none;border:0;color:var(--caramel);font-size:11px;cursor:pointer;padding:4px 2px;font-family:var(--sans)}
+.navfav i{font-style:normal;font-variant-numeric:tabular-nums}
+.page{padding:14px 16px 20px;display:none;animation:fade .22s ease}
+.page.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+.tabbar div{flex:1;text-align:center;padding:8px 0 9px;font-size:10px;color:var(--mute);cursor:pointer}
+.tabbar div.on{color:var(--caramel);font-weight:500}
+.tabbar .ic{display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin:0 auto 3px;border-radius:7px;border:1.5px solid var(--line);color:var(--mute);opacity:.7}
+.tabbar div.on .ic{opacity:1;background:var(--caramel);border-color:var(--caramel);color:#fff}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px}
+.hero{margin:0 0 16px;padding:18px 16px;text-align:center;position:relative;overflow:hidden}
+.hero .mini{font-size:10px;color:var(--mute);letter-spacing:.18em}
+.hero h2{font-family:var(--serif);font-size:20px;font-weight:400;margin:6px 0 4px}
+.hero p{font-size:12px;color:var(--body);line-height:1.7}
+.hero-meta{font-size:10px;color:var(--mute);margin-top:9px;letter-spacing:.05em}
+.btn{display:block;width:100%;text-align:center;background:var(--caramel);color:#fff;font-size:13px;padding:11px;border:0;border-radius:11px;margin-top:12px;cursor:pointer;font-family:var(--sans)}
+.btn.dark{background:var(--cocoa)}
+.btn.ghost{background:transparent;color:var(--caramel);border:1px solid var(--caramel)}
+.btn.sm{padding:8px;font-size:12px;border-radius:9px;margin-top:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:18px 0 9px}
+.sect h3{font-size:13px;font-weight:500}
+.sect span{font-size:11px;color:var(--mute)}
+.sect-note{font-size:11px;color:var(--mute);line-height:1.7;margin:-2px 0 10px}
+.seg{display:flex;background:var(--soft);border-radius:10px;padding:3px;gap:3px}
+.seg b{flex:1;text-align:center;font-size:12px;font-weight:400;padding:7px 0;border-radius:8px;color:var(--body);cursor:pointer}
+.seg b.sel{background:var(--paper);color:var(--caramel);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.filter{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.filter::-webkit-scrollbar{display:none}
+.filter b{font-size:11px;font-weight:400;padding:5px 12px;border-radius:14px;background:var(--paper);border:1px solid var(--line);color:var(--body);white-space:nowrap;cursor:pointer}
+.filter b.sel{background:var(--caramel);color:#fff;border-color:var(--caramel)}
+.chip{font-size:10px;padding:2px 7px;border-radius:8px;display:inline-block}
+.chip.oven{background:#FCEBEB;color:#A32D2D}
+.chip.fridge{background:#E6F1FB;color:#185FA5}
+.chip.nofail{background:#EEEDFE;color:#534AB7}
+.chip.have{background:#EAF3DE;color:#3B6D11}
+.chip.easy{background:#FAEEDA;color:#854F0B}
+.chip.alc{background:#FBEAF0;color:#A33A6B}
+/* ---- 左右滑动卡片 ---- */
+.swipe{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-left:16px;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -16px;padding:6px 16px 12px;cursor:grab}
+.swipe:active{cursor:grabbing}
+.swipe::-webkit-scrollbar{display:none}
+.scard{flex:0 0 76%;scroll-snap-align:start;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden;user-select:none;-webkit-user-select:none}
+.sc-art{height:128px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.sc-body{padding:12px 13px 14px}
+.sc-season{font-size:9px;color:var(--mute);letter-spacing:.18em}
+.scard h4{font-family:var(--serif);font-size:17px;font-weight:400;margin:4px 0 2px}
+.scard .en{font-size:10px;color:var(--mute);font-style:italic}
+.scard .ds{font-size:11px;color:var(--body);line-height:1.65;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.scard .tags{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.scard .meta{margin-top:9px;font-size:10px;color:var(--mute)}
+.swipe-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:2px}
+.arr{width:26px;height:26px;border-radius:50%;background:var(--paper);border:1px solid var(--line);color:var(--cocoa);font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 4px rgba(61,52,44,.08);font-family:var(--sans)}
+.arr:active{background:var(--soft)}
+.dots{display:flex;gap:6px;align-items:center}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block;transition:.2s}
+.dots i.on{background:var(--caramel);width:16px;border-radius:4px}
+.swipe-hint{text-align:center;font-size:10px;color:var(--mute);margin-top:8px}
+/* ---- 爱心收藏 ---- */
+.heart{background:none;border:0;padding:6px;cursor:pointer;color:var(--mute);display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
+.heart.on{color:var(--straw)}
+.heart svg{display:block}
+.heart.lg{padding:9px;position:absolute;top:6px;right:6px}
+.heart-badge{position:absolute;top:7px;right:7px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mute);box-shadow:0 1px 4px rgba(61,52,44,.1);z-index:3}
+.heart-badge.on{color:var(--straw)}
+/* ---- 手册 ---- */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mcard{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer}
+.mcard:active{border-color:var(--caramel)}
+.mc-art{height:88px;position:relative;overflow:hidden}
+.mc-body{padding:9px 11px 11px}
+.mc-body h5{font-family:var(--serif);font-size:13px;font-weight:400}
+.mc-body p{font-size:9px;color:var(--mute);margin-top:3px}
+/* ---- 配方详情 ---- */
+.rback{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.backlink{font-size:11px;color:var(--caramel);background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:5px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.rhead{position:relative;padding:16px 15px;text-align:center}
+.rhead .mini{font-size:10px;color:var(--mute);letter-spacing:.16em}
+.rhead h2{font-family:var(--serif);font-size:22px;font-weight:400;margin:5px 0 2px}
+.rhead .en{font-size:11px;color:var(--mute);font-style:italic}
+.rhead .rdesc{font-size:12px;color:var(--body);line-height:1.75;margin:11px 0 0}
+.rhead .rtags{display:flex;gap:5px;justify-content:center;margin-top:11px;flex-wrap:wrap}
+.ing{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--soft);font-size:12px}
+.ing:last-child{border-bottom:0}
+.ing .n{flex:1}
+.ing .n small{color:var(--mute);font-size:10px;margin-left:5px}
+.ing .a{color:var(--body);font-variant-numeric:tabular-nums}
+.params{background:#FAEEDA;border-radius:12px;padding:11px 13px;margin-top:8px}
+.params div{display:flex;font-size:11px;color:#633806;padding:3px 0}
+.params div b{font-weight:400;color:#854F0B;width:48px;flex-shrink:0}
+.step{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--soft)}
+.step:last-child{border-bottom:0}
+.step .n{width:22px;height:22px;border-radius:50%;background:var(--caramel);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step h5{font-size:13px;font-weight:500;margin-bottom:3px}
+.step p{font-size:11px;color:var(--body);line-height:1.7}
+.step .tm{font-size:10px;color:var(--mute);margin-top:4px}
+/* ---- 跟着做 ---- */
+.stname{font-size:12px;color:var(--mute)}
+.startbox{height:110px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.startext{font-family:var(--serif);font-size:36px;color:var(--caramel);opacity:.45}
+.sttitle{font-family:var(--serif);font-size:20px;font-weight:400}
+.stdesc{font-size:13px;color:var(--body);line-height:1.8;margin-top:8px}
+.stmeta{font-size:11px;color:var(--mute);margin-top:6px}
+.prog{display:flex;gap:4px}
+.prog i{flex:1;height:3px;background:var(--line);border-radius:2px}
+.prog i.on{background:var(--caramel)}
+/* ---- 我的 ---- */
+.favitem{display:flex;align-items:center;gap:11px;padding:11px 12px;border-bottom:1px solid var(--soft);cursor:pointer}
+.favitem:last-child{border-bottom:0}
+.fi-art{width:52px;height:52px;border-radius:12px;flex-shrink:0;overflow:hidden;position:relative}
+.fi-t{flex:1;min-width:0}
+.fi-t p:first-child{font-size:13px;color:var(--cocoa);font-family:var(--serif)}
+.fi-t p:last-child{font-size:10px;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note{font-size:10px;color:var(--mute);line-height:1.7;background:var(--soft);border-radius:10px;padding:9px 11px;margin-top:12px}
+.empty{text-align:center;padding:34px 16px;color:var(--mute);font-size:12px;line-height:1.8}
+.empty .big{font-size:28px;margin-bottom:8px;opacity:.35}
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(8px);background:rgba(61,52,44,.88);color:#fff;font-size:12px;padding:8px 14px;border-radius:20px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:78%;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sbar"><span id="clock">9:41</span><span class="mid" id="sbarMid">甜品</span><span>●●●●</span></div>
+  <div class="nav">
+    <h1 id="navTitle">甜品</h1>
+    <button class="navfav" onclick="show('me')"><span id="navHeart"></span>我的收藏 <i id="favN">0</i></button>
+  </div>
+
+  <!-- ============ 甜品模块 ============ -->
+  <div class="page on" id="p-dessert">
+    <div class="card hero" style="background:rgba(181,121,63,.10)">
+      <div class="mini">MODULE 01 · DESSERT</div>
+      <h2>甜品手册</h2>
+      <p>蛋糕、曲奇、挞派、慕斯、面包与布丁——下午茶的那一口甜，都收在这一册。</p>
+      <div class="hero-meta" id="count-dessert"></div>
+      <button class="btn" onclick="openManual('dessert')">翻开甜品手册 →</button>
+    </div>
+    <div class="sect"><h3>本册单品</h3><span id="scount-dessert">左右滑动浏览</span></div>
+    <div class="filter" id="filter-dessert"></div>
+    <div class="swipe" id="swipe-dessert"></div>
+    <div class="swipe-nav">
+      <button class="arr" onclick="nudge('dessert',-1)">‹</button>
+      <div class="dots" id="dots-dessert"></div>
+      <button class="arr" onclick="nudge('dessert',1)">›</button>
+    </div>
+    <p class="swipe-hint">左右滑动浏览 · 点开卡片看完整步骤</p>
+  </div>
+
+  <!-- ============ 茶饮模块 ============ -->
+  <div class="page" id="p-tea">
+    <div class="card hero" style="background:rgba(159,179,146,.16)">
+      <div class="mini">MODULE 02 · TEA &amp; MILK</div>
+      <h2>茶饮手册</h2>
+      <p>奶茶、茶汤与奶盖。茶香、奶甜和糖的比例，是一杯一杯试出来的手记。</p>
+      <div class="hero-meta" id="count-tea"></div>
+      <button class="btn" onclick="openManual('tea')">翻开茶饮手册 →</button>
+    </div>
+    <div class="sect"><h3>本册单品</h3><span id="scount-tea">左右滑动浏览</span></div>
+    <div class="filter" id="filter-tea"></div>
+    <div class="swipe" id="swipe-tea"></div>
+    <div class="swipe-nav">
+      <button class="arr" onclick="nudge('tea',-1)">‹</button>
+      <div class="dots" id="dots-tea"></div>
+      <button class="arr" onclick="nudge('tea',1)">›</button>
+    </div>
+    <p class="swipe-hint">左右滑动浏览 · 点开卡片看完整步骤</p>
+  </div>
+
+  <!-- ============ 微醺模块 ============ -->
+  <div class="page" id="p-tipsy">
+    <div class="card hero" style="background:rgba(179,166,196,.16)">
+      <div class="mini">MODULE 03 · TIPSY</div>
+      <h2>微醺手册</h2>
+      <p>小酒、气泡，和刚刚好的一点点醺。含酒精配方，未成年人请勿尝试。</p>
+      <div class="hero-meta" id="count-tipsy"></div>
+      <button class="btn" onclick="openManual('tipsy')">翻开微醺手册 →</button>
+    </div>
+    <div class="sect"><h3>本册单品</h3><span id="scount-tipsy">左右滑动浏览</span></div>
+    <div class="filter" id="filter-tipsy"></div>
+    <div class="swipe" id="swipe-tipsy"></div>
+    <div class="swipe-nav">
+      <button class="arr" onclick="nudge('tipsy',-1)">‹</button>
+      <div class="dots" id="dots-tipsy"></div>
+      <button class="arr" onclick="nudge('tipsy',1)">›</button>
+    </div>
+    <p class="swipe-hint">左右滑动浏览 · 点开卡片看完整步骤</p>
+  </div>
+
+  <!-- ============ 手册 ============ -->
+  <div class="page" id="p-manual">
+    <div class="card hero" style="background:rgba(181,121,63,.08);text-align:left">
+      <div class="mini">HANDBOOK · 手记手册</div>
+      <h2>三册手册</h2>
+      <p>甜品、茶饮、微醺各成一册，配方卡都收在各自的手册里。每张卡片上的爱心，点一下就收进「我的」。</p>
+    </div>
+    <div class="seg" id="manualSeg">
+      <b class="sel" data-m="dessert" onclick="setManual('dessert')">甜品手册</b>
+      <b data-m="tea" onclick="setManual('tea')">茶饮手册</b>
+      <b data-m="tipsy" onclick="setManual('tipsy')">微醺手册</b>
+    </div>
+    <p class="sect-note" id="manualNote"></p>
+    <div class="mgrid" id="manualGrid"></div>
+  </div>
+
+  <!-- ============ 配方详情 ============ -->
+  <div class="page" id="p-recipe">
+    <div class="rback"><span class="backlink" onclick="back()">← 返回</span></div>
+    <div class="card rhead">
+      <button class="heart lg" id="rHeart" onclick="toggleFav(state.curRecipe)"></button>
+      <div class="mini" id="rSeason"></div>
+      <h2 id="rName"></h2>
+      <p class="en" id="rEn"></p>
+      <p class="rdesc" id="rDesc"></p>
+      <div class="rtags" id="rTags"></div>
+    </div>
+    <div class="sect"><h3>用料</h3><span id="rYield"></span></div>
+    <div class="seg" id="portSeg"><b class="sel" data-k="1">1 份</b><b data-k="2">2 份</b><b data-k="4">4 份</b><b data-k="6">6 份</b></div>
+    <div class="card" style="margin-top:9px;padding:4px 13px" id="rItems"></div>
+    <div class="sect"><h3>关键参数</h3></div>
+    <div class="params" id="rParams"></div>
+    <div class="sect"><h3>制作步骤</h3><span id="rStepN"></span></div>
+    <div class="card" style="padding:2px 13px" id="rSteps"></div>
+    <button class="btn dark" style="margin-top:14px" onclick="openSteps()">按步骤跟着做 →</button>
+  </div>
+
+  <!-- ============ 跟着做 ============ -->
+  <div class="page" id="p-steps">
+    <div class="rback">
+      <span class="backlink" onclick="back()">← 返回</span>
+      <span class="stname" id="stName"></span>
+      <button class="heart" id="stHeart" style="margin-left:auto" onclick="toggleFav(state.curRecipe)"></button>
+    </div>
+    <div class="card" style="padding:16px 15px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--mute)">跟着做 · 一步一步来</span>
+        <span id="stN" style="font-size:12px;color:var(--caramel)"></span>
+      </div>
+      <div class="prog" id="stProg" style="margin:9px 0 20px"></div>
+      <div class="startbox"><span class="startext" id="stArt">甜</span></div>
+      <h3 class="sttitle" id="stTitle"></h3>
+      <p class="stdesc" id="stDesc"></p>
+      <p class="stmeta" id="stMeta"></p>
+    </div>
+    <div class="row2" style="margin-top:12px">
+      <button class="btn ghost sm" onclick="stepPrev()">上一步</button>
+      <button class="btn sm" id="stNext" onclick="stepNext()">下一步</button>
+    </div>
+  </div>
+
+  <!-- ============ 我的 ============ -->
+  <div class="page" id="p-me">
+    <div class="card hero" style="background:rgba(227,162,168,.12);text-align:left">
+      <div class="mini">MY FAVORITES · 我的收藏</div>
+      <h2>我的</h2>
+      <p>你在手册里点过的爱心，都会收在这里。每个账号独立，收藏仅自己可见。</p>
+      <div class="hero-meta">已收藏 <b id="favCount" style="color:var(--caramel);font-weight:500">0</b> 张配方卡</div>
+    </div>
+    <div class="seg" id="favSeg">
+      <b class="sel" data-m="all" onclick="setFavSeg('all')">全部</b>
+      <b data-m="dessert" onclick="setFavSeg('dessert')">甜品</b>
+      <b data-m="tea" onclick="setFavSeg('tea')">茶饮</b>
+      <b data-m="tipsy" onclick="setFavSeg('tipsy')">微醺</b>
+    </div>
+    <div class="card" style="margin-top:12px;padding:2px 13px" id="favList"></div>
+    <div class="note">收藏按账号独立保存：你的收藏只有你自己的账号能看到，别人看不到你的「我的」页。原型版收藏存在本机浏览器；正式版按微信账号云端隔离，换设备也能同步。</div>
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <div class="on" data-p="dessert"><span class="ic"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 20v-4a2 2 0 012-2h10a2 2 0 012 2v4"/><path d="M5 14a3 3 0 013-3h8a3 3 0 013 3"/><path d="M12 11V8"/><circle cx="12" cy="6" r="1"/></svg></span>甜品</div>
+    <div data-p="tea"><span class="ic"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h11v4a5 5 0 01-5 5 5 5 0 01-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 010 5H16"/><path d="M9 6c.5-1 .5-1.6 0-2.6M12.5 6c.5-1 .5-1.6 0-2.6"/></svg></span>茶饮</div>
+    <div data-p="tipsy"><span class="ic"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-8 8z"/><path d="M12 13v6"/><path d="M8 19h8"/></svg></span>微醺</div>
+    <div data-p="manual"><span class="ic"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19a2 2 0 012-2h13"/></svg></span>手册</div>
+    <div data-p="me"><span class="ic"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/></svg></span>我的</div>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+/* ============================================================
+   觅甜里 · 配方与原料数据
+   下午茶手作手记：甜品 / 奶茶 / 微醺
+   ============================================================
+   同时支持两种引入方式：
+   1) 小程序 / Node 环境：  import { RECIPES } from './data.js'
+   2) 浏览器 <script src="data.js">：挂到 window.SD 上
+   ============================================================ */
+
+const CATS = [
+  { id: 'cake',    name: '蛋糕',   color: '#FAEEDA' },
+  { id: 'cookie',  name: '饼干',   color: '#EAF3DE' },
+  { id: 'tart',    name: '挞派',   color: '#FBEAF0' },
+  { id: 'mousse',  name: '慕斯',   color: '#EEEDFE' },
+  { id: 'bread',   name: '面包',   color: '#E6F1FB' },
+  { id: 'pudding', name: '布丁',   color: '#FAECE7' },
+  { id: 'milk_tea', name: '奶茶',  color: '#F5E8D8' },
+  { id: 'tipsy',   name: '微醺',   color: '#EEEDFE' },
+];
+
+/* ---------------- 原料库 ---------------- */
+const INGREDIENTS = [
+  // 粉类
+  { id: 'flour',      name: '低筋面粉', en: 'Cake Flour',      cat: '粉类', unit: 'g' },
+  { id: 'flour_h',    name: '高筋面粉', en: 'Bread Flour',     cat: '粉类', unit: 'g' },
+  { id: 'starch',     name: '玉米淀粉', en: 'Corn Starch',     cat: '粉类', unit: 'g' },
+  { id: 'cocoa',      name: '可可粉',   en: 'Cocoa Powder',    cat: '粉类', unit: 'g', substitutable: ['cacao'] },
+  { id: 'matcha',     name: '抹茶粉',   en: 'Matcha',          cat: '粉类', unit: 'g' },
+  { id: 'almond',     name: '杏仁粉',   en: 'Almond Flour',    cat: '粉类', unit: 'g' },
+  { id: 'milk_pow',   name: '奶粉',     en: 'Milk Powder',     cat: '粉类', unit: 'g' },
+  { id: 'yeast',      name: '干酵母',   en: 'Dry Yeast',       cat: '粉类', unit: 'g' },
+  { id: 'baking',     name: '泡打粉',   en: 'Baking Powder',   cat: '粉类', unit: 'g' },
+  // 液体
+  { id: 'milk',       name: '牛奶',     en: 'Milk',            cat: '液体', unit: 'ml' },
+  { id: 'water',      name: '清水',     en: 'Water',           cat: '液体', unit: 'ml' },
+  { id: 'cream',      name: '淡奶油',   en: 'Heavy Cream',     cat: '液体', unit: 'ml' },
+  { id: 'espresso',   name: '浓缩咖啡', en: 'Espresso',        cat: '液体', unit: 'ml' },
+  { id: 'rum',        name: '朗姆酒',   en: 'Rum',             cat: '液体', unit: 'ml' },
+  { id: 'mirin',      name: '味醂',     en: 'Mirin',           cat: '液体', unit: 'ml' },
+  { id: 'yuzu',       name: '柚子汁',   en: 'Yuzu Juice',      cat: '液体', unit: 'ml' },
+  { id: 'rice_wine',  name: '米酒',     en: 'Rice Wine',       cat: '液体', unit: 'ml' },
+  { id: 'soda',       name: '气泡水',   en: 'Sparkling Water', cat: '液体', unit: 'ml' },
+  { id: 'plum_wine',  name: '青梅酒',   en: 'Plum Wine',       cat: '液体', unit: 'ml' },
+  // 油脂
+  { id: 'butter',     name: '黄油',     en: 'Butter',          cat: '油脂', unit: 'g' },
+  { id: 'coconut_o',  name: '椰子油',   en: 'Coconut Oil',     cat: '油脂', unit: 'g' },
+  { id: 'olive_o',    name: '橄榄油',   en: 'Olive Oil',       cat: '油脂', unit: 'g' },
+  // 糖类
+  { id: 'sugar',      name: '细砂糖',   en: 'Caster Sugar',    cat: '糖类', unit: 'g' },
+  { id: 'sugar_p',    name: '糖粉',     en: 'Icing Sugar',     cat: '糖类', unit: 'g' },
+  { id: 'brown_s',    name: '红糖',     en: 'Brown Sugar',     cat: '糖类', unit: 'g' },
+  { id: 'honey',      name: '蜂蜜',     en: 'Honey',           cat: '糖类', unit: 'g' },
+  { id: 'caramel',    name: '焦糖浆',   en: 'Caramel Syrup',   cat: '糖类', unit: 'g' },
+  { id: 'salt',       name: '盐',       en: 'Salt',            cat: '糖类', unit: 'g' },
+  // 乳制品
+  { id: 'cream_ch',   name: '奶油奶酪', en: 'Cream Cheese',    cat: '乳制品', unit: 'g' },
+  { id: 'mascarp',    name: '马斯卡彭', en: 'Mascarpone',      cat: '乳制品', unit: 'g' },
+  { id: 'yogurt',     name: '酸奶',     en: 'Yogurt',          cat: '乳制品', unit: 'g' },
+  { id: 'condensed',  name: '炼乳',     en: 'Condensed Milk',  cat: '乳制品', unit: 'g' },
+  // 蛋类
+  { id: 'egg',        name: '鸡蛋',     en: 'Egg',             cat: '蛋类', unit: 'g' },
+  { id: 'yolk',       name: '蛋黄',     en: 'Egg Yolk',        cat: '蛋类', unit: 'g' },
+  { id: 'white',      name: '蛋白',     en: 'Egg White',       cat: '蛋类', unit: 'g' },
+  // 果蔬
+  { id: 'strawberry', name: '草莓',     en: 'Strawberry',      cat: '果蔬', unit: 'g' },
+  { id: 'mango',      name: '芒果',     en: 'Mango',           cat: '果蔬', unit: 'g' },
+  { id: 'lemon',      name: '柠檬',     en: 'Lemon',           cat: '果蔬', unit: 'g' },
+  { id: 'blueberry',  name: '蓝莓',     en: 'Blueberry',       cat: '果蔬', unit: 'g' },
+  { id: 'taro',       name: '芋头',     en: 'Taro',            cat: '果蔬', unit: 'g' },
+  { id: 'osmanthus',  name: '干桂花',   en: 'Dried Osmanthus', cat: '果蔬', unit: 'g' },
+  { id: 'riceball',   name: '酒酿',     en: 'Rice Wine',       cat: '果蔬', unit: 'g' },
+  { id: 'lime',       name: '青柠',     en: 'Lime',            cat: '果蔬', unit: 'g' },
+  // 特殊辅料
+  { id: 'gelatin',    name: '吉利丁片', en: 'Gelatin',         cat: '辅料', unit: 'g' },
+  { id: 'cacao',      name: '可可粉(烘焙)', en: 'Cacao',       cat: '辅料', unit: 'g' },
+  { id: 'vanilla',    name: '香草精',   en: 'Vanilla Extract', cat: '辅料', unit: 'ml' },
+  { id: 'choc_chip',  name: '巧克力币', en: 'Chocolate Chips', cat: '辅料', unit: 'g' },
+  { id: 'nuts',       name: '混合坚果', en: 'Mixed Nuts',      cat: '辅料', unit: 'g' },
+  { id: 'sesame',     name: '熟白芝麻', en: 'Sesame',          cat: '辅料', unit: 'g' },
+  { id: 'jasmine',    name: '茉莉茶包', en: 'Jasmine Tea',     cat: '辅料', unit: 'g' },
+  { id: 'black_tea',  name: '红茶包',   en: 'Black Tea',       cat: '辅料', unit: 'g' },
+  { id: 'boba',       name: '珍珠粉圆', en: 'Tapioca Pearls',  cat: '辅料', unit: 'g' },
+  { id: 'ice',        name: '冰粒',     en: 'Ice',             cat: '辅料', unit: 'g' },
+];
+
+/* ---------------- 配方 ---------------- */
+const RECIPES = [
+  {
+    id: 'r01', name: '焦糖海盐可颂', en: 'Caramel Sea Salt Croissant',
+    season: '春', category: 'bread', difficulty: 3,
+    tags: ['需烤箱', '零失败'], needOven: true, needFridge: true, noFail: true,
+    desc: '黄油在烤箱里一层层松开，焦糖与海盐在顶端相遇，脆与甜只差三分钟。',
+    yieldBase: 1, yieldUnit: '个', yieldCount: 2,
+    items: [
+      { ingId: 'flour', amount: 120, unit: 'g' },
+      { ingId: 'sugar', amount: 25, unit: 'g' },
+      { ingId: 'salt', amount: 2, unit: 'g' },
+      { ingId: 'yeast', amount: 3, unit: 'g' },
+      { ingId: 'milk', amount: 60, unit: 'ml' },
+      { ingId: 'butter', amount: 80, unit: 'g' },
+      { ingId: 'caramel', amount: 30, unit: 'g' },
+    ],
+    params: [
+      { k: '烤箱', v: '上下火 200℃ · 中层' },
+      { k: '烘烤', v: '18 分钟 · 至金黄' },
+      { k: '发酵', v: '26℃ · 60 分钟' },
+      { k: '模具', v: '28cm 方盘' },
+    ],
+    steps: [
+      { t: '黄油软化', d: '黄油室温软化到手指能轻松按下，但不要化开。切成 1 厘米薄片冷藏备用。', m: '10 分钟' },
+      { t: '揉面', d: '除黄油外所有材料混合揉 8 分钟至能拉出薄膜。', m: '8 分钟' },
+      { t: '包油', d: '面团擀开，包入黄油片，擀两次，每次擀完冷藏 20 分钟。', m: '40 分钟' },
+      { t: '整形', d: '面片对折三次，切三角形卷起成型，间隔摆放。', m: '10 分钟' },
+      { t: '醒发', d: '26℃ 发酵至两倍大，手指轻按回弹。', m: '60 分钟' },
+      { t: '刷蛋液', d: '表面刷蛋液，不要刷到层次边缘。', m: '2 分钟' },
+      { t: '烘烤', d: '200℃ 中层 18 分钟，中途不加水。', m: '18 分钟' },
+      { t: '出炉', d: '趁热刷焦糖浆，撒少许海盐。', m: '3 分钟' },
+    ],
+  },
+  {
+    id: 'r02', name: '巴斯克焦香芝士', en: 'Basque Cheesecake',
+    season: '春', category: 'cake', difficulty: 2,
+    tags: ['需烤箱', '零失败'], needOven: true, needFridge: true, noFail: true,
+    desc: '表面焦得近乎苦，内里却还颤着。巴斯克的全部秘密是烤过头那五分钟。',
+    yieldBase: 1, yieldUnit: '份', yieldCount: 6,
+    items: [
+      { ingId: 'cream_ch', amount: 500, unit: 'g' },
+      { ingId: 'sugar', amount: 130, unit: 'g' },
+      { ingId: 'egg', amount: 150, unit: 'g' },
+      { ingId: 'yogurt', amount: 200, unit: 'g' },
+      { ingId: 'flour', amount: 15, unit: 'g' },
+    ],
+    params: [
+      { k: '烤箱', v: '上下火 230℃ · 中下层' },
+      { k: '烘烤', v: '25 分钟 · 至表面焦黑' },
+      { k: '冷藏', v: '出烤箱后冷藏 4 小时' },
+      { k: '模具', v: '6 寸圆模 · 油纸' },
+    ],
+    steps: [
+      { t: '室温软化', d: '奶油奶酪室温软化到顺滑无颗粒。', m: '30 分钟' },
+      { t: '拌糖', d: '加入细砂糖，打到完全融合无颗粒。', m: '3 分钟' },
+      { t: '加蛋液', d: '分次加入蛋液，每次拌匀再加下一次。', m: '3 分钟' },
+      { t: '过筛', d: '筛入低筋面粉，翻拌至无干粉，不要过度搅拌。', m: '2 分钟' },
+      { t: '入模', d: '倒入铺好油纸的模具，震出大气泡。', m: '2 分钟' },
+      { t: '高温烘烤', d: '230℃ 烤 25 分钟，表面务必烤到焦褐色。', m: '25 分钟' },
+    ],
+  },
+  {
+    id: 'r03', name: '抹茶白巧生巧', en: 'Matcha White Chocolate',
+    season: '春', category: 'cake', difficulty: 1,
+    tags: ['可冷藏', '零失败'], needOven: false, needFridge: true, noFail: true,
+    desc: '三种材料，搅一搅，冷藏一夜。入口先是抹茶的苦，然后是奶的回甘。',
+    yieldBase: 1, yieldUnit: '份', yieldCount: 9,
+    items: [
+      { ingId: 'matcha', amount: 8, unit: 'g' },
+      { ingId: 'coconut_o', amount: 100, unit: 'g' },
+      { ingId: 'condensed', amount: 120, unit: 'g' },
+    ],
+    params: [
+      { k: '冷藏', v: '4℃ · 6 小时以上' },
+      { k: '切块', v: '冷藏后切 3cm 见方' },
+    ],
+    steps: [
+      { t: '融油', d: '椰子油隔水加热至完全融化，温热不烫手。', m: '5 分钟' },
+      { t: '拌匀', d: '加入炼乳搅匀，再筛入抹茶粉，搅拌至无颗粒。', m: '3 分钟' },
+      { t: '过筛', d: '倒入方盘，用刮刀抹平表面，震出气泡。', m: '2 分钟' },
+      { t: '冷藏', d: '盖盖冷藏 6 小时以上或过夜。', m: '6 小时' },
+    ],
+  },
+  {
+    id: 'r04', name: '桂花酒酿圆子', en: 'Osmanthus Rice Dumpling',
+    season: '秋', category: 'pudding', difficulty: 1,
+    tags: ['可冷藏', '零失败'], needOven: false, needFridge: false, noFail: true,
+    desc: '酒酿的甜和桂花的香，裹住一颗颗小圆子。冬天的暖手甜汤。',
+    yieldBase: 1, yieldUnit: '碗', yieldCount: 2,
+    items: [
+      { ingId: 'riceball', amount: 300, unit: 'g' },
+      { ingId: 'starch', amount: 60, unit: 'g' },
+      { ingId: 'osmanthus', amount: 5, unit: 'g' },
+      { ingId: 'water', amount: 600, unit: 'ml' },
+      { ingId: 'mirin', amount: 20, unit: 'ml' },
+    ],
+    params: [
+      { k: '水温', v: '水开后下圆子' },
+      { k: '判断', v: '圆子全部浮起即熟' },
+    ],
+    steps: [
+      { t: '揉圆子', d: '糯米粉加少量温水揉团，取小团搓圆。', m: '15 分钟' },
+      { t: '煮圆子', d: '水开下圆子，浮起后再煮 2 分钟。', m: '6 分钟' },
+      { t: '调汤底', d: '酒酿加水与味醂，微热即可不要煮沸。', m: '5 分钟' },
+      { t: '撒桂花', d: '盛出后撒干桂花，温热食用。', m: '2 分钟' },
+    ],
+  },
+  {
+    id: 'r05', name: '芋泥麻薯软糕', en: 'Taro Mochi Cake',
+    season: '秋', category: 'cake', difficulty: 2,
+    tags: ['需烤箱'], needOven: true, needFridge: true, noFail: false,
+    desc: '芋泥的粉糯包着麻薯，拉丝的那一下是全部的期待。',
+    yieldBase: 1, yieldUnit: '份', yieldCount: 8,
+    items: [
+      { ingId: 'taro', amount: 300, unit: 'g' },
+      { ingId: 'butter', amount: 60, unit: 'g' },
+      { ingId: 'sugar_p', amount: 30, unit: 'g' },
+      { ingId: 'milk', amount: 80, unit: 'ml' },
+      { ingId: 'starch', amount: 40, unit: 'g' },
+    ],
+    params: [
+      { k: '蒸芋', v: '上汽蒸 25 分钟' },
+      { k: '烤箱', v: '170℃ · 中层' },
+      { k: '烘烤', v: '20 分钟' },
+    ],
+    steps: [
+      { t: '蒸芋头', d: '芋头去皮切块，上汽蒸 25 分钟至能一压就碎。', m: '25 分钟' },
+      { t: '炒泥', d: '热锅下黄油，加芋泥与糖，小火炒至能抱团。', m: '10 分钟' },
+      { t: '制麻薯', d: '淀粉加水加热成糊，冷却后揉入麻薯。', m: '15 分钟' },
+      { t: '组装', d: '麻薯包芋泥球，裹一层熟黄豆粉。', m: '20 分钟' },
+    ],
+  },
+  {
+    id: 'r06', name: '海盐柠檬磅蛋糕', en: 'Lemon Pound Cake',
+    season: '夏', category: 'cake', difficulty: 1,
+    tags: ['需烤箱', '零失败'], needOven: true, needFridge: false, noFail: true,
+    desc: '黄油和糖打发到颜色发白，柠檬皮屑在面糊里画碎金点。',
+    yieldBase: 1, yieldUnit: '份', yieldCount: 8,
+    items: [
+      { ingId: 'butter', amount: 120, unit: 'g' },
+      { ingId: 'sugar_p', amount: 110, unit: 'g' },
+      { ingId: 'egg', amount: 120, unit: 'g' },
+      { ingId: 'flour', amount: 150, unit: 'g' },
+      { ingId: 'yuzu', amount: 40, unit: 'ml' },
+    ],
+    params: [
+      { k: '烤箱', v: '上下火 170℃ · 中层' },
+      { k: '烘烤', v: '45 分钟 · 牙签测试' },
+      { k: '模具', v: '21cm 中空模 · 抹油' },
+    ],
+    steps: [
+      { t: '打发黄油', d: '黄油软化后加糖打发 5 分钟至颜色发白体积变大。', m: '5 分钟' },
+      { t: '加蛋液', d: '分 3 次加入蛋液，每次打匀再加。', m: '3 分钟' },
+      { t: '拌粉', d: '筛入低筋面粉，翻拌至无干粉，拌入柠檬皮屑。', m: '3 分钟' },
+      { t: '入模', d: '倒入模具，抹平表面，轻震两下。', m: '2 分钟' },
+      { t: '烘烤', d: '170℃ 烤 45 分钟，牙签插入无湿面糊即熟。', m: '45 分钟' },
+    ],
+  },
+  {
+    id: 'r07', name: '海盐巧克力曲奇', en: 'Salted Chocolate Chip Cookies',
+    season: '秋', category: 'cookie', difficulty: 1,
+    tags: ['需烤箱', '零失败'], needOven: true, needFridge: false, noFail: true,
+    desc: '边缘脆得掉渣，中心还软到粘牙。诀窍是冷藏过夜再烤。',
+    yieldBase: 1, yieldUnit: '份', yieldCount: 12,
+    items: [
+      { ingId: 'butter', amount: 100, unit: 'g' },
+      { ingId: 'brown_s', amount: 80, unit: 'g' },
+      { ingId: 'sugar', amount: 50, unit: 'g' },
+      { ingId: 'egg', amount: 50, unit: 'g' },
+      { ingId: 'flour', amount: 140, unit: 'g' },
+      { ingId: 'choc_chip', amount: 100, unit: 'g' },
+      { ingId: 'salt', amount: 2, unit: 'g' },
+    ],
+    params: [
+      { k: '冷藏', v: '面团冷藏 12 小时 · 必做' },
+      { k: '烤箱', v: '上下火 180℃ · 中层' },
+      { k: '烘烤', v: '12 分钟 · 边缘上色即可' },
+    ],
+    steps: [
+      { t: '搅打黄油', d: '黄油软化后与红糖、细砂糖打匀至顺滑。', m: '4 分钟' },
+      { t: '加蛋', d: '分次加入蛋液拌匀，不要一次倒太多。', m: '2 分钟' },
+      { t: '拌粉', d: '筛入低筋面粉与盐，翻拌至无干粉即停。', m: '2 分钟' },
+      { t: '拌巧克力', d: '拌入巧克力币，冷藏 12 小时。', m: '12 小时' },
+      { t: '整形', d: '分割成 12 球，间距摆开，烤盘要留空隙。', m: '8 分钟' },
+      { t: '烘烤', d: '180℃ 烤 12 分钟，边缘上色但中心仍软。', m: '12 分钟' },
+    ],
+  },
+  {
+    id: 'r08', name: '葡式蛋挞', en: 'Portuguese Egg Tart',
+    season: '夏', category: 'tart', difficulty: 2,
+    tags: ['需烤箱'], needOven: true, needFridge: true, noFail: false,
+    desc: '酥皮在热糖浆里滋滋冒泡，蛋液表面那层焦斑是整只挞的灵魂。',
+    yieldBase: 1, yieldUnit: '份', yieldCount: 6,
+    items: [
+      { ingId: 'flour', amount: 120, unit: 'g' },
+      { ingId: 'butter', amount: 80, unit: 'g' },
+      { ingId: 'sugar', amount: 50, unit: 'g' },
+      { ingId: 'egg', amount: 90, unit: 'g' },
+      { ingId: 'cream', amount: 100, unit: 'ml' },
+      { ingId: 'water', amount: 30, unit: 'ml' },
+    ],
+    params: [
+      { k: '挞水', v: '过筛两次 · 必须' },
+      { k: '烤箱', v: '上下火 220℃ · 中层' },
+      { k: '烘烤', v: '18 分钟 · 表面出焦斑' },
+    ],
+    steps: [
+      { t: '开酥', d: '面粉加冷水与黄油，揉成团冷藏松弛 30 分钟。', m: '30 分钟' },
+      { t: '擀酥', d: '擀开包入黄油片，反复折叠三次。', m: '20 分钟' },
+      { t: '入模', d: '擀成挞皮铺入挞模，底部用叉子扎孔。', m: '10 分钟' },
+      { t: '调挞水', d: '奶油、牛奶、糖加热至糖化，打入蛋黄，过筛两次。', m: '12 分钟' },
+      { t: '高温烘烤', d: '220℃ 烤 18 分钟，表面出现焦斑即可。', m: '18 分钟' },
+    ],
+  },
+  {
+    id: 'r09', name: '覆盆子芝士慕斯', en: 'Raspberry Cheesecake Mousse',
+    season: '夏', category: 'mousse', difficulty: 2,
+    tags: ['可冷藏', '零失败'], needOven: false, needFridge: true, noFail: true,
+    desc: '不用烤箱，搅一搅就好。入口是芝士的酸，尾调是覆盆子的甜香。',
+    yieldBase: 1, yieldUnit: '份', yieldCount: 4,
+    items: [
+      { ingId: 'cream_ch', amount: 150, unit: 'g' },
+      { ingId: 'condensed', amount: 60, unit: 'g' },
+      { ingId: 'lemon', amount: 15, unit: 'g' },
+      { ingId: 'gelatin', amount: 8, unit: 'g' },
+      { ingId: 'cream', amount: 150, unit: 'ml' },
+      { ingId: 'strawberry', amount: 80, unit: 'g' },
+    ],
+    params: [
+      { k: '冷藏', v: '4℃ · 4 小时以上' },
+      { k: '打发', v: '淡奶油至六分发' },
+    ],
+    steps: [
+      { t: '泡吉利丁', d: '吉利丁片冷水泡软，隔水融化至完全透明。', m: '8 分钟' },
+      { t: '拌芝士糊', d: '奶油奶酪加炼乳与柠檬汁搅匀，加吉利丁液。', m: '5 分钟' },
+      { t: '打发奶油', d: '淡奶油打发至六分发，能拉出柔软的尖角。', m: '4 分钟' },
+      { t: '混合', d: '奶油分三次翻拌入芝士糊，动作要轻。', m: '3 分钟' },
+      { t: '组装', d: '入杯，铺覆盆子，冷藏 4 小时。', m: '4 小时' },
+    ],
+  },
+  {
+    id: 'r10', name: '茉莉奶绿厚奶盖', en: 'Jasmine Green Tea with Milk Cap',
+    season: '春', category: 'milk_tea', difficulty: 1,
+    tags: ['可冷藏', '零失败'], needOven: false, needFridge: false, noFail: true,
+    desc: '茉莉绿茶打底，奶盖咸甜交界那一口，是整杯的灵魂。',
+    yieldBase: 1, yieldUnit: '杯', yieldCount: 2,
+    items: [
+      { ingId: 'jasmine', amount: 8, unit: 'g' },
+      { ingId: 'milk', amount: 200, unit: 'ml' },
+      { ingId: 'cream', amount: 60, unit: 'ml' },
+      { ingId: 'sugar', amount: 15, unit: 'g' },
+      { ingId: 'ice', amount: 150, unit: 'g' },
+    ],
+    params: [
+      { k: '水温', v: '85℃ · 不用沸水' },
+      { k: '萃取', v: '6 分钟 · 盖焖' },
+      { k: '奶盖', v: '打发至五分发 · 缓缓流动' },
+    ],
+    steps: [
+      { t: '泡茶', d: '85℃ 热水冲泡茉莉茶包，盖焖 6 分钟后取出茶包放凉。', m: '8 分钟' },
+      { t: '调味', d: '茶汤加入细砂糖搅拌至化开，放至常温。', m: '3 分钟' },
+      { t: '装杯', d: '杯中放满冰粒，倒入茶汤至七分满。', m: '2 分钟' },
+      { t: '打奶盖', d: '淡奶油加少许盐与糖，打至五分发、能缓缓流动。', m: '4 分钟' },
+      { t: '铺奶盖', d: '奶盖沿杯壁缓缓铺满顶层，撒少许茉莉花。', m: '3 分钟' },
+    ],
+  },
+  {
+    id: 'r11', name: '烤黑糖珍珠鲜奶', en: 'Brown Sugar Boba Milk',
+    season: '秋', category: 'milk_tea', difficulty: 2,
+    tags: ['零失败'], needOven: false, needFridge: false, noFail: true,
+    desc: '黑糖挂壁的虎纹是它的名片，珍珠要煮到中心无硬芯。',
+    yieldBase: 1, yieldUnit: '杯', yieldCount: 2,
+    items: [
+      { ingId: 'boba', amount: 100, unit: 'g' },
+      { ingId: 'brown_s', amount: 40, unit: 'g' },
+      { ingId: 'black_tea', amount: 6, unit: 'g' },
+      { ingId: 'milk', amount: 250, unit: 'ml' },
+      { ingId: 'ice', amount: 100, unit: 'g' },
+    ],
+    params: [
+      { k: '煮珍珠', v: '25 分钟 · 焖 20 分钟' },
+      { k: '茶底', v: '红茶 6g · 95℃ · 8 分钟' },
+      { k: '挂壁', v: '黑糖浆转杯两圈' },
+    ],
+    steps: [
+      { t: '煮珍珠', d: '水开下珍珠，中火煮 25 分钟，关火焖 20 分钟。', m: '45 分钟' },
+      { t: '炒黑糖', d: '黑糖加少量水小火熬至浓稠，拌入珍珠。', m: '8 分钟' },
+      { t: '挂壁', d: '黑糖浆沿杯壁转两圈，做出虎纹。', m: '2 分钟' },
+      { t: '加冰奶', d: '杯中加冰粒，倒入鲜奶至八分满。', m: '2 分钟' },
+      { t: '加珍珠', d: '铺入黑糖珍珠，静置 1 分钟让纹路下沉。', m: '3 分钟' },
+    ],
+  },
+  {
+    id: 'r12', name: '桂花米酒微醺气泡', en: 'Osmanthus Rice Wine Fizz',
+    season: '秋', category: 'tipsy', difficulty: 1,
+    tags: ['含酒精', '可冷藏'], needOven: false, needFridge: false, noFail: true,
+    desc: '米酒的温柔被气泡托起来，桂花落在杯口，是微醺的开关。',
+    yieldBase: 1, yieldUnit: '杯', yieldCount: 2,
+    items: [
+      { ingId: 'rice_wine', amount: 80, unit: 'ml' },
+      { ingId: 'soda', amount: 120, unit: 'ml' },
+      { ingId: 'osmanthus', amount: 2, unit: 'g' },
+      { ingId: 'caramel', amount: 10, unit: 'g' },
+      { ingId: 'lime', amount: 15, unit: 'g' },
+      { ingId: 'ice', amount: 120, unit: 'g' },
+    ],
+    params: [
+      { k: '酒温', v: '米酒提前冷藏' },
+      { k: '顺序', v: '先酒后气泡 · 沿杯壁倒' },
+    ],
+    steps: [
+      { t: '冰杯', d: '杯中放满冰粒，旋转半分钟让杯壁降温。', m: '2 分钟' },
+      { t: '打底', d: '焦糖浆与青柠片入杯，轻压出柠香。', m: '2 分钟' },
+      { t: '加酒', d: '倒入冷藏米酒至三分之一。', m: '1 分钟' },
+      { t: '补气泡', d: '沿杯壁缓缓倒入气泡水，保留气泡。', m: '2 分钟' },
+      { t: '点桂花', d: '撒干桂花，轻搅一下即可。', m: '1 分钟' },
+    ],
+  },
+  {
+    id: 'r13', name: '青梅红茶气泡', en: 'Plum Wine Black Tea Fizz',
+    season: '夏', category: 'tipsy', difficulty: 1,
+    tags: ['含酒精', '可冷藏'], needOven: false, needFridge: false, noFail: true,
+    desc: '青梅酒的酸被红茶托住，气泡一开，夏天就坐在了杯子里。',
+    yieldBase: 1, yieldUnit: '杯', yieldCount: 2,
+    items: [
+      { ingId: 'black_tea', amount: 5, unit: 'g' },
+      { ingId: 'plum_wine', amount: 60, unit: 'ml' },
+      { ingId: 'honey', amount: 15, unit: 'g' },
+      { ingId: 'soda', amount: 100, unit: 'ml' },
+      { ingId: 'lime', amount: 10, unit: 'g' },
+      { ingId: 'ice', amount: 120, unit: 'g' },
+    ],
+    params: [
+      { k: '茶底', v: '红茶 5g · 90℃ · 6 分钟' },
+      { k: '酒温', v: '青梅酒提前冷藏' },
+      { k: '顺序', v: '先茶后酒 · 最后补气泡' },
+    ],
+    steps: [
+      { t: '泡茶', d: '90℃ 热水冲泡红茶，盖焖 6 分钟后放凉至常温。', m: '8 分钟' },
+      { t: '调酒', d: '青梅酒与蜂蜜倒入茶汤搅匀，蜂蜜要完全化开。', m: '3 分钟' },
+      { t: '冰杯', d: '杯中放满冰粒，旋转几圈让杯壁降温。', m: '2 分钟' },
+      { t: '补气泡', d: '沿杯壁缓缓倒入气泡水，保留气泡的劲。', m: '2 分钟' },
+      { t: '点缀', d: '杯口放一片青柠，插上吸管即可。', m: '1 分钟' },
+    ],
+  },
+  {
+    id: 'r14', name: '焦糖朗姆奶酒', en: 'Caramel Rum Milk',
+    season: '冬', category: 'tipsy', difficulty: 2,
+    tags: ['含酒精', '零失败'], needOven: false, needFridge: false, noFail: true,
+    desc: '蛋黄打到发白，热奶冲进去那一秒变稠——冬天的杯子里住着一小团火。',
+    yieldBase: 1, yieldUnit: '杯', yieldCount: 2,
+    items: [
+      { ingId: 'rum', amount: 45, unit: 'ml' },
+      { ingId: 'milk', amount: 120, unit: 'ml' },
+      { ingId: 'caramel', amount: 20, unit: 'g' },
+      { ingId: 'yolk', amount: 30, unit: 'g' },
+      { ingId: 'sugar', amount: 10, unit: 'g' },
+    ],
+    params: [
+      { k: '奶温', v: '加热至 60℃ · 不要沸腾' },
+      { k: '打发', v: '蛋黄加糖打至颜色发白' },
+      { k: '用蛋', v: '建议用可生食鸡蛋' },
+      { k: '酒精度', v: '约 6 度 · 微醺不醉' },
+    ],
+    steps: [
+      { t: '打蛋黄', d: '蛋黄加细砂糖，用打蛋器打到颜色发白、体积略变大。', m: '4 分钟' },
+      { t: '热奶', d: '牛奶加焦糖浆小火加热到 60℃ 左右，锅边起小泡即离火。', m: '5 分钟' },
+      { t: '冲兑', d: '热奶一线冲入蛋黄糊，边倒边快速搅拌，防止结蛋花。', m: '3 分钟' },
+      { t: '回锅收稠', d: '倒回小锅小火加热到浓稠挂勺即可，不要煮沸。', m: '4 分钟' },
+      { t: '加酒', d: '离火后拌入朗姆酒，盛入杯中，表面可撒少许干桂花。', m: '2 分钟' },
+    ],
+  },
+  {
+    id: 'r15', name: '冻柠茶', en: 'Iced Lemon Tea',
+    season: '夏', category: 'milk_tea', difficulty: 1,
+    tags: ['可冷藏', '零失败'], needOven: false, needFridge: false, noFail: true,
+    desc: '柠檬去籽压出汁，茶底要浓——涩与酸在冰里握手言和。',
+    yieldBase: 1, yieldUnit: '杯', yieldCount: 2,
+    items: [
+      { ingId: 'black_tea', amount: 8, unit: 'g' },
+      { ingId: 'water', amount: 500, unit: 'ml' },
+      { ingId: 'lemon', amount: 80, unit: 'g' },
+      { ingId: 'sugar', amount: 25, unit: 'g' },
+      { ingId: 'ice', amount: 150, unit: 'g' },
+    ],
+    params: [
+      { k: '茶底', v: '红茶 8g · 95℃ · 8 分钟' },
+      { k: '柠檬', v: '切片去籽 · 不去籽会苦' },
+    ],
+    steps: [
+      { t: '泡茶', d: '95℃ 热水冲泡红茶，盖焖 8 分钟，取出茶包放凉。', m: '10 分钟' },
+      { t: '调糖', d: '茶汤还温热时加入细砂糖，搅至完全化开。', m: '2 分钟' },
+      { t: '处理柠檬', d: '柠檬切片，仔细去籽，取两片轻压出汁。', m: '4 分钟' },
+      { t: '组装', d: '杯中放满冰粒，倒入茶汤至八分满，放入柠檬片。', m: '2 分钟' },
+      { t: '出品', d: '插一根吸管，柠檬片泡 2 分钟味道正好。', m: '2 分钟' },
+    ],
+  },
+];
+
+/* ---------------- 工具函数 ---------------- */
+const ingById = id => INGREDIENTS.find(i => i.id === id);
+
+function scaleItems(recipe, portions) {
+  const k = portions / recipe.yieldBase;
+  return recipe.items.map(it => ({ ...it, amount: it.amount * k }));
+}
+
+/** 计算缺料清单 */
+function missingFor(recipe, portions, pantry) {
+  return scaleItems(recipe, portions)
+    .filter(it => !pantry.includes(it.ingId))
+    .map(it => ({ ...it, name: ingById(it.ingId)?.name ?? it.ingId }));
+}
+
+/** 计算可做数量：缺 0-1 种关键料的可做 */
+function makeable(recipe, pantry) {
+  const miss = recipe.items.filter(it => !pantry.includes(it.ingId));
+  if (miss.length === 0) return { ok: true, level: '完全可做', miss: [] };
+  if (miss.length === 1) return { ok: true, level: '差 1 样', miss };
+  return { ok: false, level: `差 ${miss.length} 样`, miss };
+}
+
+/* ---------------- 导出 ---------------- */
+const SD = { CATS, INGREDIENTS, RECIPES, ingById, scaleItems, missingFor, makeable };
+if (typeof window !== 'undefined') window.SD = SD;
+if (typeof module !== 'undefined' && module.exports) module.exports = SD;
+
+</script>
+<script>
+const {CATS,INGREDIENTS,RECIPES,ingById,scaleItems}=window.SD||{};
+
+/* ---------------- 模块定义 ---------------- */
+const MODULES=[
+  {id:'dessert',name:'甜品',en:'DESSERT',cats:['cake','cookie','tart','mousse','bread','pudding']},
+  {id:'tea',name:'茶饮',en:'TEA & MILK',cats:['milk_tea']},
+  {id:'tipsy',name:'微醺',en:'TIPSY',cats:['tipsy']},
+];
+const FAV_KEY='mitianli.favs.v1';
+
+/* ---------------- 状态 ---------------- */
+let favs=loadFavs();
+let state={page:'dessert',hist:[],manualSeg:'dessert',favSeg:'all',portions:1,curRecipe:null,catFilter:{}};
+
+function el(id){return document.getElementById(id)}
+function $(s){return document.querySelector(s)}
+function $$(s){return Array.from(document.querySelectorAll(s))}
+const catName=id=>{const c=CATS.find(x=>x.id===id);return c?c.name:id};
+const catColor=id=>{const c=CATS.find(x=>x.id===id);return c?c.color:'#F1EDE4'};
+const moduleOf=r=>MODULES.find(m=>m.cats.includes(r.category))||MODULES[0];
+
+/* ---------------- 收藏 ---------------- */
+function loadFavs(){
+  try{
+    const v=JSON.parse(localStorage.getItem(FAV_KEY)||'[]');
+    return Array.isArray(v)?v.filter(id=>RECIPES.some(r=>r.id===id)):[];
+  }catch(e){return[]}
+}
+function saveFavs(){try{localStorage.setItem(FAV_KEY,JSON.stringify(favs))}catch(e){}}
+function isFav(id){return favs.indexOf(id)>=0}
+function toggleFav(id){
+  const i=favs.indexOf(id);
+  if(i<0){favs.push(id);toast('已收进「我的」')}else{favs.splice(i,1);toast('已取消收藏')}
+  saveFavs();renderAll();
+}
+let toastTimer=null;
+function toast(msg){
+  const t=el('toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),1400);
+}
+function heartSVG(on,size){
+  size=size||17;
+  return '<svg viewBox="0 0 24 24" width="'+size+'" height="'+size+'" aria-hidden="true"><path d="M12 20.4C12 20.4 3.6 15.1 3.6 9.3 3.6 6.5 5.8 4.5 8.1 4.5c1.6 0 3.2 1.1 3.9 2.5.7-1.4 2.3-2.5 3.9-2.5 2.3 0 4.5 2 4.5 4.8 0 5.8-8.4 11.1-8.4 11.1z" fill="'+(on?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>';
+}
+
+/* ---------------- 插画（纯 CSS 色块） ---------------- */
+function art(kind,color){
+  let inner='';
+  if(kind==='bread'){
+    inner='<div style="position:absolute;left:20%;bottom:22%;width:60%;height:26%;background:#E8CBA0;border-radius:40% 40% 30% 30%"></div>'
+      +'<div style="position:absolute;left:30%;bottom:46%;width:40%;height:22%;background:#F3D9B6;border-radius:40% 40% 22% 22%"></div>'
+      +'<div style="position:absolute;left:36%;bottom:66%;width:28%;height:8%;background:#FBF1DE;border-radius:40%"></div>';
+  }else if(kind==='cake'){
+    inner='<div style="position:absolute;left:16%;bottom:16%;width:68%;height:16%;background:#F3D9B6;border-radius:4px"></div>'
+      +'<div style="position:absolute;left:24%;bottom:32%;width:52%;height:18%;background:#E8CBA0;border-radius:4px"></div>'
+      +'<div style="position:absolute;left:34%;bottom:50%;width:32%;height:16%;background:#FBF1DE;border-radius:40% 40% 4px 4px"></div>'
+      +'<div style="position:absolute;left:49%;bottom:66%;width:4px;height:12px;background:#B5793F;border-radius:2px"></div>';
+  }else if(kind==='cookie'){
+    inner='<div style="position:absolute;left:26%;bottom:22%;width:48%;height:50%;background:#C89B6A;border-radius:50%"></div>'
+      +'<div style="position:absolute;left:33%;bottom:46%;width:9%;height:11%;background:#5F4326;border-radius:50%"></div>'
+      +'<div style="position:absolute;left:47%;bottom:54%;width:9%;height:11%;background:#5F4326;border-radius:50%"></div>'
+      +'<div style="position:absolute;left:55%;bottom:38%;width:9%;height:11%;background:#5F4326;border-radius:50%"></div>';
+  }else if(kind==='tart'){
+    inner='<div style="position:absolute;left:24%;bottom:20%;width:52%;height:32%;background:#E8CBA0;border-radius:8px 8px 18px 18px"></div>'
+      +'<div style="position:absolute;left:28%;bottom:50%;width:44%;height:18%;background:#F6E3B0;border-radius:6px 6px 4px 4px"></div>'
+      +'<div style="position:absolute;left:36%;bottom:58%;width:7%;height:9%;background:#8A5628;border-radius:50%"></div>'
+      +'<div style="position:absolute;left:50%;bottom:62%;width:7%;height:9%;background:#8A5628;border-radius:50%"></div>';
+  }else if(kind==='mousse'){
+    inner='<div style="position:absolute;left:32%;bottom:18%;width:36%;height:58%;background:#fff;border-radius:6px 6px 16px 16px;border:1.5px solid #D9CDBB"></div>'
+      +'<div style="position:absolute;left:35%;bottom:58%;width:30%;height:20%;background:'+color+';border-radius:5px 5px 0 0"></div>'
+      +'<div style="position:absolute;left:44%;bottom:76%;width:8%;height:8%;background:#B5793F;border-radius:50%"></div>';
+  }else if(kind==='pudding'){
+    inner='<div style="position:absolute;left:34%;bottom:16%;width:32%;height:44%;background:#F3D9B6;border-radius:4px 4px 18px 18px"></div>'
+      +'<div style="position:absolute;left:34%;bottom:52%;width:32%;height:14%;background:'+color+';border-radius:16px 16px 0 0"></div>';
+  }else if(kind==='milk_tea'){
+    inner='<div style="position:absolute;left:54%;bottom:34%;width:4px;height:52%;background:#E3A2A8;border-radius:3px;transform:rotate(12deg);transform-origin:bottom"></div>'
+      +'<div style="position:absolute;left:32%;bottom:22%;width:36%;height:38%;background:#fff;border:1.5px solid #D9CDBB;border-radius:6px 6px 16px 16px"></div>'
+      +'<div style="position:absolute;left:34%;bottom:54%;width:32%;height:24%;background:#A8BE8C;border-radius:5px 5px 0 0"></div>'
+      +'<div style="position:absolute;left:29%;bottom:78%;width:42%;height:7%;background:#FBF7F0;border:1px solid #E5DED2;border-radius:6px"></div>';
+  }else{
+    inner='<div style="position:absolute;left:48%;bottom:12%;width:4px;height:16%;background:#D9CDBB"></div>'
+      +'<div style="position:absolute;left:38%;bottom:10%;width:24%;height:3%;background:#D9CDBB;border-radius:2px"></div>'
+      +'<div style="position:absolute;left:33%;bottom:26%;width:34%;height:46%;background:rgba(255,255,255,.4);border:1.5px solid #D9CDBB;border-radius:8px 8px 44% 44%"></div>'
+      +'<div style="position:absolute;left:35%;bottom:28%;width:30%;height:30%;background:#E8C98A;border-radius:6px 6px 44% 44%"></div>'
+      +'<div style="position:absolute;left:40%;bottom:36%;width:5%;height:5%;background:#fff;border-radius:50%;opacity:.85"></div>'
+      +'<div style="position:absolute;left:50%;bottom:44%;width:4%;height:4%;background:#fff;border-radius:50%;opacity:.7"></div>';
+  }
+  return '<div style="width:100%;height:100%;background:'+color+';position:relative;overflow:hidden">'+inner+'</div>';
+}
+function tagChip(t){
+  const cls=t==='需烤箱'?'oven':t==='可冷藏'?'fridge':t==='含酒精'?'alc':t==='零失败'?'nofail':'easy';
+  return '<span class="chip '+cls+'">'+t+'</span>';
+}
+
+/* ---------------- 页面切换 ---------------- */
+function show(p,push){
+  if(push===undefined)push=true;
+  if(push&&state.page!==p)state.hist.push(state.page);
+  state.page=p;
+  $$('.page').forEach(x=>x.classList.remove('on'));
+  el('p-'+p).classList.add('on');
+  $$('#tabbar div').forEach(d=>d.classList.toggle('on',d.dataset.p===p));
+  const t={dessert:'甜品',tea:'茶饮',tipsy:'微醺',manual:'手记手册',recipe:'配方详情',steps:'跟着做',me:'我的收藏'}[p];
+  el('navTitle').textContent=t;
+  el('sbarMid').textContent=t;
+  window.scrollTo(0,0);
+  renderAll();
+}
+function back(){const p=state.hist.pop()||'dessert';show(p,false)}
+function openManual(m){state.manualSeg=m;state.hist.push(state.page);show('manual',false)}
+function openRecipe(id){state.curRecipe=id;state.portions=1;state.hist.push(state.page);show('recipe',false)}
+function openSteps(){state.hist.push(state.page);show('steps',false)}
+function setManual(m){state.manualSeg=m;renderManual()}
+function setFavSeg(m){state.favSeg=m;renderMe()}
+function setFilter(mid,c){state.catFilter[mid]=c;renderModule(mid)}
+$$('#tabbar div').forEach(d=>d.onclick=()=>show(d.dataset.p));
+
+/* ---------------- 渲染：模块主页（左右滑动卡片） ---------------- */
+function renderModule(mid){
+  const mod=MODULES.find(m=>m.id===mid);
+  const all=RECIPES.filter(r=>mod.cats.includes(r.category));
+  const cats=[];all.forEach(r=>{if(cats.indexOf(r.category)<0)cats.push(r.category)});
+  const cat=state.catFilter[mid]||'全部';
+  const list=all.filter(r=>cat==='全部'||r.category===cat);
+  el('count-'+mid).textContent=all.length+' 张配方卡 · '+cats.length+' 个品类';
+  el('scount-'+mid).textContent=list.length+' 张';
+  el('filter-'+mid).innerHTML=['全部'].concat(cats.map(catName)).map(c=>
+    '<b class="'+(cat===c?'sel':'')+'" onclick="setFilter(\''+mid+'\',\''+c+'\')">'+c+'</b>').join('');
+  const sw=el('swipe-'+mid);
+  sw.innerHTML=list.map(r=>{
+    const tags=r.tags.map(tagChip).join('');
+    return '<div class="scard" onclick="openRecipe(\''+r.id+'\')">'
+      +'<div class="sc-art">'+art(r.category,catColor(r.category))+'</div>'
+      +'<div class="sc-body">'
+      +'<div class="sc-season">'+r.season+'季 · '+mod.name+'手册</div>'
+      +'<h4>'+r.name+'</h4>'
+      +'<p class="en">'+r.en+'</p>'
+      +'<p class="ds">'+r.desc+'</p>'
+      +'<div class="tags">'+tags+'</div>'
+      +'<div class="meta">'+r.items.length+' 样用料 · '+r.steps.length+' 步 · 难度 '+'★'.repeat(r.difficulty)+'</div>'
+      +'</div></div>';
+  }).join('');
+  el('dots-'+mid).innerHTML=list.map((_,i)=>'<i class="'+(i===0?'on':'')+'"></i>').join('');
+  bindSwipe(mid);
+}
+
+/* ---------------- 滑动交互 ---------------- */
+function bindSwipe(mid){
+  const sw=el('swipe-'+mid);if(!sw)return;
+  const cards=()=>Array.from(sw.querySelectorAll('.scard'));
+  sw.onscroll=()=>{
+    const cs=cards();if(!cs.length)return;
+    const w=cs[0].offsetWidth+12;
+    const i=Math.max(0,Math.min(cs.length-1,Math.round(sw.scrollLeft/w)));
+    Array.from(el('dots-'+mid).children).forEach((d,j)=>d.classList.toggle('on',j===i));
+  };
+  enableDrag(sw);
+}
+function enableDrag(sw){
+  if(sw._dragBound)return;sw._dragBound=true;
+  let down=false,sx=0,sl=0,moved=false;
+  sw.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='mouse')return;
+    down=true;moved=false;sx=e.clientX;sl=sw.scrollLeft;
+  });
+  window.addEventListener('pointermove',e=>{
+    if(!down)return;
+    const dx=e.clientX-sx;
+    if(!moved&&Math.abs(dx)>6)moved=true;
+    if(moved)sw.scrollLeft=sl-dx;
+  });
+  window.addEventListener('pointerup',()=>{down=false});
+  sw.addEventListener('click',e=>{
+    if(moved){e.preventDefault();e.stopPropagation();moved=false}
+  },true);
+}
+function nudge(mid,dir){
+  const sw=el('swipe-'+mid);
+  const cs=Array.from(sw.querySelectorAll('.scard'));if(!cs.length)return;
+  const w=cs[0].offsetWidth+12;
+  sw.scrollBy({left:dir*w,behavior:'smooth'});
+}
+
+/* ---------------- 渲染：手册 ---------------- */
+function renderManual(){
+  $$('#manualSeg b').forEach(b=>b.classList.toggle('sel',b.dataset.m===state.manualSeg));
+  const mod=MODULES.find(m=>m.id===state.manualSeg);
+  const list=RECIPES.filter(r=>mod.cats.includes(r.category));
+  el('manualNote').textContent=mod.name+'手册 · 共 '+list.length+' 张 · 点心形收进「我的」';
+  el('manualGrid').innerHTML=list.map(r=>{
+    const on=isFav(r.id);
+    return '<div class="mcard" onclick="openRecipe(\''+r.id+'\')">'
+      +'<div class="mc-art">'+art(r.category,catColor(r.category))
+      +'<div class="heart-badge '+(on?'on':'')+'" onclick="event.stopPropagation();toggleFav(\''+r.id+'\')">'+heartSVG(on,15)+'</div></div>'
+      +'<div class="mc-body"><h5>'+r.name+'</h5><p>'+r.season+'季 · '+r.steps.length+' 步 · '+'★'.repeat(r.difficulty)+'</p></div>'
+      +'</div>';
+  }).join('');
+}
+
+/* ---------------- 渲染：配方详情 ---------------- */
+$$('#portSeg b').forEach(b=>b.onclick=()=>{
+  state.portions=+b.dataset.k;
+  $$('#portSeg b').forEach(x=>x.classList.toggle('sel',x===b));
+  renderRecipe();
+});
+function renderRecipe(){
+  const r=RECIPES.find(x=>x.id===state.curRecipe);if(!r)return;
+  el('rSeason').textContent=r.season+'季 · '+moduleOf(r).name+'手册 · '+catName(r.category);
+  el('rName').textContent=r.name;
+  el('rEn').textContent=r.en;
+  el('rDesc').textContent=r.desc;
+  el('rTags').innerHTML=r.tags.map(tagChip).join('')
+    +'<span class="chip easy">难度 '+'★'.repeat(r.difficulty)+'☆'.repeat(3-r.difficulty)+'</span>';
+  el('rHeart').innerHTML=heartSVG(isFav(r.id),18);
+  el('rHeart').className='heart lg'+(isFav(r.id)?' on':'');
+  el('rHeart').title=isFav(r.id)?'取消收藏':'收藏';
+  el('rYield').textContent='基准 '+r.yieldBase+' 份 = '+r.yieldCount+' '+r.yieldUnit+' · 当前 '+state.portions+' 份';
+  el('rItems').innerHTML=scaleItems(r,state.portions).map(it=>{
+    const ing=ingById(it.ingId);
+    const v=Number.isInteger(it.amount)?it.amount:(Math.round(it.amount*10)/10);
+    return '<div class="ing"><span class="n">'+ing.name+'<small>'+ing.cat+'</small></span><span class="a">'+v+' '+it.unit+'</span></div>';
+  }).join('');
+  el('rParams').innerHTML=r.params.map(p=>'<div><b>'+p.k+'</b><span>'+p.v+'</span></div>').join('');
+  el('rStepN').textContent=r.steps.length+' 步';
+  el('rSteps').innerHTML=r.steps.map((s,i)=>
+    '<div class="step"><div class="n">'+(i+1)+'</div><div><h5>'+s.t+'</h5><p>'+s.d+'</p><div class="tm">约 '+s.m+'</div></div></div>').join('');
+}
+
+/* ---------------- 渲染：跟着做 ---------------- */
+let stepIdx=0;
+function renderSteps(){
+  const r=RECIPES.find(x=>x.id===state.curRecipe);if(!r)return;
+  const s=r.steps[stepIdx];
+  el('stName').textContent=r.name;
+  el('stN').textContent=String(stepIdx+1).padStart(2,'0')+' / '+r.steps.length;
+  el('stProg').innerHTML=r.steps.map((_,i)=>'<i class="'+(i<=stepIdx?'on':'')+'"></i>').join('');
+  el('stTitle').textContent=s.t;
+  el('stDesc').textContent=s.d;
+  el('stMeta').textContent='约 '+s.m;
+  el('stNext').textContent=stepIdx<r.steps.length-1?('下一步 · '+r.steps[stepIdx+1].t):'完成 · 开吃';
+  el('stArt').textContent=r.name.charAt(0);
+  const on=isFav(r.id);
+  el('stHeart').innerHTML=heartSVG(on,17);
+  el('stHeart').className='heart'+(on?' on':'');
+  el('stHeart').title=on?'取消收藏':'收藏';
+}
+function stepNext(){
+  const r=RECIPES.find(x=>x.id===state.curRecipe);
+  if(stepIdx<r.steps.length-1){stepIdx++;renderSteps()}else{back()}
+}
+function stepPrev(){if(stepIdx>0){stepIdx--;renderSteps()}else{back()}}
+
+/* ---------------- 渲染：我的 ---------------- */
+function renderMe(){
+  $$('#favSeg b').forEach(b=>b.classList.toggle('sel',b.dataset.m===state.favSeg));
+  let list=favs.map(id=>RECIPES.find(r=>r.id===id)).filter(Boolean);
+  if(state.favSeg!=='all')list=list.filter(r=>moduleOf(r).id===state.favSeg);
+  el('favList').innerHTML=list.length?list.map(r=>{
+    return '<div class="favitem" onclick="openRecipe(\''+r.id+'\')">'
+      +'<div class="fi-art">'+art(r.category,catColor(r.category))+'</div>'
+      +'<div class="fi-t"><p>'+r.name+'</p><p>'+moduleOf(r).name+'手册 · '+catName(r.category)+' · '+r.season+'季</p></div>'
+      +'<button class="heart on" onclick="event.stopPropagation();toggleFav(\''+r.id+'\')" title="取消收藏">'+heartSVG(true,17)+'</button>'
+      +'</div>';
+  }).join(''):'<div class="empty"><div class="big">&#9825;</div>还没有收藏<br>去「手册」里点心形，就会出现在这里</div>';
+}
+
+/* ---------------- 总渲染 ---------------- */
+function renderAll(){
+  el('favN').textContent=favs.length;
+  el('favCount').textContent=favs.length;
+  el('navHeart').innerHTML=heartSVG(false,13);
+  if(state.page==='dessert'||state.page==='tea'||state.page==='tipsy')renderModule(state.page);
+  if(state.page==='manual')renderManual();
+  if(state.page==='me')renderMe();
+  if(state.page==='recipe'||state.page==='steps'){renderRecipe();renderSteps()}
+}
+
+/* ---------------- 启动 ---------------- */
+state.curRecipe=(RECIPES.find(r=>MODULES[0].cats.includes(r.category))||RECIPES[0]).id;
+renderAll();
+function clock(){const d=new Date();el('clock').textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')}
+clock();setInterval(clock,1000);
+</script>
+</body>
+</html>
