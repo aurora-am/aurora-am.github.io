@@ -131,6 +131,7 @@
 
   var CODE_TTL_MIN = 10;
   var usingNativeOtp = false; // 注册验证码通道：false=自建send-code云函数, true=兜底走Supabase原生OTP
+  var regRenderAt = 0;        // 🍯 注册表单渲染时间戳（时间陷阱用，bindAuth 时重置）
 
   // ===== 投喂小鱼干：赞赏二维码 =====
   // 把微信收款码图片命名为 reward-qr.png 放到 .pages_repo/img/，或改成完整图片 URL。
@@ -243,6 +244,11 @@
         '<div class="miao-code-row">' +
         '<input id="miaoCode" class="miao-in" type="text" inputmode="numeric" placeholder="6 位数字" maxlength="6" autocomplete="one-time-code">' +
         '<button class="miao-btn code" id="miaoSendCode">获取验证码</button>' +
+        '</div>' +
+        // 🍯 蜜罐：视觉隐藏的诱饵字段（对真人无感知；脚本批量填表时会无脑填充 → 直接上报并假性拒绝）
+        '<div style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden;" aria-hidden="true">' +
+        '<label for="miaoWebsite">网站</label><input id="miaoWebsite" name="website" type="text" tabindex="-1" autocomplete="off">' +
+        '<label for="miaoRoleHp">权限</label><input id="miaoRoleHp" name="role" type="text" tabindex="-1" autocomplete="off">' +
         '</div>' : '') +
       '<div class="miao-err" id="miaoErr"></div>' +
       '<button class="miao-btn primary" id="miaoSubmit">' + (isReg ? '注 册' : '登 录') + '</button>' +
@@ -271,6 +277,7 @@
     $('miaoPwd').addEventListener('keydown', function (e) { if (e.key === 'Enter') submitAuth(); });
     var fg = $('miaoForgot'); if (fg) fg.addEventListener('click', openReset);
     if (isReg && $('miaoSendCode')) $('miaoSendCode').addEventListener('click', sendCode);
+    if (isReg) regRenderAt = Date.now();   // 🍯 时间陷阱基准：真人填邮箱+密码+6位验证码不可能快过 3 秒
   }
 
   // 注册验证码发送：优先走自建 send-code 云函数；失败（Resend 密钥失效/502/网络）兜底走 Supabase 原生 OTP
@@ -337,6 +344,21 @@
     if (pwd.length < 8) { err.textContent = '密码至少 8 位'; return; }
 
     if (isReg) {
+      // —— 🍯 蜜罐 + 时间陷阱：对真人无感；命中 = 脚本机器人，上报后假性拒绝（不透露判断原因）——
+      var hpVal = (($('miaoWebsite') || {}).value || '').trim();
+      var hpRole = (($('miaoRoleHp') || {}).value || '').trim();
+      var tooFast = regRenderAt && (Date.now() - regRenderAt < 3000);
+      if (hpVal || hpRole || tooFast) {
+        try {
+          sb.rpc('report_honeypot', {
+            p_kind: (hpVal || hpRole) ? 'hp_field' : 'too_fast',
+            p_detail: JSON.stringify({ email: email, hp: !!hpVal, hpRole: !!hpRole,
+              ms: regRenderAt ? (Date.now() - regRenderAt) : -1, ua: (navigator.userAgent || '').slice(0, 200) })
+          }).catch(function () {});
+        } catch (e) { /* 上报失败不影响本地拦截 */ }
+        err.textContent = '注册请求未能通过安全校验，请稍后再试';
+        return;
+      }
       var code = (($('miaoCode') || {}).value || '').trim();
       if (usingNativeOtp) {
         // 兜底路径：Supabase 原生 OTP —— verifyOtp 校验并落密码，确保后续可用密码登录
