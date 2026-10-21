@@ -9418,6 +9418,28 @@ function loadDay(date, force) {
   }, 0);
 }
 
+/* ===== 收盘后自动定稿：盘中实时会话在收盘后自动重载当日分片（修复"收盘后页面停留盘中空态"） ===== */
+var _afterCloseChecked = 0;
+function autoAfterCloseFinalize() {
+  try {
+    var now = new Date();
+    var m = now.getHours() * 60 + now.getMinutes();
+    if (m < 15 * 60 + 8) return;                 // 15:08 前不处理（给东财收盘数据留缓冲）
+    var hh = String(now.getHours()).padStart(2, '0');
+    var mm2 = String(now.getMinutes()).padStart(2, '0');
+    var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    if (DATA.date !== today) return;             // 只处理停留在"今天"的会话
+    if (CURRENT_SOURCE !== 'live') return;       // 已是分片/定稿数据则无需处理
+    if (Date.now() - _afterCloseChecked < 10 * 60000) return;  // 10 分钟节流
+    _afterCloseChecked = Date.now();
+    console.log('[afterClose] 收盘后自动定稿: 重新加载 ' + today + ' 分片');
+    loadDay(today, true);
+    setTimeout(function () {
+      try { showNotify('📥 收盘定稿已自动加载（' + today + ' ' + hh + ':' + mm2 + '）：股票池 / 缠论买点 / 题材雷达已切换为收盘结论。', 6000); } catch (e) {}
+    }, 4000);
+  } catch (e) {}
+}
+
 /* ===== 强制刷新：智能体连接器桥 -> 东财实时接口 -> 内嵌快照兜底 ===== */
 var LAST_LIVE_AT = null;
 var CURRENT_SNAP_AT = '';
@@ -9991,6 +10013,7 @@ function init() {
         if (typeof loadDay === 'function') loadDay(typeof LATEST_TRADE_DAY !== 'undefined' && LATEST_TRADE_DAY ? LATEST_TRADE_DAY : dstr, true);
       }
       _lastDayStr = dstr;
+      if (typeof autoAfterCloseFinalize === 'function') autoAfterCloseFinalize();
     } catch (e) {}
   }, 60000);
   if (isMarketOpen()) {
