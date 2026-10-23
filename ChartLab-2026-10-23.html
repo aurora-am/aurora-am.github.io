@@ -5363,7 +5363,10 @@ function refreshThemeBackRows() {
               var t = null;
               DATA.themeRadar.themes.forEach(function (z) { if (z.name === tg.name) t = z; });
               if (!t) { t = { name: tg.name, count: 0, lbcMax: 1, front: [], backRows: [], forceShow: !!tg.force }; DATA.themeRadar.themes.push(t); }
-              t.backRows = back;
+              // 🛡️ 后排缩水护栏：本次筛出 0 只但成员列表明显截断/毛刺（<50 只）时保留旧后排，防"有一会没有"；
+              //    成员拉全（≥50）且确实无人达标（如板块整体涨停）才诚实清空
+              if (back.length) t.backRows = back;
+              else if ((members || []).length >= 50) t.backRows = [];
               if (tg.force) {   // 强制题材：用板块内真实涨停股填充前排，使卡片完整
                 t.front = clean
                   .filter(function (x) { return +x.f3 >= 9.5; })
@@ -5454,6 +5457,9 @@ function refreshLiveLimitUp() {
   LiveFeed.limitPool(date).then(function (lu) {
     _limitUpFetching = false;
     if (!lu || !lu.list || !lu.list.length) return;
+    // 🛡️ 池子骤缩护栏：当前池 ≥10 只而新池缩小超 40% → 上游返回不完整（毛刺），沿用旧池，防整页题材卡闪烁消失
+    if (DATA.limitUp && DATA.limitUp.list && DATA.limitUp.list.length >= 10
+        && lu.list.length < DATA.limitUp.list.length * 0.6) return;
     DATA.limitUp = lu;
     LIVE_LIMITUP = true;
     renderThemeRadar();
@@ -5583,8 +5589,12 @@ function renderThemeRadar() {
     // 🛡️ 2026-10-19 P0：实时聚类结果必须写回 DATA.themeRadar，否则 refreshThemeBackRows 仍读旧 themes，
     // 导致「前排是今日涨停、后排却是昨日补涨」的混日展示。
     DATA.themeRadar = DATA.themeRadar || { themes: [], note: '' };
-    DATA.themeRadar.themes = themes;
     DATA.themeRadar.note = tr.note || '';
+    // 🛡️ 聚合骤缩护栏：上一轮 ≥6 卡而本轮骤缩超 50% → 涨停池/标签接口返回不完整，沿用上一轮聚合，防整页闪烁
+    var _prevTh = DATA.themeRadar.themes || [];
+    if (!(_prevTh.length >= 6 && themes.length < _prevTh.length * 0.5)) {
+      DATA.themeRadar.themes = themes;
+    }
   }
 
   // 合并强制展示题材（如冰雪→旅游及景区）：即便当日无涨停，也展示其盘中真实后排补涨
@@ -7876,6 +7886,7 @@ var LiveFeed = (function () {
   }
 
   /* 2) 涨停池 + 3) 跌停池 -> limitUp 结构 */
+  var CONCEPT_TAG_CACHE = {};   // code -> f100 概念标签（会话内缓存）：批量补全请求失败时复用，避免概念题材卡每60秒"闪现-消失"
   function limitPool(date) {
     var d = compact(date);
     var zt = 'https://push2ex.eastmoney.com/getTopicZTPool?ut=' + UT_P
@@ -7909,15 +7920,27 @@ var LiveFeed = (function () {
       return jsonp(cu).then(function (cj) {
         var arr = (cj && cj.data && cj.data.diff) || [];
         var cmap = {};
-        arr.forEach(function (it) { if (it && it.f12 != null) cmap[String(it.f12)] = it.f100 || ''; });
+        arr.forEach(function (it) {
+          if (it && it.f12 != null) { cmap[String(it.f12)] = it.f100 || ''; CONCEPT_TAG_CACHE[String(it.f12)] = cmap[String(it.f12)]; }
+        });
         list.forEach(function (s) {
-          var raw = cmap[String(s.code)] || '';
+          // 🛡️ 概念标签批量接口失败时回退会话缓存（题材为静态属性，会话内不过期），避免概念卡集体消失
+          var raw = cmap[String(s.code)] || CONCEPT_TAG_CACHE[String(s.code)] || '';
           var ctags = raw ? String(raw).split(/[,，\s]+/).map(function (x) { return x.trim(); }).filter(Boolean) : [];
           s.conceptTags = ctags;
           s.mainTag = _pickMainConcept(ctags) || s.hybk || '';
         });
         return finalizeLimitUp(list, dj, pool);
-      }).catch(function () { return finalizeLimitUp(list, dj, pool); });
+      }).catch(function () {
+        // 🛡️ 同上：失败复用缓存，保持聚类口径稳定（绝不编造——只用本会话真实拉到过的标签）
+        list.forEach(function (s) {
+          var raw = CONCEPT_TAG_CACHE[String(s.code)] || '';
+          var ctags = raw ? String(raw).split(/[,，\s]+/).map(function (x) { return x.trim(); }).filter(Boolean) : [];
+          s.conceptTags = ctags;
+          s.mainTag = _pickMainConcept(ctags) || s.hybk || '';
+        });
+        return finalizeLimitUp(list, dj, pool);
+      });
     });
   }
 
