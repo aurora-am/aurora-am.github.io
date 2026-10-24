@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>缠中说禅 · A股板块强弱雷达</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f6f7f9;--card:#fff;--bd:#e5e7eb;--tx:#0f172a;--dim:#64748b;--up:#dc2626;--dn:#16a34a}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+background:var(--bg);color:var(--tx);font-size:14px;line-height:1.6;-webkit-text-size-adjust:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:12px 12px 40px}
+header{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;border-radius:14px;padding:18px 18px 14px;margin-bottom:12px}
+header h1{font-size:19px;font-weight:700;letter-spacing:.5px}
+header .meta{font-size:12px;opacity:.8;margin-top:6px}
+header .meta b{opacity:1}
+h2{font-size:15px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid #dc2626}
+h2 .h2sub{font-size:11px;font-weight:400;color:var(--dim);margin-left:8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:9px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:11px 12px}
+.kpi .k{font-size:11px;color:var(--dim)}
+.kpi .v{font-size:21px;font-weight:700;margin-top:2px;line-height:1.2}
+.kpi .v small{font-size:11px;font-weight:400;color:var(--dim)}
+.kpi.hl{border-color:#fecaca;background:#fef2f2}
+.kpi.good .v{color:var(--up)}
+.kpi.bad .v{color:var(--dn)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f1f5f9;color:#475569;font-weight:600;font-size:11px;text-align:left;
+padding:8px 6px;border-bottom:1px solid var(--bd);white-space:nowrap}
+td{padding:8px 6px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tbody tr:hover{background:#f8fafc}
+.rk{width:30px;color:var(--dim);font-size:11px;text-align:center}
+.nm b{font-size:13px}
+.code{font-size:10px;color:var(--dim);font-family:ui-monospace,Menlo,monospace}
+.sc{min-width:104px}
+.scbar{height:4px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:3px}
+.scbar i{display:block;height:100%}
+.band{font-size:10px;margin-left:4px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sm{font-size:11px}
+.dim9{font-size:9px;color:var(--dim);font-weight:400}
+.risk{color:#d97706}
+.ph{display:inline-block;color:#fff;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.chip{display:inline-block;font-size:10px;padding:2px 6px;border-radius:5px;margin-right:3px;white-space:nowrap}
+.sig-up{background:#fee2e2;color:#b91c1c}
+.sig-down{background:#dcfce7;color:#15803d}
+.warn{color:#d97706;font-size:10px;margin-left:4px}
+.spark{display:block}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.empty{color:var(--dim);font-size:13px;padding:16px;text-align:center;background:#f8fafc;border-radius:9px}
+.pickwrap{border:1px solid var(--bd);border-radius:11px;padding:12px;margin-bottom:10px;background:#fff}
+.ph2{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:14px}
+.ph2 .sub{font-size:11px;color:var(--dim)}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:9px}
+.pick{border:1px solid var(--bd);border-radius:9px;padding:9px 10px;background:#fcfdff}
+.p1{display:flex;align-items:baseline;gap:6px}
+.p1 b{font-size:13px}
+.pc{font-size:10px;color:var(--dim);font-family:ui-monospace,Menlo,monospace}
+.p2{font-size:11px;color:var(--dim);margin-top:3px}
+.sc-num{color:var(--up);font-size:13px}
+.p3{display:flex;gap:9px;flex-wrap:wrap;font-size:10px;color:var(--dim);margin-top:5px}
+.p3 b{font-size:11px;color:var(--tx)}
+.p4{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap}
+.fl{font-size:9px;padding:1px 5px;border-radius:4px}
+.fl-ok{background:#fee2e2;color:#b91c1c}
+.fl-zt{background:#fef3c7;color:#b45309}
+.mcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:9px;margin:10px 0}
+.mc{background:#f8fafc;border:1px solid var(--bd);border-radius:9px;padding:9px 10px}
+.ml{font-size:10px;color:var(--dim)}
+.mv{font-size:16px;font-weight:700;margin-top:2px}
+.mv.good{color:var(--up)}.mv.bad{color:var(--dn)}
+.bt-head{font-size:12px;color:#475569;background:#f8fafc;padding:9px 11px;border-radius:8px;margin-bottom:4px}
+.chartwrap{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:8px;margin:10px 0}
+.chart{width:100%;height:auto;display:block}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}
+.sp{border:1px solid var(--bd);border-radius:9px;padding:9px 11px;font-size:11px;color:#475569}
+.sp h5{font-size:12px;color:var(--tx);margin-bottom:4px}
+.note{font-size:11px;color:var(--dim);line-height:1.7;background:#f8fafc;padding:9px 11px;border-radius:8px;margin-top:9px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+.rule{border:1px solid var(--bd);border-radius:10px;padding:11px 13px;background:#fff}
+.rule h4{font-size:13px;color:#b91c1c;margin-bottom:6px}
+.rule p,.rule li{font-size:12px;color:#475569;line-height:1.75}
+.rule ul,.rule ol{padding-left:18px;margin:5px 0}
+.rule .dim{color:var(--dim);font-size:11px;margin-top:5px}
+.rt{font-size:11px;margin-top:6px;width:auto}
+.rt th,.rt td{border:1px solid var(--bd);padding:4px 8px;text-align:center}
+.distwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.dchart{display:flex;gap:5px;align-items:flex-end;height:120px;flex:1;min-width:250px}
+.dbar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;position:relative}
+.dv{width:100%;border-radius:4px 4px 0 0;min-height:2px}
+.d-good{background:#dc2626}.d-mid{background:#0891b2}.d-bad{background:#16a34a}
+.dl{font-size:10px;color:var(--dim);margin-top:3px}
+.dn{position:absolute;top:-16px;font-size:9px;color:var(--dim)}
+.dinfo{font-size:12px;color:#475569;min-width:190px}
+.dinfo div{margin:3px 0}
+.dinfo b{color:var(--tx)}
+.env{margin-top:7px;padding:5px 9px;border-radius:7px;background:#f1f5f9}
+.env.good{background:#fee2e2}.env.good b{color:#b91c1c}
+.env.bad{background:#dcfce7}.env.bad b{color:#15803d}
+footer{text-align:center;color:var(--dim);font-size:11px;padding:18px 0 8px;line-height:1.9}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroll table{min-width:820px}
+@media(max-width:640px){
+.wrap{padding:8px 8px 30px}
+header{padding:14px}
+header h1{font-size:16px}
+.split{grid-template-columns:1fr}
+.kpi .v{font-size:18px}
+.picks{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>缠中说禅 · A股板块强弱雷达</h1>
+  <div class="meta">
+    数据日期 <b>2026-10-23</b> · 生成于 <b>2026-10-24 19:43:25</b> · 覆盖申万一级 <b>31</b> 个板块 ·
+    规则版本 v1.0（阈值集中在配置文件，页面与回测共用）
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi hl"><div class="k">启动期</div><div class="v">5<small> 个</small></div></div>
+  <div class="kpi hl"><div class="k">强势期</div><div class="v">0<small> 个</small></div></div>
+  <div class="kpi"><div class="k">调整期</div><div class="v">0<small> 个</small></div></div>
+  <div class="kpi"><div class="k">弱势期</div><div class="v">26<small> 个</small></div></div>
+  <div class="kpi good"><div class="k">拐头向上</div><div class="v">0<small> 个</small></div></div>
+  <div class="kpi bad"><div class="k">拐头向下</div><div class="v">4<small> 个</small></div></div>
+  <div class="kpi"><div class="k">顶背驰</div><div class="v">0<small> 个</small></div></div>
+</div>
+
+<h2>信号速览<span class="h2sub">需满足连续性 + 扩散度 + 量能三重确认，单日脉冲不计</span></h2>
+<div class="card">
+  <div style="font-size:12px;color:#475569;line-height:2">
+    <div><b class="ph" style="background:#c2410c">向上拐头</b> 无</div>
+    <div><b class="ph" style="background:#16a34a">向下拐头</b> 计算机, 家用电器, 银行, 非银金融</div>
+  </div>
+</div>
+
+<h2>板块强弱排行榜<span class="h2sub">强弱分 = 成分股强弱级别均值（1~9）</span></h2>
+<div class="card scroll">
+<table>
+<thead><tr>
+<th>#</th><th>板块</th><th>强弱分</th><th class="num">加权分</th><th class="num">分化度</th>
+<th>60日趋势</th><th>阶段</th>
+<th class="num">3日趋势</th><th class="num">涨幅5日</th><th class="num">涨幅20日</th>
+<th class="num">涨/跌家数</th><th class="num">涨停</th><th class="num">成交额</th><th>信号</th>
+</tr></thead>
+<tbody>
+<tr data-phase="START">
+  <td class="rk">1</td>
+  <td class="nm"><b>计算机</b><div class="code">801750</div></td>
+  <td class="sc"><div class="scbar"><i style="width:49%;background:#0891b2"></i></div>
+      <b>4.91</b><span class="band" style="color:#0891b2">震荡</span></td>
+  <td class="num sm">4.52<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.50</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,11.7 1.5,19.8 3.1,15.1 4.6,12.3 6.1,10.6 7.6,13.1 9.2,6.8 10.7,5.4 12.2,3.1 13.7,2.0 15.3,2.9 16.8,5.9 18.3,4.9 19.8,5.4 21.4,4.4 22.9,7.6 24.4,8.5 25.9,8.9 27.5,10.3 29.0,21.1 30.5,19.5 32.0,20.1 33.6,21.7 35.1,15.6 36.6,14.8 38.1,12.1 39.7,11.3 41.2,6.5 42.7,2.9 44.2,7.6 45.8,11.0 47.3,9.1 48.8,12.4 50.3,10.8 51.9,15.7 53.4,19.0 54.9,22.0 56.4,17.8 58.0,19.7 59.5,19.9 61.0,20.5 62.5,16.6 64.1,9.5 65.6,6.1 67.1,14.7 68.6,19.1 70.2,20.2 71.7,17.3 73.2,19.9 74.7,20.7 76.3,12.6 77.8,13.7 79.3,11.7 80.8,15.6 82.4,20.7 83.9,18.5 85.4,11.0 86.9,9.3 88.5,19.5 90.0,7.7" fill="none" stroke="#c2410c" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#c2410c">启动期</span></td>
+  <td class="num">0.64</td>
+  <td class="num">+521.00%</td>
+  <td class="num">-160.00%</td>
+  <td class="num">38/45</td>
+  <td class="num">12</td>
+  <td class="num">0亿</td>
+  <td><span class="chip sig-down">减仓信号</span><span class="warn" title="成分股K线未下载完整">14%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">2</td>
+  <td class="nm"><b>传媒</b><div class="code">801760</div></td>
+  <td class="sc"><div class="scbar"><i style="width:38%;background:#0891b2"></i></div>
+      <b>4.04</b><span class="band" style="color:#0891b2">震荡</span></td>
+  <td class="num sm">5.29<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.82</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,17.4 1.5,22.0 3.1,14.6 4.6,13.5 6.1,11.4 7.6,12.2 9.2,9.5 10.7,8.0 12.2,5.8 13.7,5.8 15.3,7.7 16.8,9.8 18.3,7.4 19.8,7.7 21.4,6.2 22.9,8.6 24.4,9.8 25.9,11.2 27.5,12.8 29.0,18.0 30.5,16.6 32.0,18.6 33.6,20.0 35.1,13.7 36.6,13.7 38.1,13.8 39.7,12.0 41.2,8.2 42.7,6.0 44.2,8.3 45.8,9.7 47.3,6.8 48.8,5.2 50.3,3.1 51.9,7.1 53.4,9.7 54.9,12.2 56.4,13.1 58.0,16.5 59.5,13.8 61.0,12.3 62.5,10.6 64.1,8.5 65.6,4.8 67.1,11.1 68.6,13.1 70.2,16.5 71.7,12.8 73.2,14.9 74.7,16.8 76.3,7.1 77.8,3.1 79.3,2.0 80.8,2.2 82.4,10.2 83.9,11.5 85.4,9.4 86.9,6.5 88.5,17.4 90.0,13.8" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-1.26</td>
+  <td class="num">-53.00%</td>
+  <td class="num">-31.00%</td>
+  <td class="num">17/23</td>
+  <td class="num">6</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">18%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">3</td>
+  <td class="nm"><b>家用电器</b><div class="code">801110</div></td>
+  <td class="sc"><div class="scbar"><i style="width:31%;background:#0891b2"></i></div>
+      <b>3.50</b><span class="band" style="color:#0891b2">震荡</span></td>
+  <td class="num sm">6.17<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">3.06</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,14.4 1.5,22.0 3.1,16.9 4.6,15.8 6.1,12.6 7.6,11.4 9.2,9.6 10.7,8.7 12.2,9.4 13.7,8.2 15.3,10.5 16.8,11.4 18.3,5.0 19.8,6.8 21.4,3.6 22.9,8.7 24.4,11.2 25.9,8.0 27.5,9.8 29.0,14.2 30.5,11.9 32.0,13.5 33.6,15.8 35.1,8.7 36.6,7.1 38.1,6.6 39.7,7.7 41.2,3.8 42.7,5.2 44.2,7.1 45.8,7.7 47.3,7.7 48.8,3.8 50.3,3.6 51.9,4.5 53.4,6.6 54.9,10.3 56.4,10.3 58.0,13.0 59.5,9.1 61.0,10.0 62.5,6.4 64.1,5.0 65.6,2.0 67.1,6.6 68.6,5.7 70.2,7.5 71.7,8.2 73.2,8.2 74.7,10.7 76.3,8.0 77.8,10.5 79.3,10.3 80.8,13.3 82.4,14.4 83.9,12.6 85.4,10.5 86.9,13.3 88.5,15.1 90.0,13.7" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.58</td>
+  <td class="num">+44.00%</td>
+  <td class="num">-154.00%</td>
+  <td class="num">15/24</td>
+  <td class="num">3</td>
+  <td class="num">0亿</td>
+  <td><span class="chip sig-down">减仓信号</span><span class="chip sig-up">底部背驰</span><span class="warn" title="成分股K线未下载完整">26%</span></td>
+</tr>
+<tr data-phase="START">
+  <td class="rk">4</td>
+  <td class="nm"><b>机械设备</b><div class="code">801890</div></td>
+  <td class="sc"><div class="scbar"><i style="width:30%;background:#0891b2"></i></div>
+      <b>3.38</b><span class="band" style="color:#0891b2">震荡</span></td>
+  <td class="num sm">2.78<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.60</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,17.8 1.5,21.5 3.1,16.7 4.6,16.9 6.1,13.6 7.6,16.1 9.2,12.7 10.7,9.4 12.2,8.0 13.7,6.5 15.3,6.6 16.8,7.3 18.3,3.8 19.8,4.7 21.4,2.0 22.9,7.6 24.4,8.1 25.9,3.1 27.5,3.3 29.0,16.3 30.5,13.0 32.0,12.3 33.6,14.3 35.1,7.8 36.6,8.5 38.1,6.0 39.7,6.6 41.2,3.6 42.7,4.6 44.2,7.0 45.8,7.9 47.3,9.7 48.8,6.5 50.3,3.8 51.9,5.1 53.4,11.3 54.9,16.9 56.4,17.1 58.0,19.7 59.5,16.6 61.0,15.4 62.5,10.3 64.1,4.7 65.6,6.4 67.1,10.6 68.6,12.7 70.2,15.7 71.7,13.4 73.2,14.4 74.7,13.5 76.3,13.7 77.8,16.1 79.3,14.3 80.8,19.0 82.4,22.0 83.9,20.6 85.4,16.5 86.9,16.7 88.5,18.2 90.0,14.1" fill="none" stroke="#c2410c" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#c2410c">启动期</span></td>
+  <td class="num">0.42</td>
+  <td class="num">+301.00%</td>
+  <td class="num">-1177.00%</td>
+  <td class="num">54/67</td>
+  <td class="num">17</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">12%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">5</td>
+  <td class="nm"><b>汽车</b><div class="code">801880</div></td>
+  <td class="sc"><div class="scbar"><i style="width:27%;background:#0891b2"></i></div>
+      <b>3.14</b><span class="band" style="color:#0891b2">震荡</span></td>
+  <td class="num sm">3.25<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.56</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,16.2 1.5,22.0 3.1,15.1 4.6,15.3 6.1,10.5 7.6,11.1 9.2,6.5 10.7,4.5 12.2,4.4 13.7,3.0 15.3,6.1 16.8,8.1 18.3,3.6 19.8,5.3 21.4,2.0 22.9,7.4 24.4,8.8 25.9,4.2 27.5,5.2 29.0,17.9 30.5,14.8 32.0,16.1 33.6,17.4 35.1,7.4 36.6,8.2 38.1,5.2 39.7,5.5 41.2,4.7 42.7,2.2 44.2,4.7 45.8,6.5 47.3,8.2 48.8,8.1 50.3,3.6 51.9,4.2 53.4,9.6 54.9,16.4 56.4,12.6 58.0,18.1 59.5,18.4 61.0,11.6 62.5,10.5 64.1,4.4 65.6,6.7 67.1,10.8 68.6,12.9 70.2,15.9 71.7,14.5 73.2,12.5 74.7,14.2 76.3,12.3 77.8,17.1 79.3,16.9 80.8,20.6 82.4,17.0 83.9,14.4 85.4,13.3 86.9,16.2 88.5,19.0 90.0,14.7" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.23</td>
+  <td class="num">+151.00%</td>
+  <td class="num">-370.00%</td>
+  <td class="num">44/53</td>
+  <td class="num">7</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">18%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">6</td>
+  <td class="nm"><b>银行</b><div class="code">801780</div></td>
+  <td class="sc"><div class="scbar"><i style="width:25%;background:#16a34a"></i></div>
+      <b>3.00</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">3.90<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.73</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,5.3 1.5,6.4 3.1,5.3 4.6,5.3 6.1,4.2 7.6,3.1 9.2,4.2 10.7,2.0 12.2,7.6 13.7,7.6 15.3,8.7 16.8,13.1 18.3,8.7 19.8,9.8 21.4,9.8 22.9,8.7 24.4,12.0 25.9,10.9 27.5,13.1 29.0,6.4 30.5,6.4 32.0,9.8 33.6,9.8 35.1,6.4 36.6,3.1 38.1,8.7 39.7,6.4 41.2,7.6 42.7,3.1 44.2,4.2 45.8,8.7 47.3,4.2 48.8,10.9 50.3,4.2 51.9,5.3 53.4,3.1 54.9,10.9 56.4,3.1 58.0,9.8 59.5,15.3 61.0,15.3 62.5,16.4 64.1,12.0 65.6,14.2 67.1,15.3 68.6,16.4 70.2,18.7 71.7,15.3 73.2,9.8 74.7,9.8 76.3,7.6 77.8,5.3 79.3,10.9 80.8,9.8 82.4,15.3 83.9,6.4 85.4,19.8 86.9,19.8 88.5,20.9 90.0,22.0" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.67</td>
+  <td class="num">-158.00%</td>
+  <td class="num">+100.00%</td>
+  <td class="num">0/3</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="chip sig-down">减仓信号</span><span class="warn" title="成分股K线未下载完整">7%</span></td>
+</tr>
+<tr data-phase="START">
+  <td class="rk">7</td>
+  <td class="nm"><b>电子</b><div class="code">801080</div></td>
+  <td class="sc"><div class="scbar"><i style="width:24%;background:#16a34a"></i></div>
+      <b>2.92</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.48<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.96</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,16.8 1.5,18.0 3.1,15.1 4.6,16.3 6.1,15.3 7.6,16.9 9.2,15.9 10.7,15.4 12.2,12.3 13.7,10.0 15.3,9.2 16.8,8.7 18.3,8.7 19.8,9.5 21.4,7.7 22.9,10.8 24.4,10.5 25.9,6.2 27.5,6.7 29.0,16.0 30.5,15.0 32.0,13.0 33.6,15.5 35.1,12.8 36.6,12.7 38.1,8.1 39.7,8.5 41.2,6.0 42.7,9.1 44.2,11.3 45.8,12.8 47.3,15.0 48.8,11.4 50.3,11.0 51.9,12.2 53.4,12.9 54.9,14.0 56.4,12.5 58.0,13.4 59.5,9.0 61.0,9.9 62.5,4.5 64.1,2.0 65.6,3.4 67.1,4.9 68.6,9.8 70.2,14.6 71.7,14.1 73.2,16.4 74.7,18.2 76.3,18.5 77.8,20.4 79.3,20.1 80.8,20.8 82.4,22.0 83.9,21.3 85.4,19.0 86.9,17.7 88.5,20.0 90.0,16.1" fill="none" stroke="#c2410c" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#c2410c">启动期</span></td>
+  <td class="num">0.75</td>
+  <td class="num">+15.00%</td>
+  <td class="num">-1884.00%</td>
+  <td class="num">49/59</td>
+  <td class="num">9</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">12%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">8</td>
+  <td class="nm"><b>美容护理</b><div class="code">801980</div></td>
+  <td class="sc"><div class="scbar"><i style="width:22%;background:#16a34a"></i></div>
+      <b>2.75</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.37<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">3.50</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,13.7 1.5,19.5 3.1,15.3 4.6,15.3 6.1,13.7 7.6,12.8 9.2,13.7 10.7,10.3 12.2,10.3 13.7,9.5 15.3,7.8 16.8,7.0 18.3,5.3 19.8,7.8 21.4,8.7 22.9,11.2 24.4,10.3 25.9,12.0 27.5,12.0 29.0,18.7 30.5,9.5 32.0,14.5 33.6,17.0 35.1,10.3 36.6,12.0 38.1,13.7 39.7,14.5 41.2,14.5 42.7,11.2 44.2,9.5 45.8,12.8 47.3,4.5 48.8,2.0 50.3,2.0 51.9,2.8 53.4,10.3 54.9,17.0 56.4,15.3 58.0,19.5 59.5,17.8 61.0,16.2 62.5,11.2 64.1,7.8 65.6,8.7 67.1,14.5 68.6,12.8 70.2,12.8 71.7,10.3 73.2,7.0 74.7,11.2 76.3,9.5 77.8,10.3 79.3,9.5 80.8,12.0 82.4,13.7 83.9,12.8 85.4,15.3 86.9,18.7 88.5,22.0 90.0,17.0" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.50</td>
+  <td class="num">-47.00%</td>
+  <td class="num">+195.00%</td>
+  <td class="num">3/4</td>
+  <td class="num">1</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">14%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">9</td>
+  <td class="nm"><b>食品饮料</b><div class="code">801120</div></td>
+  <td class="sc"><div class="scbar"><i style="width:21%;background:#16a34a"></i></div>
+      <b>2.67</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">4.27<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.28</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,11.7 1.5,16.9 3.1,12.9 4.6,8.3 6.1,4.3 7.6,4.3 9.2,2.6 10.7,2.4 12.2,4.5 13.7,6.2 15.3,7.3 16.8,7.7 18.3,2.0 19.8,4.3 21.4,2.4 22.9,4.3 24.4,7.9 25.9,7.5 27.5,8.1 29.0,12.9 30.5,11.1 32.0,15.5 33.6,15.3 35.1,10.8 36.6,11.3 38.1,11.1 39.7,9.8 41.2,13.4 42.7,8.1 44.2,12.9 45.8,14.6 47.3,6.6 48.8,5.2 50.3,3.9 51.9,8.5 53.4,12.9 54.9,17.8 56.4,18.4 58.0,22.0 59.5,20.9 61.0,21.2 62.5,19.0 64.1,11.0 65.6,12.5 67.1,13.6 68.6,18.4 70.2,16.3 71.7,16.1 73.2,10.4 74.7,11.1 76.3,5.6 77.8,11.1 79.3,8.5 80.8,10.2 82.4,11.7 83.9,10.0 85.4,12.1 86.9,16.5 88.5,20.3 90.0,17.8" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-1.25</td>
+  <td class="num">-56.00%</td>
+  <td class="num">+296.00%</td>
+  <td class="num">19/24</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">20%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">10</td>
+  <td class="nm"><b>医药生物</b><div class="code">801150</div></td>
+  <td class="sc"><div class="scbar"><i style="width:20%;background:#16a34a"></i></div>
+      <b>2.61</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">3.98<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.30</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,12.9 1.5,21.7 3.1,13.5 4.6,14.1 6.1,9.9 7.6,11.9 9.2,9.7 10.7,7.8 12.2,6.6 13.7,9.2 15.3,12.3 16.8,4.8 18.3,2.0 19.8,3.2 21.4,2.7 22.9,2.0 24.4,5.0 25.9,5.6 27.5,8.2 29.0,13.5 30.5,3.3 32.0,14.2 33.6,17.9 35.1,12.0 36.6,11.1 38.1,8.2 39.7,8.4 41.2,13.4 42.7,8.9 44.2,13.6 45.8,14.9 47.3,14.1 48.8,13.2 50.3,5.9 51.9,9.6 53.4,16.7 54.9,21.2 56.4,17.6 58.0,21.6 59.5,21.7 61.0,18.6 62.5,17.2 64.1,5.7 65.6,7.5 67.1,12.0 68.6,15.7 70.2,15.3 71.7,15.6 73.2,9.3 74.7,11.7 76.3,5.8 77.8,11.1 79.3,13.0 80.8,16.6 82.4,19.1 83.9,18.8 85.4,18.9 86.9,18.1 88.5,22.0 90.0,20.4" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.32</td>
+  <td class="num">+75.00%</td>
+  <td class="num">-127.00%</td>
+  <td class="num">50/74</td>
+  <td class="num">1</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">15%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">11</td>
+  <td class="nm"><b>国防军工</b><div class="code">801740</div></td>
+  <td class="sc"><div class="scbar"><i style="width:19%;background:#16a34a"></i></div>
+      <b>2.54</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.61<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">2.02</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,16.0 1.5,18.5 3.1,14.4 4.6,16.0 6.1,14.8 7.6,18.3 9.2,14.8 10.7,12.7 12.2,11.5 13.7,8.4 15.3,8.0 16.8,7.2 18.3,5.7 19.8,8.8 21.4,7.8 22.9,10.3 24.4,9.2 25.9,5.7 27.5,8.0 29.0,22.0 30.5,21.0 32.0,20.1 33.6,20.3 35.1,17.3 36.6,17.0 38.1,10.7 39.7,10.7 41.2,6.9 42.7,7.4 44.2,7.8 45.8,8.8 47.3,10.3 48.8,10.2 50.3,6.5 51.9,4.5 53.4,7.2 54.9,5.1 56.4,11.1 58.0,12.5 59.5,6.9 61.0,13.5 62.5,6.5 64.1,2.0 65.6,4.1 67.1,10.2 68.6,11.3 70.2,15.8 71.7,16.0 73.2,16.8 74.7,17.9 76.3,18.7 77.8,21.4 79.3,15.6 80.8,19.1 82.4,17.0 83.9,13.5 85.4,13.3 86.9,16.0 88.5,21.4 90.0,17.5" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.92</td>
+  <td class="num">+32.00%</td>
+  <td class="num">-681.00%</td>
+  <td class="num">22/24</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="chip sig-up">底部背驰</span><span class="warn" title="成分股K线未下载完整">18%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">12</td>
+  <td class="nm"><b>农林牧渔</b><div class="code">801010</div></td>
+  <td class="sc"><div class="scbar"><i style="width:19%;background:#16a34a"></i></div>
+      <b>2.52</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.60<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.67</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,16.0 1.5,22.0 3.1,18.5 4.6,17.7 6.1,14.3 7.6,14.2 9.2,11.5 10.7,10.2 12.2,11.7 13.7,11.9 15.3,11.4 16.8,12.9 18.3,8.4 19.8,9.6 21.4,9.4 22.9,11.4 24.4,15.0 25.9,9.7 27.5,5.3 29.0,10.2 30.5,7.8 32.0,12.8 33.6,13.2 35.1,8.2 36.6,7.7 38.1,5.7 39.7,4.4 41.2,5.0 42.7,3.8 44.2,6.8 45.8,10.6 47.3,4.8 48.8,2.8 50.3,2.1 51.9,2.0 53.4,4.5 54.9,9.5 56.4,12.5 58.0,15.6 59.5,16.1 61.0,14.2 62.5,14.0 64.1,9.3 65.6,11.3 67.1,15.2 68.6,15.9 70.2,16.7 71.7,17.3 73.2,13.9 74.7,14.5 76.3,10.4 77.8,15.5 79.3,13.1 80.8,16.6 82.4,18.8 83.9,19.6 85.4,19.6 86.9,17.8 88.5,20.5 90.0,19.8" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.06</td>
+  <td class="num">-40.00%</td>
+  <td class="num">-224.00%</td>
+  <td class="num">20/33</td>
+  <td class="num">2</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">32%</span></td>
+</tr>
+<tr data-phase="START">
+  <td class="rk">13</td>
+  <td class="nm"><b>电力设备</b><div class="code">801730</div></td>
+  <td class="sc"><div class="scbar"><i style="width:18%;background:#16a34a"></i></div>
+      <b>2.44</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.22<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">2.00</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,14.8 1.5,18.4 3.1,12.9 4.6,14.9 6.1,11.5 7.6,13.7 9.2,12.5 10.7,8.5 12.2,5.9 13.7,3.8 15.3,6.8 16.8,6.6 18.3,3.8 19.8,5.6 21.4,2.0 22.9,6.5 24.4,8.4 25.9,2.9 27.5,7.2 29.0,15.8 30.5,16.2 32.0,16.1 33.6,15.7 35.1,12.8 36.6,10.1 38.1,10.6 39.7,10.7 41.2,10.4 42.7,10.9 44.2,13.3 45.8,13.4 47.3,14.4 48.8,13.6 50.3,12.3 51.9,11.7 53.4,15.3 54.9,18.2 56.4,18.1 58.0,19.8 59.5,15.8 61.0,17.1 62.5,13.2 64.1,10.8 65.6,12.5 67.1,15.7 68.6,18.8 70.2,22.0 71.7,20.1 73.2,18.9 74.7,16.9 76.3,14.5 77.8,16.3 79.3,17.8 80.8,20.6 82.4,21.9 83.9,21.4 85.4,19.4 86.9,19.8 88.5,21.1 90.0,17.8" fill="none" stroke="#c2410c" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#c2410c">启动期</span></td>
+  <td class="num">0.30</td>
+  <td class="num">-354.00%</td>
+  <td class="num">-1308.00%</td>
+  <td class="num">48/57</td>
+  <td class="num">6</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">15%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">14</td>
+  <td class="nm"><b>轻工制造</b><div class="code">801140</div></td>
+  <td class="sc"><div class="scbar"><i style="width:18%;background:#16a34a"></i></div>
+      <b>2.44</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.13<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.45</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,19.5 1.5,22.0 3.1,18.4 4.6,16.9 6.1,15.7 7.6,15.7 9.2,12.4 10.7,10.0 12.2,10.1 13.7,9.4 15.3,10.6 16.8,11.2 18.3,6.4 19.8,9.4 21.4,6.5 22.9,9.7 24.4,11.5 25.9,7.4 27.5,9.4 29.0,14.9 30.5,10.7 32.0,13.2 33.6,13.8 35.1,7.5 36.6,6.4 38.1,7.7 39.7,5.8 41.2,3.6 42.7,2.0 44.2,4.3 45.8,8.7 47.3,7.5 48.8,5.7 50.3,4.2 51.9,6.1 53.4,10.8 54.9,16.2 56.4,13.9 58.0,17.9 59.5,13.5 61.0,11.3 62.5,9.3 64.1,3.8 65.6,3.4 67.1,5.4 68.6,7.2 70.2,9.5 71.7,8.2 73.2,8.5 74.7,9.5 76.3,5.9 77.8,8.1 79.3,8.4 80.8,14.1 82.4,17.4 83.9,17.0 85.4,15.6 86.9,16.9 88.5,21.1 90.0,20.3" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-1.06</td>
+  <td class="num">-243.00%</td>
+  <td class="num">-681.00%</td>
+  <td class="num">22/32</td>
+  <td class="num">3</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">20%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">15</td>
+  <td class="nm"><b>建筑装饰</b><div class="code">801720</div></td>
+  <td class="sc"><div class="scbar"><i style="width:17%;background:#16a34a"></i></div>
+      <b>2.33</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.51<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm risk">2.32</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,16.1 1.5,22.0 3.1,15.1 4.6,14.4 6.1,10.9 7.6,12.1 9.2,9.2 10.7,6.5 12.2,6.3 13.7,6.6 15.3,8.9 16.8,11.1 18.3,9.1 19.8,10.2 21.4,7.4 22.9,11.0 24.4,14.2 25.9,9.7 27.5,11.8 29.0,19.0 30.5,14.6 32.0,15.0 33.6,13.8 35.1,7.0 36.6,3.2 38.1,5.3 39.7,5.2 41.2,6.0 42.7,2.4 44.2,6.5 45.8,8.2 47.3,7.1 48.8,6.7 50.3,2.0 51.9,6.0 53.4,7.3 54.9,13.9 56.4,15.0 58.0,19.4 59.5,15.6 61.0,15.7 62.5,12.1 64.1,6.8 65.6,9.5 67.1,10.0 68.6,14.0 70.2,18.8 71.7,16.0 73.2,12.0 74.7,12.4 76.3,9.7 77.8,13.5 79.3,12.2 80.8,16.0 82.4,19.0 83.9,17.5 85.4,18.4 86.9,17.3 88.5,19.9 90.0,18.4" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">0.00</td>
+  <td class="num">-250.00%</td>
+  <td class="num">-607.00%</td>
+  <td class="num">17/25</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">17%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">16</td>
+  <td class="nm"><b>交通运输</b><div class="code">801170</div></td>
+  <td class="sc"><div class="scbar"><i style="width:16%;background:#16a34a"></i></div>
+      <b>2.27</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">3.58<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">2.04</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,11.4 1.5,16.7 3.1,11.6 4.6,10.5 6.1,6.6 7.6,7.0 9.2,5.9 10.7,3.7 12.2,5.8 13.7,7.0 15.3,8.9 16.8,10.8 18.3,5.0 19.8,9.0 21.4,6.4 22.9,12.9 24.4,15.4 25.9,10.0 27.5,10.8 29.0,14.9 30.5,11.8 32.0,13.4 33.6,12.6 35.1,5.4 36.6,4.6 38.1,5.7 39.7,3.5 41.2,5.1 42.7,2.0 44.2,5.5 45.8,6.9 47.3,3.5 48.8,3.4 50.3,2.1 51.9,2.0 53.4,3.0 54.9,10.8 56.4,10.6 58.0,14.1 59.5,14.3 61.0,9.7 62.5,9.8 64.1,4.8 65.6,6.9 67.1,10.2 68.6,10.6 70.2,12.9 71.7,10.7 73.2,8.5 74.7,5.7 76.3,2.9 77.8,6.5 79.3,6.3 80.8,8.8 82.4,14.2 83.9,15.2 85.4,16.0 86.9,18.3 88.5,22.0 90.0,20.5" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-1.06</td>
+  <td class="num">-290.00%</td>
+  <td class="num">-286.00%</td>
+  <td class="num">22/33</td>
+  <td class="num">1</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">26%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">17</td>
+  <td class="nm"><b>建筑材料</b><div class="code">801710</div></td>
+  <td class="sc"><div class="scbar"><i style="width:14%;background:#16a34a"></i></div>
+      <b>2.12</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.46<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.99</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,16.0 1.5,22.0 3.1,16.2 4.6,15.1 6.1,10.8 7.6,11.9 9.2,10.6 10.7,8.5 12.2,8.9 13.7,8.9 15.3,7.6 16.8,10.4 18.3,6.1 19.8,8.7 21.4,6.1 22.9,11.5 24.4,11.7 25.9,8.9 27.5,8.5 29.0,13.2 30.5,12.3 32.0,15.1 33.6,13.8 35.1,8.5 36.6,4.6 38.1,3.5 39.7,2.0 41.2,6.7 42.7,5.7 44.2,8.2 45.8,10.6 47.3,8.7 48.8,9.3 50.3,5.0 51.9,6.3 53.4,8.9 54.9,13.4 56.4,14.0 58.0,20.3 59.5,17.5 61.0,16.6 62.5,14.7 64.1,3.3 65.6,6.7 67.1,5.9 68.6,11.7 70.2,15.1 71.7,11.0 73.2,7.4 74.7,9.3 76.3,6.5 77.8,11.5 79.3,9.1 80.8,15.1 82.4,14.3 83.9,17.5 85.4,17.3 86.9,17.7 88.5,19.4 90.0,20.5" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.60</td>
+  <td class="num">-221.00%</td>
+  <td class="num">-1426.00%</td>
+  <td class="num">14/25</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">35%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">18</td>
+  <td class="nm"><b>通信</b><div class="code">801770</div></td>
+  <td class="sc"><div class="scbar"><i style="width:13%;background:#16a34a"></i></div>
+      <b>2.06</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.10<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.70</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,15.1 1.5,19.0 3.1,14.9 4.6,14.3 6.1,13.0 7.6,16.4 9.2,11.5 10.7,11.0 12.2,7.8 13.7,6.9 15.3,4.8 16.8,3.9 18.3,4.8 19.8,6.3 21.4,3.5 22.9,6.1 24.4,4.4 25.9,4.4 27.5,8.7 29.0,17.7 30.5,14.7 32.0,11.2 33.6,10.6 35.1,7.4 36.6,7.4 38.1,5.0 39.7,6.7 41.2,4.8 42.7,3.7 44.2,6.1 45.8,8.9 47.3,8.2 48.8,6.5 50.3,2.9 51.9,5.2 53.4,8.2 54.9,8.7 56.4,10.0 58.0,13.8 59.5,10.4 61.0,11.2 62.5,9.1 64.1,4.4 65.6,2.0 67.1,8.9 68.6,11.9 70.2,15.8 71.7,15.1 73.2,16.0 74.7,17.3 76.3,16.0 77.8,18.1 79.3,16.4 80.8,17.9 82.4,22.0 83.9,22.0 85.4,19.0 86.9,15.8 88.5,20.5 90.0,18.6" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">0.11</td>
+  <td class="num">-360.00%</td>
+  <td class="num">-2477.00%</td>
+  <td class="num">15/18</td>
+  <td class="num">1</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">15%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">19</td>
+  <td class="nm"><b>商贸零售</b><div class="code">801200</div></td>
+  <td class="sc"><div class="scbar"><i style="width:12%;background:#16a34a"></i></div>
+      <b>1.97</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.95<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.52</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,15.3 1.5,21.5 3.1,15.1 4.6,13.0 6.1,10.1 7.6,11.2 9.2,8.7 10.7,7.8 12.2,7.4 13.7,7.9 15.3,9.1 16.8,10.4 18.3,7.4 19.8,6.7 21.4,5.7 22.9,8.9 24.4,12.5 25.9,8.8 27.5,10.4 29.0,17.2 30.5,13.4 32.0,14.5 33.6,15.2 35.1,7.8 36.6,6.4 38.1,6.6 39.7,4.5 41.2,7.1 42.7,2.5 44.2,4.6 45.8,7.5 47.3,5.9 48.8,4.1 50.3,2.0 51.9,3.4 53.4,8.1 54.9,13.1 56.4,13.5 58.0,19.1 59.5,18.2 61.0,16.1 62.5,14.4 64.1,8.9 65.6,10.4 67.1,17.2 68.6,17.3 70.2,20.0 71.7,16.8 73.2,13.8 74.7,16.0 76.3,7.0 77.8,13.4 79.3,8.9 80.8,15.5 82.4,18.6 83.9,20.2 85.4,20.0 86.9,18.5 88.5,22.0 90.0,19.9" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">0.03</td>
+  <td class="num">-94.00%</td>
+  <td class="num">-436.00%</td>
+  <td class="num">26/29</td>
+  <td class="num">3</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">29%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">20</td>
+  <td class="nm"><b>房地产</b><div class="code">801180</div></td>
+  <td class="sc"><div class="scbar"><i style="width:11%;background:#16a34a"></i></div>
+      <b>1.85</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.57<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.41</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,15.3 1.5,19.9 3.1,14.1 4.6,14.1 6.1,11.1 7.6,12.8 9.2,10.3 10.7,9.0 12.2,9.6 13.7,9.0 15.3,8.5 16.8,10.8 18.3,7.0 19.8,6.8 21.4,3.5 22.9,7.0 24.4,9.8 25.9,8.5 27.5,9.9 29.0,13.1 30.5,7.5 32.0,10.6 33.6,14.8 35.1,7.7 36.6,6.1 38.1,5.7 39.7,3.8 41.2,6.3 42.7,6.1 44.2,7.9 45.8,9.6 47.3,8.0 48.8,7.0 50.3,3.6 51.9,6.0 53.4,9.2 54.9,15.8 56.4,15.7 58.0,18.5 59.5,17.0 61.0,13.6 62.5,7.6 64.1,2.6 65.6,2.7 67.1,3.8 68.6,9.4 70.2,10.4 71.7,2.8 73.2,2.0 74.7,3.8 76.3,3.5 77.8,10.4 79.3,10.5 80.8,13.6 82.4,15.2 83.9,18.0 85.4,19.8 86.9,19.4 88.5,22.0 90.0,21.1" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.34</td>
+  <td class="num">-361.00%</td>
+  <td class="num">-205.00%</td>
+  <td class="num">31/41</td>
+  <td class="num">1</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">43%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">21</td>
+  <td class="nm"><b>煤炭</b><div class="code">801950</div></td>
+  <td class="sc"><div class="scbar"><i style="width:10%;background:#16a34a"></i></div>
+      <b>1.83</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">3.01<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">2.04</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,7.6 1.5,12.7 3.1,10.4 4.6,16.0 6.1,10.8 7.6,9.9 9.2,9.0 10.7,6.7 12.2,9.4 13.7,11.3 15.3,6.2 16.8,9.9 18.3,8.0 19.8,4.8 21.4,7.1 22.9,13.6 24.4,10.4 25.9,10.8 27.5,12.2 29.0,12.2 30.5,11.3 32.0,10.8 33.6,6.7 35.1,6.7 36.6,4.8 38.1,2.0 39.7,2.0 41.2,4.3 42.7,4.3 44.2,8.0 45.8,11.3 47.3,13.6 48.8,17.8 50.3,9.0 51.9,8.0 53.4,10.8 54.9,18.3 56.4,20.6 58.0,20.1 59.5,19.2 61.0,16.9 62.5,16.9 64.1,15.5 65.6,13.2 67.1,16.0 68.6,16.9 70.2,17.8 71.7,16.4 73.2,15.0 74.7,15.0 76.3,11.8 77.8,19.7 79.3,20.6 80.8,18.3 82.4,20.6 83.9,17.3 85.4,19.7 86.9,21.5 88.5,22.0 90.0,20.1" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.17</td>
+  <td class="num">-412.00%</td>
+  <td class="num">-141.00%</td>
+  <td class="num">4/6</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">18%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">22</td>
+  <td class="nm"><b>纺织服饰</b><div class="code">801130</div></td>
+  <td class="sc"><div class="scbar"><i style="width:10%;background:#16a34a"></i></div>
+      <b>1.78</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">2.46<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.71</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,15.5 1.5,18.1 3.1,14.2 4.6,12.8 6.1,8.8 7.6,9.1 9.2,7.6 10.7,6.7 12.2,6.7 13.7,5.3 15.3,5.1 16.8,6.8 18.3,2.0 19.8,3.2 21.4,3.0 22.9,7.1 24.4,7.5 25.9,4.0 27.5,5.3 29.0,9.4 30.5,6.5 32.0,8.5 33.6,10.4 35.1,6.0 36.6,6.9 38.1,6.0 39.7,4.0 41.2,4.7 42.7,2.9 44.2,4.2 45.8,9.6 47.3,8.0 48.8,7.6 50.3,4.8 51.9,6.7 53.4,11.9 54.9,16.4 56.4,15.3 58.0,18.5 59.5,15.9 61.0,13.1 62.5,10.1 64.1,5.6 65.6,8.4 67.1,11.1 68.6,9.3 70.2,13.1 71.7,11.4 73.2,13.4 74.7,13.2 76.3,7.5 77.8,12.7 79.3,11.1 80.8,14.8 82.4,18.4 83.9,19.6 85.4,19.5 86.9,19.0 88.5,22.0 90.0,21.2" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.42</td>
+  <td class="num">-166.00%</td>
+  <td class="num">-356.00%</td>
+  <td class="num">20/26</td>
+  <td class="num">2</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">25%</span></td>
+</tr>
+<tr data-phase="START">
+  <td class="rk">23</td>
+  <td class="nm"><b>综合</b><div class="code">801230</div></td>
+  <td class="sc"><div class="scbar"><i style="width:10%;background:#16a34a"></i></div>
+      <b>1.78</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.51<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.39</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,14.1 1.5,19.1 3.1,15.6 4.6,14.1 6.1,12.0 7.6,11.3 9.2,10.2 10.7,8.4 12.2,8.8 13.7,9.5 15.3,10.2 16.8,12.7 18.3,8.4 19.8,9.1 21.4,6.6 22.9,8.8 24.4,10.6 25.9,7.4 27.5,7.0 29.0,10.2 30.5,9.1 32.0,9.5 33.6,11.3 35.1,7.4 36.6,5.6 38.1,3.4 39.7,2.7 41.2,4.9 42.7,4.5 44.2,7.7 45.8,10.6 47.3,9.1 48.8,7.7 50.3,2.4 51.9,2.0 53.4,4.5 54.9,11.3 56.4,12.4 58.0,17.4 59.5,15.6 61.0,14.1 62.5,13.4 64.1,10.9 65.6,11.3 67.1,15.2 68.6,15.9 70.2,15.6 71.7,11.6 73.2,9.5 74.7,7.7 76.3,8.1 77.8,14.5 79.3,10.2 80.8,13.1 82.4,18.8 83.9,22.0 85.4,20.9 86.9,18.4 88.5,20.6 90.0,19.9" fill="none" stroke="#c2410c" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#c2410c">启动期</span></td>
+  <td class="num">0.33</td>
+  <td class="num">-412.00%</td>
+  <td class="num">-1113.00%</td>
+  <td class="num">8/9</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">45%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">24</td>
+  <td class="nm"><b>环保</b><div class="code">801970</div></td>
+  <td class="sc"><div class="scbar"><i style="width:9%;background:#16a34a"></i></div>
+      <b>1.70</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.65<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.53</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,12.8 1.5,16.7 3.1,11.6 4.6,14.9 6.1,10.5 7.6,12.2 9.2,7.9 10.7,4.2 12.2,4.0 13.7,3.4 15.3,5.1 16.8,5.9 18.3,2.0 19.8,4.0 21.4,2.6 22.9,6.7 24.4,7.5 25.9,3.8 27.5,7.3 29.0,11.6 30.5,10.0 32.0,10.4 33.6,9.3 35.1,7.5 36.6,3.8 38.1,3.6 39.7,3.0 41.2,4.0 42.7,3.2 44.2,5.5 45.8,7.5 47.3,7.5 48.8,9.3 50.3,5.5 51.9,4.7 53.4,7.9 54.9,14.7 56.4,14.0 58.0,19.1 59.5,16.7 61.0,13.8 62.5,13.0 64.1,8.3 65.6,10.2 67.1,13.8 68.6,15.7 70.2,18.1 71.7,15.9 73.2,14.0 74.7,10.8 76.3,7.5 77.8,13.0 79.3,15.3 80.8,17.7 82.4,20.6 83.9,18.9 85.4,19.6 86.9,20.8 88.5,22.0 90.0,20.4" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.20</td>
+  <td class="num">-176.00%</td>
+  <td class="num">-926.00%</td>
+  <td class="num">16/20</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">15%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">25</td>
+  <td class="nm"><b>基础化工</b><div class="code">801030</div></td>
+  <td class="sc"><div class="scbar"><i style="width:8%;background:#16a34a"></i></div>
+      <b>1.61</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.47<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.18</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,13.6 1.5,17.9 3.1,13.5 4.6,13.4 6.1,10.2 7.6,11.5 9.2,10.0 10.7,7.8 12.2,7.2 13.7,6.0 15.3,5.6 16.8,6.8 18.3,2.3 19.8,5.1 21.4,4.1 22.9,9.1 24.4,10.2 25.9,4.9 27.5,5.6 29.0,12.3 30.5,9.9 32.0,9.0 33.6,11.7 35.1,7.9 36.6,6.0 38.1,4.3 39.7,2.1 41.2,3.3 42.7,2.0 44.2,4.7 45.8,8.2 47.3,8.3 48.8,8.4 50.3,4.1 51.9,4.7 53.4,9.0 54.9,14.3 56.4,14.0 58.0,17.5 59.5,13.4 61.0,13.2 62.5,11.4 64.1,5.2 65.6,7.5 67.1,10.7 68.6,13.2 70.2,16.7 71.7,15.7 73.2,14.6 74.7,11.8 76.3,8.5 77.8,15.3 79.3,13.9 80.8,18.6 82.4,19.4 83.9,19.6 85.4,17.9 86.9,18.8 88.5,22.0 90.0,20.8" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.69</td>
+  <td class="num">-174.00%</td>
+  <td class="num">-1071.00%</td>
+  <td class="num">64/86</td>
+  <td class="num">2</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">21%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">26</td>
+  <td class="nm"><b>有色金属</b><div class="code">801050</div></td>
+  <td class="sc"><div class="scbar"><i style="width:7%;background:#16a34a"></i></div>
+      <b>1.54</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.59<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">1.06</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,13.0 1.5,18.5 3.1,14.9 4.6,18.2 6.1,14.1 7.6,15.7 9.2,13.2 10.7,12.1 12.2,9.4 13.7,6.3 15.3,5.3 16.8,2.9 18.3,2.0 19.8,5.3 21.4,4.7 22.9,9.7 24.4,8.0 25.9,3.1 27.5,5.0 29.0,13.2 30.5,12.7 32.0,7.3 33.6,6.5 35.1,9.3 36.6,6.3 38.1,3.4 39.7,2.9 41.2,4.8 42.7,7.3 44.2,11.2 45.8,9.7 47.3,13.7 48.8,14.1 50.3,10.5 51.9,8.1 53.4,10.6 54.9,16.1 56.4,17.0 58.0,17.0 59.5,13.4 61.0,16.9 62.5,13.4 64.1,13.1 65.6,12.9 67.1,15.7 68.6,18.7 70.2,20.9 71.7,19.8 73.2,20.0 74.7,19.1 76.3,16.8 77.8,21.0 79.3,19.8 80.8,21.6 82.4,22.0 83.9,21.7 85.4,20.9 86.9,20.0 88.5,21.8 90.0,20.6" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">0.09</td>
+  <td class="num">-225.00%</td>
+  <td class="num">-1517.00%</td>
+  <td class="num">38/45</td>
+  <td class="num">1</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">32%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">27</td>
+  <td class="nm"><b>钢铁</b><div class="code">801040</div></td>
+  <td class="sc"><div class="scbar"><i style="width:6%;background:#16a34a"></i></div>
+      <b>1.50</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.64<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">0.99</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,7.0 1.5,14.1 3.1,9.1 4.6,9.6 6.1,5.6 7.6,5.6 9.2,6.0 10.7,3.2 12.2,5.6 13.7,6.8 15.3,7.7 16.8,10.6 18.3,6.8 19.8,13.7 21.4,11.3 22.9,17.0 24.4,17.0 25.9,12.7 27.5,13.0 29.0,17.5 30.5,13.4 32.0,13.9 33.6,12.0 35.1,8.7 36.6,4.1 38.1,3.7 39.7,2.0 41.2,6.3 42.7,3.7 44.2,10.6 45.8,11.3 47.3,9.9 48.8,14.6 50.3,3.7 51.9,3.4 53.4,7.0 54.9,15.8 56.4,17.2 58.0,19.1 59.5,18.9 61.0,19.1 62.5,17.0 64.1,13.0 65.6,16.8 67.1,18.7 68.6,18.7 70.2,20.6 71.7,18.4 73.2,12.7 74.7,13.0 76.3,9.9 77.8,13.4 79.3,13.7 80.8,14.4 82.4,18.2 83.9,17.2 85.4,19.6 86.9,20.8 88.5,22.0 90.0,20.8" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.28</td>
+  <td class="num">-256.00%</td>
+  <td class="num">-511.00%</td>
+  <td class="num">11/18</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">41%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">28</td>
+  <td class="nm"><b>非银金融</b><div class="code">801790</div></td>
+  <td class="sc"><div class="scbar"><i style="width:5%;background:#16a34a"></i></div>
+      <b>1.41</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.35<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">0.62</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,9.9 1.5,17.2 3.1,13.9 4.6,16.3 6.1,9.5 7.6,8.6 9.2,7.3 10.7,6.6 12.2,7.3 13.7,6.8 15.3,10.6 16.8,12.1 18.3,9.2 19.8,11.9 21.4,10.3 22.9,11.2 24.4,15.4 25.9,12.5 27.5,15.4 29.0,19.4 30.5,16.9 32.0,17.2 33.6,14.1 35.1,11.4 36.6,4.8 38.1,3.1 39.7,3.3 41.2,4.8 42.7,2.0 44.2,7.7 45.8,6.0 47.3,4.0 48.8,10.4 50.3,6.6 51.9,7.9 53.4,5.3 54.9,16.5 56.4,17.4 58.0,18.9 59.5,17.4 61.0,18.1 62.5,15.8 64.1,12.8 65.6,13.7 67.1,16.7 68.6,19.8 70.2,20.5 71.7,20.2 73.2,19.4 74.7,20.5 76.3,16.3 77.8,17.4 79.3,16.7 80.8,17.4 82.4,20.2 83.9,19.6 85.4,20.3 86.9,21.1 88.5,22.0 90.0,20.9" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.18</td>
+  <td class="num">-132.00%</td>
+  <td class="num">-443.00%</td>
+  <td class="num">14/17</td>
+  <td class="num">1</td>
+  <td class="num">0亿</td>
+  <td><span class="chip sig-down">减仓信号</span><span class="warn" title="成分股K线未下载完整">22%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">29</td>
+  <td class="nm"><b>社会服务</b><div class="code">801210</div></td>
+  <td class="sc"><div class="scbar"><i style="width:5%;background:#16a34a"></i></div>
+      <b>1.39</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.46<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">0.70</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,14.9 1.5,20.8 3.1,14.1 4.6,12.2 6.1,11.1 7.6,10.4 9.2,9.4 10.7,8.4 12.2,9.1 13.7,8.8 15.3,9.6 16.8,11.1 18.3,7.8 19.8,7.5 21.4,7.5 22.9,8.4 24.4,10.3 25.9,9.9 27.5,9.4 29.0,14.7 30.5,9.4 32.0,9.9 33.6,11.4 35.1,5.1 36.6,5.1 38.1,6.1 39.7,5.1 41.2,4.6 42.7,3.8 44.2,3.3 45.8,6.0 47.3,3.8 48.8,2.3 50.3,2.0 51.9,2.8 53.4,5.0 54.9,9.8 56.4,11.9 58.0,16.4 59.5,16.4 61.0,16.7 62.5,14.7 64.1,10.9 65.6,12.4 67.1,14.4 68.6,15.7 70.2,18.2 71.7,17.5 73.2,16.7 74.7,17.7 76.3,14.9 77.8,19.2 79.3,15.7 80.8,18.5 82.4,21.0 83.9,21.0 85.4,20.8 86.9,20.8 88.5,22.0 90.0,21.2" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.11</td>
+  <td class="num">-187.00%</td>
+  <td class="num">-628.00%</td>
+  <td class="num">13/18</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">22%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">30</td>
+  <td class="nm"><b>公用事业</b><div class="code">801160</div></td>
+  <td class="sc"><div class="scbar"><i style="width:4%;background:#16a34a"></i></div>
+      <b>1.30</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.41<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">0.96</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,3.4 1.5,14.8 3.1,8.9 4.6,10.8 6.1,7.5 7.6,9.8 9.2,7.2 10.7,2.8 12.2,2.0 13.7,2.3 15.3,4.7 16.8,6.2 18.3,2.2 19.8,3.1 21.4,3.8 22.9,6.5 24.4,12.5 25.9,11.8 27.5,13.0 29.0,16.4 30.5,16.3 32.0,16.4 33.6,15.2 35.1,11.8 36.6,8.7 38.1,10.3 39.7,9.9 41.2,11.4 42.7,8.0 44.2,10.8 45.8,11.4 47.3,11.7 48.8,12.2 50.3,6.6 51.9,5.3 53.4,3.0 54.9,6.4 56.4,5.5 58.0,8.7 59.5,10.0 61.0,15.5 62.5,13.2 64.1,9.8 65.6,11.4 67.1,15.4 68.6,17.5 70.2,17.8 71.7,17.0 73.2,13.8 74.7,8.5 76.3,9.2 77.8,14.3 79.3,15.5 80.8,12.1 82.4,16.6 83.9,15.7 85.4,15.9 86.9,15.5 88.5,20.5 90.0,22.0" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-1.30</td>
+  <td class="num">-199.00%</td>
+  <td class="num">-370.00%</td>
+  <td class="num">24/46</td>
+  <td class="num">—</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">34%</span></td>
+</tr>
+<tr data-phase="WEAK">
+  <td class="rk">31</td>
+  <td class="nm"><b>石油石化</b><div class="code">801960</div></td>
+  <td class="sc"><div class="scbar"><i style="width:4%;background:#16a34a"></i></div>
+      <b>1.29</b><span class="band" style="color:#16a34a">弱势</span></td>
+  <td class="num sm">1.53<div class="dim9">成分股9级均值</div></td>
+  <td class="num sm ">0.47</td>
+  <td><svg class="spark" width="90" height="24" viewBox="0 0 90 24"><polyline points="0.0,12.0 1.5,17.7 3.1,15.1 4.6,15.3 6.1,12.2 7.6,12.0 9.2,10.9 10.7,8.3 12.2,9.2 13.7,9.6 15.3,8.5 16.8,9.0 18.3,6.8 19.8,7.7 21.4,8.3 22.9,12.0 24.4,12.0 25.9,8.5 27.5,7.4 29.0,10.1 30.5,8.3 32.0,7.6 33.6,9.6 35.1,6.8 36.6,6.1 38.1,5.9 39.7,3.5 41.2,3.1 42.7,3.1 44.2,4.4 45.8,7.0 47.3,6.8 48.8,6.3 50.3,2.0 51.9,2.0 53.4,4.6 54.9,10.9 56.4,11.4 58.0,13.9 59.5,12.6 61.0,13.7 62.5,12.4 64.1,6.3 65.6,9.8 67.1,11.3 68.6,13.5 70.2,14.0 71.7,14.2 73.2,14.0 74.7,9.0 76.3,9.6 77.8,17.0 79.3,14.8 80.8,16.8 82.4,20.5 83.9,20.5 85.4,20.5 86.9,19.8 88.5,20.9 90.0,22.0" fill="none" stroke="#16a34a" stroke-width="1.6"/></svg></td>
+  <td><span class="ph" style="background:#16a34a">弱势期</span></td>
+  <td class="num">-0.47</td>
+  <td class="num">-154.00%</td>
+  <td class="num">-67.00%</td>
+  <td class="num">10/17</td>
+  <td class="num">1</td>
+  <td class="num">0亿</td>
+  <td><span class="warn" title="成分股K线未下载完整">36%</span></td>
+</tr></tbody>
+</table>
+</div>
+
+<h2>全市场强弱分布<span class="h2sub">用于判断大盘环境：7-9 级集中=普涨可积极，1-3 级集中=普跌应控仓</span></h2>
+<div class="card">
+<div class="distwrap">
+  <div class="dchart"><div class="dbar"><div class="dv d-bad" style="height:100%"></div><span class="dl">1</span><span class="dn">537</span></div><div class="dbar"><div class="dv d-bad" style="height:29%"></div><span class="dl">2</span><span class="dn">158</span></div><div class="dbar"><div class="dv d-bad" style="height:19%"></div><span class="dl">3</span><span class="dn">100</span></div><div class="dbar"><div class="dv d-mid" style="height:8%"></div><span class="dl">4</span><span class="dn">44</span></div><div class="dbar"><div class="dv d-mid" style="height:7%"></div><span class="dl">5</span><span class="dn">35</span></div><div class="dbar"><div class="dv d-mid" style="height:7%"></div><span class="dl">6</span><span class="dn">39</span></div><div class="dbar"><div class="dv d-good" style="height:7%"></div><span class="dl">7</span><span class="dn">39</span></div><div class="dbar"><div class="dv d-good" style="height:4%"></div><span class="dl">8</span><span class="dn">22</span></div><div class="dbar"><div class="dv d-good" style="height:5%"></div><span class="dl">9</span><span class="dn">27</span></div></div>
+  <div class="dinfo">
+    <div>全市场个股 <b>1001</b> 只（按强弱级别分布）</div>
+    <div>7~9 级占比 <b class="good">8.8%</b></div>
+    <div>1~3 级占比 <b class="bad">79.4%</b></div>
+    <div class="env bad">当前环境：<b>普跌环境</b></div>
+  </div>
+</div></div>
+
+<h2>推荐个股<span class="h2sub">仅在启动期 / 强势期板块内筛选，须通过全部硬门槛</span></h2>
+
+<div class="pickwrap">
+  <div class="ph2"><span class="ph" style="background:#c2410c">启动期</span>
+    <b>计算机</b><span class="sub">强弱分 4.91 · 上涨家数 38/45</span></div>
+  <div class="picks">
+<div class="pick">
+  <div class="p1"><b>002376</b><span class="pc">002376</span></div>
+  <div class="p2">综合分 <b class="sc-num">91.22</b></div>
+  <div class="p3">
+    <span>收盘 <b>7.8</b></span>
+    <span>5日 <b class="up">+15.04%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+15.91%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢15.9%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002322</b><span class="pc">002322</span></div>
+  <div class="p2">综合分 <b class="sc-num">85.88</b></div>
+  <div class="p3">
+    <span>收盘 <b>13.67</b></span>
+    <span>5日 <b class="up">+5.15%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+12.13%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-zt">涨停基因</span><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢12.1%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002421</b><span class="pc">002421</span></div>
+  <div class="p2">综合分 <b class="sc-num">84.34</b></div>
+  <div class="p3">
+    <span>收盘 <b>3.43</b></span>
+    <span>5日 <b class="up">+9.94%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+1.67%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-zt">涨停基因</span><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢1.7%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002380</b><span class="pc">002380</span></div>
+  <div class="p2">综合分 <b class="sc-num">83.51</b></div>
+  <div class="p3">
+    <span>收盘 <b>27.67</b></span>
+    <span>5日 <b class="up">+15.39%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+3.79%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-zt">涨停基因</span><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢3.8%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002405</b><span class="pc">002405</span></div>
+  <div class="p2">综合分 <b class="sc-num">74.98</b></div>
+  <div class="p3">
+    <span>收盘 <b>6.28</b></span>
+    <span>5日 <b class="up">+5.02%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+0.85%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">回踩守MA13</span><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢0.8%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002415</b><span class="pc">002415</span></div>
+  <div class="p2">综合分 <b class="sc-num">45.8</b></div>
+  <div class="p3">
+    <span>收盘 <b>33.78</b></span>
+    <span>5日 <b class="up">+0.36%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+0.19%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢0.2%</span></div>
+</div></div>
+</div>
+<div class="pickwrap">
+  <div class="ph2"><span class="ph" style="background:#c2410c">启动期</span>
+    <b>机械设备</b><span class="sub">强弱分 3.38 · 上涨家数 54/67</span></div>
+  <div class="picks">
+<div class="pick">
+  <div class="p1"><b>000530</b><span class="pc">000530</span></div>
+  <div class="p2">综合分 <b class="sc-num">100.4</b></div>
+  <div class="p3">
+    <span>收盘 <b>9.53</b></span>
+    <span>5日 <b class="up">+25.07%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+83.87%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">回踩守MA13</span><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢83.9%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002164</b><span class="pc">002164</span></div>
+  <div class="p2">综合分 <b class="sc-num">88.9</b></div>
+  <div class="p3">
+    <span>收盘 <b>17.78</b></span>
+    <span>5日 <b class="up">+33.18%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+35.99%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢36.0%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>001306</b><span class="pc">001306</span></div>
+  <div class="p2">综合分 <b class="sc-num">80.48</b></div>
+  <div class="p3">
+    <span>收盘 <b>59.78</b></span>
+    <span>5日 <b class="up">+20.09%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+16.08%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢16.1%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002347</b><span class="pc">002347</span></div>
+  <div class="p2">综合分 <b class="sc-num">80.14</b></div>
+  <div class="p3">
+    <span>收盘 <b>6.85</b></span>
+    <span>5日 <b class="up">+14.93%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+13.97%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢14.0%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002006</b><span class="pc">002006</span></div>
+  <div class="p2">综合分 <b class="sc-num">75.82</b></div>
+  <div class="p3">
+    <span>收盘 <b>13.63</b></span>
+    <span>5日 <b class="up">+5.58%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+8.40%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">回踩守MA13</span><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢8.4%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002184</b><span class="pc">002184</span></div>
+  <div class="p2">综合分 <b class="sc-num">75.4</b></div>
+  <div class="p3">
+    <span>收盘 <b>10.95</b></span>
+    <span>5日 <b class="up">+9.50%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+15.45%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢15.4%</span></div>
+</div></div>
+</div>
+<div class="pickwrap">
+  <div class="ph2"><span class="ph" style="background:#c2410c">启动期</span>
+    <b>电子</b><span class="sub">强弱分 2.92 · 上涨家数 49/59</span></div>
+  <div class="picks">
+<div class="pick">
+  <div class="p1"><b>002139</b><span class="pc">002139</span></div>
+  <div class="p2">综合分 <b class="sc-num">74.63</b></div>
+  <div class="p3">
+    <span>收盘 <b>9.92</b></span>
+    <span>5日 <b class="up">+9.37%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+10.87%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢10.9%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002475</b><span class="pc">002475</span></div>
+  <div class="p2">综合分 <b class="sc-num">72.04</b></div>
+  <div class="p3">
+    <span>收盘 <b>50.42</b></span>
+    <span>5日 <b class="up">+13.15%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+16.15%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢16.1%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002045</b><span class="pc">002045</span></div>
+  <div class="p2">综合分 <b class="sc-num">71.94</b></div>
+  <div class="p3">
+    <span>收盘 <b>9.11</b></span>
+    <span>5日 <b class="up">+8.32%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+13.72%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢13.7%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002273</b><span class="pc">002273</span></div>
+  <div class="p2">综合分 <b class="sc-num">71.25</b></div>
+  <div class="p3">
+    <span>收盘 <b>22.84</b></span>
+    <span>5日 <b class="up">+17.73%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+12.06%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢12.1%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002369</b><span class="pc">002369</span></div>
+  <div class="p2">综合分 <b class="sc-num">63.48</b></div>
+  <div class="p3">
+    <span>收盘 <b>5.55</b></span>
+    <span>5日 <b class="up">+5.11%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+10.14%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢10.1%</span></div>
+</div></div>
+</div>
+<div class="pickwrap">
+  <div class="ph2"><span class="ph" style="background:#c2410c">启动期</span>
+    <b>电力设备</b><span class="sub">强弱分 2.44 · 上涨家数 48/57</span></div>
+  <div class="picks">
+<div class="pick">
+  <div class="p1"><b>001388</b><span class="pc">001388</span></div>
+  <div class="p2">综合分 <b class="sc-num">86.06</b></div>
+  <div class="p3">
+    <span>收盘 <b>22.98</b></span>
+    <span>5日 <b class="up">+24.82%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+26.87%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢26.9%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>000400</b><span class="pc">000400</span></div>
+  <div class="p2">综合分 <b class="sc-num">82.42</b></div>
+  <div class="p3">
+    <span>收盘 <b>22.84</b></span>
+    <span>5日 <b class="up">+2.84%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+16.44%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">回踩守MA13</span><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢16.4%</span></div>
+</div>
+<div class="pick">
+  <div class="p1"><b>002276</b><span class="pc">002276</span></div>
+  <div class="p2">综合分 <b class="sc-num">63.73</b></div>
+  <div class="p3">
+    <span>收盘 <b>9.94</b></span>
+    <span>5日 <b class="up">+2.69%</b></span>
+    <span>量比 <b>None</b></span>
+    <span>RS10 <b class="up">+9.96%</b></span>
+  </div>
+  <div class="p4"><span class="fl fl-ok">多头排列</span><span class="fl fl-ok">跑赢10.0%</span></div>
+</div></div>
+</div>
+
+<h2>回测绩效<span class="h2sub">日频净值口径，已扣双边成本</span></h2>
+<div class="card"><div class="bt-head">① 代理指标回测（板块指数自身 8 均线站上数） ｜ 区间 2021-01-04 ~ 2026-10-23 ·
+  强弱分≥6.0 · 需向上=True · 持有20日 ·
+  每期3个 · 双边成本15bp</div><div class="mcgrid"><div class="mc"><div class="ml">信号样本数</div><div class="mv ">140</div></div><div class="mc"><div class="ml">单笔胜率</div><div class="mv bad">+42.1%</div></div><div class="mc"><div class="ml">总收益</div><div class="mv bad">-32.6%</div></div><div class="mc"><div class="ml">年化收益</div><div class="mv bad">-6.9%</div></div><div class="mc"><div class="ml">最大回撤</div><div class="mv bad">-68.0%</div></div><div class="mc"><div class="ml">夏普比率</div><div class="mv bad">-1.42</div></div><div class="mc"><div class="ml">盈亏比</div><div class="mv ">1.23</div></div><div class="mc"><div class="ml">超额年化</div><div class="mv bad">-7.9%</div></div><div class="mc"><div class="ml">基准总收益</div><div class="mv ">-4.9%</div></div><div class="mc"><div class="ml">基准最大回撤</div><div class="mv ">-38.8%</div></div></div>
+<div class="chartwrap">
+  <svg viewBox="0 0 760 240" class="chart">
+    <line x1="52" y1="210.0" x2="708" y2="210.0" stroke="#e2e8f0" stroke-width="1"/><text x="44" y="214.0" font-size="11" fill="#64748b" text-anchor="end">0.50</text><line x1="52" y1="162.0" x2="708" y2="162.0" stroke="#e2e8f0" stroke-width="1"/><text x="44" y="166.0" font-size="11" fill="#64748b" text-anchor="end">0.77</text><line x1="52" y1="114.0" x2="708" y2="114.0" stroke="#e2e8f0" stroke-width="1"/><text x="44" y="118.0" font-size="11" fill="#64748b" text-anchor="end">1.04</text><line x1="52" y1="66.0" x2="708" y2="66.0" stroke="#e2e8f0" stroke-width="1"/><text x="44" y="70.0" font-size="11" fill="#64748b" text-anchor="end">1.30</text><line x1="52" y1="18.0" x2="708" y2="18.0" stroke="#e2e8f0" stroke-width="1"/><text x="44" y="22.0" font-size="11" fill="#64748b" text-anchor="end">1.57</text>
+    <path d="M 52.0,120.7 L 53.4,119.4 L 54.8,119.0 L 56.2,122.0 L 57.6,119.9 L 59.1,118.5 L 60.5,124.4 L 61.9,122.3 L 63.3,126.8 L 64.7,119.1 L 66.1,116.2 L 67.5,119.6 L 68.9,120.6 L 70.3,121.7 L 71.8,129.6 L 73.2,126.7 L 74.6,123.4 L 76.0,125.9 L 77.4,125.3 L 78.8,125.2 L 80.2,122.3 L 81.6,123.1 L 83.0,124.9 L 84.4,121.1 L 85.9,121.5 L 87.3,123.2 L 88.7,123.0 L 90.1,123.3 L 91.5,124.3 L 92.9,120.1 L 94.3,121.5 L 95.7,117.3 L 97.1,115.6 L 98.6,116.6 L 100.0,116.7 L 101.4,116.2 L 102.8,120.4 L 104.2,118.0 L 105.6,115.4 L 107.0,115.9 L 108.4,119.1 L 109.8,118.3 L 111.3,113.5 L 112.7,115.7 L 114.1,114.5 L 115.5,119.4 L 116.9,123.2 L 118.3,119.7 L 119.7,112.0 L 121.1,109.2 L 122.5,110.1 L 123.9,112.8 L 125.4,109.6 L 126.8,109.5 L 128.2,107.9 L 129.6,104.5 L 131.0,99.7 L 132.4,102.4 L 133.8,106.3 L 135.2,106.8 L 136.6,114.0 L 138.1,111.0 L 139.5,112.7 L 140.9,111.0 L 142.3,122.2 L 143.7,120.8 L 145.1,120.7 L 146.5,120.7 L 147.9,120.6 L 149.3,118.5 L 150.8,118.2 L 152.2,115.9 L 153.6,116.4 L 155.0,117.0 L 156.4,114.7 L 157.8,113.9 L 159.2,111.1 L 160.6,110.3 L 162.0,112.0 L 163.4,113.3 L 164.9,113.2 L 166.3,109.4 L 167.7,112.7 L 169.1,111.6 L 170.5,113.9 L 171.9,115.5 L 173.3,123.4 L 174.7,126.5 L 176.1,119.2 L 177.6,122.2 L 179.0,120.0 L 180.4,119.5 L 181.8,120.5 L 183.2,119.0 L 184.6,130.1 L 186.0,129.0 L 187.4,137.3 L 188.8,131.1 L 190.3,133.2 L 191.7,130.9 L 193.1,132.4 L 194.5,134.0 L 195.9,136.1 L 197.3,143.1 L 198.7,155.7 L 200.1,146.3 L 201.5,144.8 L 203.0,143.2 L 204.4,142.0 L 205.8,144.0 L 207.2,140.3 L 208.6,137.0 L 210.0,134.3 L 211.4,133.0 L 212.8,132.1 L 214.2,130.1 L 215.6,130.3 L 217.1,124.7 L 218.5,125.8 L 219.9,127.8 L 221.3,129.5 L 222.7,129.9 L 224.1,129.2 L 225.5,129.9 L 226.9,128.8 L 228.3,129.5 L 229.8,134.9 L 231.2,131.4 L 232.6,129.2 L 234.0,127.5 L 235.4,127.7 L 236.8,130.6 L 238.2,131.2 L 239.6,133.8 L 241.0,131.0 L 242.5,130.0 L 243.9,138.1 L 245.3,138.4 L 246.7,143.3 L 248.1,144.4 L 249.5,147.2 L 250.9,141.6 L 252.3,142.3 L 253.7,146.5 L 255.1,145.4 L 256.6,146.4 L 258.0,140.7 L 259.4,140.6 L 260.8,139.1 L 262.2,137.2 L 263.6,139.5 L 265.0,139.5 L 266.4,136.3 L 267.8,132.5 L 269.3,132.9 L 270.7,133.8 L 272.1,134.7 L 273.5,140.0 L 274.9,139.7 L 276.3,140.2 L 277.7,136.7 L 279.1,134.3 L 280.5,135.3 L 282.0,132.4 L 283.4,130.0 L 284.8,127.3 L 286.2,129.5 L 287.6,127.6 L 289.0,125.8 L 290.4,130.0 L 291.8,126.3 L 293.2,128.5 L 294.6,125.5 L 296.1,128.7 L 297.5,131.5 L 298.9,130.9 L 300.3,133.0 L 301.7,129.7 L 303.1,130.9 L 304.5,129.5 L 305.9,128.5 L 307.3,128.0 L 308.8,127.8 L 310.2,127.9 L 311.6,133.3 L 313.0,134.1 L 314.4,132.3 L 315.8,133.3 L 317.2,133.6 L 318.6,134.9 L 320.0,136.6 L 321.5,138.1 L 322.9,139.0 L 324.3,136.7 L 325.7,138.2 L 327.1,136.5 L 328.5,133.6 L 329.9,137.8 L 331.3,138.0 L 332.7,135.2 L 334.2,136.7 L 335.6,135.9 L 337.0,135.8 L 338.4,136.6 L 339.8,138.4 L 341.2,135.7 L 342.6,131.9 L 344.0,132.0 L 345.4,134.9 L 346.8,137.5 L 348.3,138.1 L 349.7,141.2 L 351.1,144.9 L 352.5,140.1 L 353.9,137.6 L 355.3,140.9 L 356.7,141.3 L 358.1,141.2 L 359.5,144.2 L 361.0,143.7 L 362.4,143.8 L 363.8,143.7 L 365.2,145.8 L 366.6,151.2 L 368.0,150.7 L 369.4,147.3 L 370.8,148.9 L 372.2,145.5 L 373.7,146.4 L 375.1,144.2 L 376.5,144.0 L 377.9,144.3 L 379.3,145.6 L 380.7,146.3 L 382.1,148.7 L 383.5,148.2 L 384.9,149.6 L 386.3,151.7 L 387.8,153.3 L 389.2,154.3 L 390.6,150.7 L 392.0,153.2 L 393.4,155.5 L 394.8,154.7 L 396.2,158.0 L 397.6,163.6 L 399.0,157.1 L 400.5,166.8 L 401.9,175.6 L 403.3,165.3 L 404.7,160.8 L 406.1,157.6 L 407.5,155.8 L 408.9,155.4 L 410.3,154.8 L 411.7,152.6 L 413.2,150.1 L 414.6,149.9 L 416.0,153.2 L 417.4,152.9 L 418.8,151.0 L 420.2,154.3 L 421.6,155.4 L 423.0,155.6 L 424.4,158.1 L 425.8,154.4 L 427.3,150.2 L 428.7,149.6 L 430.1,150.3 L 431.5,149.0 L 432.9,149.3 L 434.3,152.3 L 435.7,154.6 L 437.1,155.3 L 438.5,158.6 L 440.0,159.6 L 441.4,159.2 L 442.8,162.5 L 444.2,163.6 L 445.6,163.6 L 447.0,166.8 L 448.4,167.2 L 449.8,165.7 L 451.2,166.9 L 452.7,166.8 L 454.1,171.1 L 455.5,170.0 L 456.9,168.0 L 458.3,168.8 L 459.7,170.2 L 461.1,169.8 L 462.5,172.1 L 463.9,173.9 L 465.4,174.7 L 466.8,173.9 L 468.2,173.4 L 469.6,176.0 L 471.0,177.6 L 472.4,175.7 L 473.8,168.5 L 475.2,143.0 L 476.6,146.0 L 478.0,150.3 L 479.5,147.2 L 480.9,143.4 L 482.3,139.2 L 483.7,140.3 L 485.1,136.1 L 486.5,132.2 L 487.9,132.2 L 489.3,140.7 L 490.7,136.4 L 492.2,141.8 L 493.6,137.4 L 495.0,135.9 L 496.4,133.7 L 497.8,128.7 L 499.2,135.9 L 500.6,135.6 L 502.0,138.8 L 503.4,138.0 L 504.9,148.2 L 506.3,147.1 L 507.7,150.5 L 509.1,145.3 L 510.5,144.7 L 511.9,144.9 L 513.3,143.7 L 514.7,140.4 L 516.1,139.1 L 517.5,139.5 L 519.0,137.4 L 520.4,136.7 L 521.8,139.4 L 523.2,137.1 L 524.6,135.8 L 526.0,133.1 L 527.4,134.2 L 528.8,137.2 L 530.2,138.6 L 531.7,139.1 L 533.1,152.1 L 534.5,146.0 L 535.9,145.1 L 537.3,143.3 L 538.7,143.7 L 540.1,144.4 L 541.5,140.2 L 542.9,138.8 L 544.4,139.2 L 545.8,137.2 L 547.2,140.1 L 548.6,140.0 L 550.0,139.0 L 551.4,137.7 L 552.8,136.4 L 554.2,137.6 L 555.6,140.5 L 557.0,137.8 L 558.5,136.4 L 559.9,134.6 L 561.3,133.9 L 562.7,131.6 L 564.1,131.8 L 565.5,129.7 L 566.9,126.5 L 568.3,125.1 L 569.7,127.6 L 571.2,125.4 L 572.6,124.1 L 574.0,121.2 L 575.4,118.8 L 576.8,116.6 L 578.2,111.0 L 579.6,112.7 L 581.0,115.9 L 582.4,113.0 L 583.9,110.7 L 585.3,110.1 L 586.7,112.0 L 588.1,112.2 L 589.5,111.9 L 590.9,110.3 L 592.3,110.3 L 593.7,113.9 L 595.1,111.4 L 596.6,109.5 L 598.0,109.8 L 599.4,109.3 L 600.8,106.4 L 602.2,104.9 L 603.6,108.4 L 605.0,116.0 L 606.4,112.7 L 607.8,110.0 L 609.2,112.8 L 610.7,110.9 L 612.1,112.0 L 613.5,112.7 L 614.9,109.2 L 616.3,107.4 L 617.7,107.3 L 619.1,101.6 L 620.5,98.0 L 621.9,96.2 L 623.4,97.1 L 624.8,95.1 L 626.2,95.3 L 627.6,96.0 L 629.0,95.3 L 630.4,93.8 L 631.8,93.2 L 633.2,90.9 L 634.6,90.3 L 636.1,95.2 L 637.5,92.7 L 638.9,94.5 L 640.3,96.7 L 641.7,112.1 L 643.1,107.0 L 644.5,107.3 L 645.9,109.7 L 647.3,103.7 L 648.7,100.2 L 650.2,98.7 L 651.6,96.8 L 653.0,98.6 L 654.4,96.2 L 655.8,91.6 L 657.2,90.5 L 658.6,97.4 L 660.0,102.2 L 661.4,100.4 L 662.9,104.3 L 664.3,104.4 L 665.7,111.8 L 667.1,112.7 L 668.5,107.6 L 669.9,106.7 L 671.3,110.5 L 672.7,113.5 L 674.1,110.9 L 675.6,117.5 L 677.0,121.0 L 678.4,118.9 L 679.8,123.3 L 681.2,126.4 L 682.6,122.1 L 684.0,120.3 L 685.4,116.2 L 686.8,114.2 L 688.2,114.5 L 689.7,117.9 L 691.1,118.1 L 692.5,113.9 L 693.9,112.5 L 695.3,114.6 L 696.7,112.5 L 698.1,117.6 L 699.5,118.5 L 700.9,114.1 L 702.4,121.4 L 703.8,121.4 L 705.2,122.1 L 706.6,127.4 L 708.0,132.0" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5,3"/>
+    <path d="M 52.0,120.7 L 53.4,120.7 L 54.8,120.7 L 56.2,120.7 L 57.6,120.7 L 59.1,120.7 L 60.5,120.7 L 61.9,120.7 L 63.3,120.7 L 64.7,120.7 L 66.1,120.7 L 67.5,120.7 L 68.9,120.7 L 70.3,120.7 L 71.8,120.7 L 73.2,120.7 L 74.6,120.7 L 76.0,120.7 L 77.4,120.7 L 78.8,120.7 L 80.2,120.7 L 81.6,119.9 L 83.0,118.8 L 84.4,117.7 L 85.9,116.5 L 87.3,115.4 L 88.7,114.3 L 90.1,114.1 L 91.5,114.4 L 92.9,114.6 L 94.3,114.8 L 95.7,115.0 L 97.1,115.2 L 98.6,115.4 L 100.0,117.2 L 101.4,119.0 L 102.8,120.7 L 104.2,122.4 L 105.6,124.1 L 107.0,125.8 L 108.4,127.7 L 109.8,122.6 L 111.3,117.2 L 112.7,111.6 L 114.1,105.8 L 115.5,99.8 L 116.9,93.6 L 118.3,88.1 L 119.7,82.0 L 121.1,75.8 L 122.5,69.4 L 123.9,62.8 L 125.4,56.0 L 126.8,49.1 L 128.2,47.1 L 129.6,47.1 L 131.0,47.1 L 132.4,47.1 L 133.8,47.1 L 135.2,47.1 L 136.6,47.1 L 138.1,45.2 L 139.5,42.9 L 140.9,40.6 L 142.3,38.3 L 143.7,36.0 L 145.1,33.6 L 146.5,32.4 L 147.9,31.2 L 149.3,30.0 L 150.8,28.7 L 152.2,27.5 L 153.6,26.2 L 155.0,25.0 L 156.4,24.6 L 157.8,23.5 L 159.2,22.3 L 160.6,21.1 L 162.0,19.9 L 163.4,18.8 L 164.9,18.0 L 166.3,20.5 L 167.7,22.6 L 169.1,24.7 L 170.5,26.7 L 171.9,28.8 L 173.3,30.8 L 174.7,32.5 L 176.1,32.5 L 177.6,32.5 L 179.0,32.5 L 180.4,32.5 L 181.8,32.5 L 183.2,32.5 L 184.6,34.8 L 186.0,37.7 L 187.4,40.5 L 188.8,43.2 L 190.3,46.0 L 191.7,48.7 L 193.1,51.7 L 194.5,54.1 L 195.9,56.1 L 197.3,58.1 L 198.7,60.1 L 200.1,62.0 L 201.5,64.0 L 203.0,65.6 L 204.4,65.6 L 205.8,65.6 L 207.2,65.6 L 208.6,65.6 L 210.0,65.6 L 211.4,65.6 L 212.8,65.7 L 214.2,65.2 L 215.6,64.8 L 217.1,64.4 L 218.5,63.9 L 219.9,63.5 L 221.3,63.4 L 222.7,65.2 L 224.1,66.7 L 225.5,68.1 L 226.9,69.6 L 228.3,71.0 L 229.8,72.4 L 231.2,74.7 L 232.6,76.8 L 234.0,78.9 L 235.4,81.0 L 236.8,83.0 L 238.2,85.0 L 239.6,87.0 L 241.0,89.9 L 242.5,92.2 L 243.9,94.4 L 245.3,96.7 L 246.7,98.9 L 248.1,101.1 L 249.5,103.5 L 250.9,105.7 L 252.3,107.5 L 253.7,109.3 L 255.1,111.1 L 256.6,112.9 L 258.0,114.6 L 259.4,115.9 L 260.8,114.4 L 262.2,113.0 L 263.6,111.6 L 265.0,110.1 L 266.4,108.6 L 267.8,107.2 L 269.3,107.7 L 270.7,108.3 L 272.1,109.0 L 273.5,109.6 L 274.9,110.3 L 276.3,110.9 L 277.7,111.8 L 279.1,111.6 L 280.5,111.2 L 282.0,110.7 L 283.4,110.2 L 284.8,109.7 L 286.2,109.2 L 287.6,109.5 L 289.0,109.6 L 290.4,109.7 L 291.8,109.9 L 293.2,110.0 L 294.6,110.1 L 296.1,110.2 L 297.5,110.5 L 298.9,110.5 L 300.3,110.5 L 301.7,110.5 L 303.1,110.5 L 304.5,110.5 L 305.9,110.5 L 307.3,111.9 L 308.8,113.0 L 310.2,114.0 L 311.6,115.1 L 313.0,116.1 L 314.4,117.2 L 315.8,119.3 L 317.2,121.8 L 318.6,124.4 L 320.0,126.8 L 321.5,129.3 L 322.9,131.7 L 324.3,134.1 L 325.7,135.3 L 327.1,135.2 L 328.5,135.1 L 329.9,135.0 L 331.3,134.9 L 332.7,134.8 L 334.2,135.0 L 335.6,135.0 L 337.0,135.0 L 338.4,135.0 L 339.8,135.0 L 341.2,135.0 L 342.6,135.0 L 344.0,135.7 L 345.4,137.1 L 346.8,138.4 L 348.3,139.8 L 349.7,141.1 L 351.1,142.4 L 352.5,143.8 L 353.9,146.0 L 355.3,148.0 L 356.7,150.0 L 358.1,151.9 L 359.5,153.9 L 361.0,155.8 L 362.4,157.8 L 363.8,158.0 L 365.2,158.0 L 366.6,157.9 L 368.0,157.8 L 369.4,157.8 L 370.8,157.7 L 372.2,158.3 L 373.7,158.7 L 375.1,159.1 L 376.5,159.5 L 377.9,159.9 L 379.3,160.3 L 380.7,160.7 L 382.1,161.8 L 383.5,162.6 L 384.9,163.4 L 386.3,164.2 L 387.8,165.1 L 389.2,165.9 L 390.6,166.9 L 392.0,169.4 L 393.4,171.7 L 394.8,174.0 L 396.2,176.2 L 397.6,178.4 L 399.0,180.5 L 400.5,182.0 L 401.9,181.2 L 403.3,180.3 L 404.7,179.5 L 406.1,178.6 L 407.5,177.8 L 408.9,176.9 L 410.3,177.1 L 411.7,177.1 L 413.2,177.2 L 414.6,177.3 L 416.0,177.3 L 417.4,177.4 L 418.8,177.7 L 420.2,177.8 L 421.6,177.7 L 423.0,177.6 L 424.4,177.6 L 425.8,177.5 L 427.3,177.5 L 428.7,177.9 L 430.1,178.3 L 431.5,178.7 L 432.9,179.1 L 434.3,179.5 L 435.7,179.9 L 437.1,180.2 L 438.5,181.1 L 440.0,181.6 L 441.4,182.1 L 442.8,182.6 L 444.2,183.1 L 445.6,183.6 L 447.0,184.3 L 448.4,184.3 L 449.8,184.3 L 451.2,184.3 L 452.7,184.3 L 454.1,184.3 L 455.5,184.3 L 456.9,184.8 L 458.3,185.7 L 459.7,186.7 L 461.1,187.6 L 462.5,188.5 L 463.9,189.5 L 465.4,190.4 L 466.8,190.9 L 468.2,190.9 L 469.6,190.9 L 471.0,190.9 L 472.4,190.9 L 473.8,190.9 L 475.2,190.9 L 476.6,192.7 L 478.0,194.4 L 479.5,196.0 L 480.9,197.6 L 482.3,199.1 L 483.7,200.7 L 485.1,202.0 L 486.5,201.9 L 487.9,201.7 L 489.3,201.6 L 490.7,201.5 L 492.2,201.4 L 493.6,201.3 L 495.0,201.9 L 496.4,202.5 L 497.8,203.1 L 499.2,203.7 L 500.6,204.2 L 502.0,204.8 L 503.4,205.5 L 504.9,206.3 L 506.3,207.0 L 507.7,207.7 L 509.1,208.4 L 510.5,209.0 L 511.9,209.7 L 513.3,210.0 L 514.7,208.7 L 516.1,207.4 L 517.5,206.0 L 519.0,204.7 L 520.4,203.3 L 521.8,201.9 L 523.2,201.7 L 524.6,201.6 L 526.0,201.5 L 527.4,201.4 L 528.8,201.3 L 530.2,201.2 L 531.7,201.2 L 533.1,201.0 L 534.5,200.6 L 535.9,200.2 L 537.3,199.8 L 538.7,199.5 L 540.1,199.1 L 541.5,199.0 L 542.9,198.7 L 544.4,198.4 L 545.8,198.1 L 547.2,197.7 L 548.6,197.4 L 550.0,197.1 L 551.4,196.9 L 552.8,196.3 L 554.2,195.7 L 555.6,195.0 L 557.0,194.4 L 558.5,193.8 L 559.9,193.3 L 561.3,192.2 L 562.7,191.0 L 564.1,189.8 L 565.5,188.6 L 566.9,187.3 L 568.3,186.0 L 569.7,184.8 L 571.2,182.7 L 572.6,180.6 L 574.0,178.4 L 575.4,176.2 L 576.8,174.0 L 578.2,171.7 L 579.6,171.1 L 581.0,171.1 L 582.4,171.1 L 583.9,171.1 L 585.3,171.1 L 586.7,171.1 L 588.1,171.1 L 589.5,169.9 L 590.9,168.5 L 592.3,167.1 L 593.7,165.7 L 595.1,164.2 L 596.6,162.7 L 598.0,162.4 L 599.4,163.1 L 600.8,163.8 L 602.2,164.5 L 603.6,165.2 L 605.0,165.9 L 606.4,166.5 L 607.8,166.7 L 609.2,165.9 L 610.7,165.2 L 612.1,164.5 L 613.5,163.7 L 614.9,163.0 L 616.3,162.4 L 617.7,161.6 L 619.1,160.5 L 620.5,159.5 L 621.9,158.4 L 623.4,157.3 L 624.8,156.2 L 626.2,155.3 L 627.6,153.7 L 629.0,152.0 L 630.4,150.4 L 631.8,148.7 L 633.2,146.9 L 634.6,145.2 L 636.1,145.7 L 637.5,146.7 L 638.9,147.7 L 640.3,148.6 L 641.7,149.6 L 643.1,150.5 L 644.5,151.7 L 645.9,151.7 L 647.3,151.7 L 648.7,151.7 L 650.2,151.7 L 651.6,151.7 L 653.0,151.7 L 654.4,152.0 L 655.8,152.1 L 657.2,152.2 L 658.6,152.3 L 660.0,152.4 L 661.4,152.5 L 662.9,152.7 L 664.3,156.0 L 665.7,160.3 L 667.1,164.4 L 668.5,168.4 L 669.9,172.3 L 671.3,176.0 L 672.7,179.9 L 674.1,179.9 L 675.6,179.9 L 677.0,179.9 L 678.4,179.9 L 679.8,179.9 L 681.2,179.9 L 682.6,180.2 L 684.0,180.6 L 685.4,180.9 L 686.8,181.3 L 688.2,181.7 L 689.7,182.0 L 691.1,182.4 L 692.5,182.5 L 693.9,182.0 L 695.3,181.4 L 696.7,180.9 L 698.1,180.3 L 699.5,179.7 L 700.9,179.4 L 702.4,179.4 L 703.8,179.4 L 705.2,179.4 L 706.6,179.4 L 708.0,179.4" fill="none" stroke="#dc2626" stroke-width="2.2"/>
+    <text x="714" y="30" font-size="11" fill="#dc2626">策略净值</text>
+    <text x="714" y="46" font-size="11" fill="#94a3b8">基准净值</text>
+    <text x="52" y="232" font-size="10" fill="#64748b" text-anchor="middle">21-01-04</text><text x="216" y="232" font-size="10" fill="#64748b" text-anchor="middle">22-06-23</text><text x="379" y="232" font-size="10" fill="#64748b" text-anchor="middle">23-11-28</text><text x="543" y="232" font-size="10" fill="#64748b" text-anchor="middle">25-05-12</text><text x="708" y="232" font-size="10" fill="#64748b" text-anchor="middle">26-10-22</text>
+  </svg>
+</div>
+<div class="split">
+  <div class="sp"><h5>样本内（70%）</h5>
+    <div>样本 103 · 胜率 +34.9% · 年化 -10.2%
+      · 回撤 -68.0% · 超额 -11.6%</div></div>
+  <div class="sp"><h5>样本外（30%）</h5>
+    <div>样本 37 · 胜率 +62.2% · 年化 +3.7%
+      · 回撤 -24.3% · 超额 +2.8%</div></div>
+</div><div class="note">口径：T 日收盘发信号，T+1 开盘买入，持有 N 日后开盘卖出；基准为全板块等权日频净值；已扣双边成本。<b>本组为代理指标</b>（非成分股 9 级均值），用于检验「多周期均线状态」这一信号本身的预测力，样本长但指标口径与原始定义不同，不可当作原始指标的回测结果。</div><div class="bt-head">② 真实指标回测（成分股 9 级均值 · 原始定义） ｜ 区间 2025-07-03 ~ 2026-10-23 ·
+  强弱分≥4.0 · 需向上=True · 持有10日 ·
+  每期3个 · 双边成本15bp</div><div class="mcgrid"><div class="mc"><div class="ml">信号样本数</div><div class="mv ">73</div></div><div class="mc"><div class="ml">单笔胜率</div><div class="mv bad">+47.9%</div></div><div class="mc"><div class="ml">总收益</div><div class="mv bad">-10.0%</div></div><div class="mc"><div class="ml">年化收益</div><div class="mv bad">-8.0%</div></div><div class="mc"><div class="ml">最大回撤</div><div class="mv bad">-24.2%</div></div><div class="mc"><div class="ml">夏普比率</div><div class="mv bad">-1.45</div></div><div class="mc"><div class="ml">盈亏比</div><div class="mv ">0.84</div></div><div class="mc"><div class="ml">超额年化</div><div class="mv bad">-12.9%</div></div><div class="mc"><div class="ml">基准总收益</div><div class="mv ">+4.3%</div></div><div class="mc"><div class="ml">基准最大回撤</div><div class="mv ">-20.1%</div></div></div><div class="note">口径同上，但强弱分为<b>原始定义</b>：板块内全部个股 9 级强弱的算术平均。受个股历史 K 线长度限制（腾讯接口 640 根 ≈ 2.5 年），本组历史窗口短、样本量小，统计显著性有限；两组的差异本身即为重要信息。</div></div>
+
+<h2>完整规则体系<span class="h2sub">阈值与权重</span></h2>
+
+<div class="rules">
+  <div class="rule">
+    <h4>① 个股强弱分级（9 级）</h4>
+    <p>挂载 <b>MA5, MA13, MA21, MA34, MA55, MA89, MA144, MA233</b> 共 8 条斐波那契均线。
+    收盘价站上 N 条 → 强弱级别 = N+1，取值 1~9。</p>
+    <ul>
+      <li><b>9 级</b>：站上全部 8 条，全周期多头趋势</li>
+      <li><b>5 级</b>：站上 4 条，多空平衡</li>
+      <li><b>1 级</b>：站上 0 条，全周期空头趋势</li>
+    </ul>
+  </div>
+  <div class="rule">
+    <h4>② 板块强弱指标</h4>
+    <p>板块强弱分 = 板块内所有个股强弱级别的<b>算术平均</b>（等权），区间 1~9。
+    分档：≥7.0 极强 / ≥6.0 强势 / 4~6 震荡 / ≤3 弱势。</p>
+    <p class="dim">并列输出两个校正指标：<b>加权分</b>（按申万官方「最新权重」加权，
+    用于识别小盘板块被个别权重股拉高的失真）；<b>分化度</b>（板块内个股级别的标准差，
+    ≥2.2 时提示内部分化严重，需结合涨/跌家数判断）。</p>
+  </div>
+  <div class="rule">
+    <h4>③ 阶段判定（启动 / 强势 / 调整 / 弱势）</h4>
+    <p>四象限：看<b>强弱分水平</b> × <b>3 日趋势</b>。</p>
+    <table class="rt">
+      <tr><th>强弱分</th><th>趋势≥0.15</th><th>趋势&lt;0.15</th></tr>
+      <tr><td>≥6.0</td><td><b class="ph" style="background:#dc2626">强势期</b></td><td><b class="ph" style="background:#d97706">调整期</b></td></tr>
+      <tr><td>&lt;6.0</td><td><b class="ph" style="background:#c2410c">启动期</b></td><td><b class="ph" style="background:#16a34a">弱势期</b></td></tr>
+    </table>
+  </div>
+  <div class="rule">
+    <h4>④ 真拐头确认（过滤单日脉冲）</h4>
+    <p><b>向上</b>需同时满足：连续 3 日抬升且累计 ≥0.3；
+    上涨家数占比 ≥60%；成交额较 20 日均值放大 ≥1.15 倍；
+    有效站上 5/6/7 关键阈值。</p>
+    <p><b>向下</b>需同时满足：连续 2 日回落且累计 ≤-0.3；
+    下跌家数占比 ≥55%；反弹缩量 / 下跌放量。</p>
+    <p class="dim">阈值附近反复上穿下穿（≥4 次翻转）判为「震荡磨方向」，不算有效拐头。</p>
+  </div>
+  <div class="rule">
+    <h4>⑤ 背驰判定</h4>
+    <p>板块指数日线级别 MACD 柱面积对比：价格创新高但 MACD 柱面积较前高收缩至 75% 以下 → 顶背驰；
+    价格创新低但 MACD 负柱收敛 → 底背驰。回看窗口 60 日。</p>
+  </div>
+  <div class="rule">
+    <h4>⑥ 个股筛选硬门槛（全部满足才入选）</h4>
+    <ol>
+      <li><b>龙头</b>：5 日涨幅板块内前 20% 或 20 日相对强度前 30%</li>
+      <li><b>缠论环境</b>：站上 MA5/13/21/34 中至少 3 条</li>
+      <li><b>量价配合</b>：5 日均量/20 日均量 ≥1.15，当日量比 ≤3.5</li>
+      <li><b>相对强度</b>：20 日涨幅 &gt; 板块指数 20 日涨幅</li>
+      <li><b>拥挤度</b>：换手率 ≤25.0%，流通市值 ≥20.0 亿</li>
+    </ol>
+    <p class="dim">综合分 = 龙头分位×40 + 强度分位×25 + 均线数×10 + 量能×10 + 回踩守MA13×8 + 守MA21×5 + 回踩缩量×5 + 涨停基因×7 + MACD柱抬升×3</p>
+  </div>
+</div>
+
+<footer>
+  数据源：申万一级行业指数历史日线（AkShare / legulegu）、腾讯行情日线（ifzq.gtimg.cn）<br>
+  规则与实现同源：所有阈值集中在 engine.py CONFIG，页面、回测共用一份配置<br>
+  本看板为量化工具输出，不构成投资建议；信号需结合缠论中枢、背驰、走势类型人工复核
+</footer>
+</div>
+</body>
+</html>
