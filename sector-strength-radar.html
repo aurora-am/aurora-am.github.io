@@ -111,6 +111,8 @@ footer{text-align:center;color:var(--dim);font-size:11px;padding:18px 0 8px;line
 .gate b,.gate span{display:block}.gate span{margin-top:3px;color:var(--dim)}
 .gate.ok{background:#fef2f2;border-color:#fecaca;color:#b91c1c}.gate.no{background:#f0fdf4;border-color:#bbf7d0;color:#15803d}
 .warnbox{background:#fff7ed;color:#9a3412}.robot-table{min-width:680px!important}
+.concept-block{border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:12px;background:#fff}
+.concept-block .ph2{margin-bottom:9px}
 @media(max-width:640px){
 .wrap{padding:8px 8px 30px}
 header{padding:14px}
@@ -126,7 +128,7 @@ header h1{font-size:16px}
 <header>
   <h1>缠中说禅 · A股板块强弱雷达</h1>
   <div class="meta">
-    数据日期 <b>2026-10-23</b> · 生成于 <b>2026-10-24 20:46:17</b> · 覆盖申万一级 <b>31</b> 个板块 ·
+    数据日期 <b>2026-10-23</b> · 生成于 <b>2026-10-24 22:14:11</b> · 覆盖申万一级 <b>31</b> 个板块 ·
     规则版本 v2.0（原版四重拐头 · 停用启动期与自动荐股）
   </div>
 </header>
@@ -152,10 +154,13 @@ header h1{font-size:16px}
   </div>
 </div>
 
-<h2>机器人自选池专项复核<span class="h2sub">此前漏检根因：不在申万一级31行业输入范围</span></h2>
+<h2>概念 / 自选板块专项复核<span class="h2sub">不在申万一级31行业输入范围，按原版规则单独计算</span></h2>
 <div class="card">
+<div class="concept-block">
+<div class="ph2"><span class="chip sig-up">用户自选</span><b>机器人自选12股</b>
+<span class="sub">口径：成分股9级均值 · 日期 2026-10-23 · 成交额覆盖 12/12</span></div>
 <div class="robot-summary">
-  <div><span>强弱分</span><b>5.42</b><small>震荡 · 12股等权</small></div>
+  <div><span>强弱分</span><b>5.42</b><small>震荡 · 成员等权9级均值</small></div>
   <div><span>3日趋势增量</span><b>2.417</b><small>最新分减3个交易日前</small></div>
   <div><span>上涨扩散</span><b>12/12</b><small>+100.0% · 阈值60%</small></div>
   <div><span>成交额放大</span><b>1.97倍</b><small>相对20日均额 · 阈值1.15</small></div>
@@ -163,10 +168,47 @@ header h1{font-size:16px}
 </div>
 <div class="gates"><div class="gate no"><b>× 连续抬升</b><span>最近3条分数严格递增且累计≥0.30</span></div><div class="gate ok"><b>✓ 上涨扩散</b><span>当日上涨家数占比≥60%</span></div><div class="gate ok"><b>✓ 量能配合</b><span>成交额/20日均额≥1.15</span></div><div class="gate ok"><b>✓ 阈值突破</b><span>确认窗口内真实上穿5/6/7任一阈值</span></div></div>
 <div class="note warnbox"><b>结论：反弹修复，未通过原版真拐头确认。</b><br>
-拦截明细：非连续。最近3条强弱分：2.9167 → 2.7500 → 5.4167。<br>
-机器人是用户指定12股自选概念池，不属于申万一级行业；旧页面只遍历31行业，因此此前是完全未计算，而非被启动期阈值过滤。</div>
+拦截明细：非连续。最近3条强弱分：2.9167 → 2.7500 → 5.4167。</div>
+
 <div class="scroll"><table class="robot-table"><thead><tr><th>名称</th><th>代码</th><th class="num">9级</th><th>数据日期</th><th>复权</th><th>当日方向</th></tr></thead><tbody><tr><td>双环传动</td><td class="code">002472</td><td class="num"><b>9</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>雷赛智能</td><td class="code">002979</td><td class="num"><b>7</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>埃斯顿</td><td class="code">002747</td><td class="num"><b>6</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>埃夫特</td><td class="code">688165</td><td class="num"><b>6</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>绿的谐波</td><td class="code">688017</td><td class="num"><b>6</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>机器人</td><td class="code">300024</td><td class="num"><b>5</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>汇川技术</td><td class="code">300124</td><td class="num"><b>5</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>五洲新春</td><td class="code">603667</td><td class="num"><b>5</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>拓普集团</td><td class="code">601689</td><td class="num"><b>5</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>三花智控</td><td class="code">002050</td><td class="num"><b>5</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>长盛轴承</td><td class="code">300718</td><td class="num"><b>5</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr><tr><td>精测电子</td><td class="code">300567</td><td class="num"><b>1</b></td><td>2026-10-23</td><td>前复权</td><td>上涨</td></tr></tbody></table></div>
-<div class="note">价格：腾讯前复权日线；成交额：新浪财经日线（AkShare），12股求和。日期同步：2026-10-23；成交额覆盖 12/12。级别只描述均线状态，不表示三买成立。</div>
+<div class="note">价格：腾讯前复权日线；成交额：新浪财经日线（AkShare），成员求和。级别只描述均线状态，不表示三买成立。</div>
+</div>
+
+<div class="concept-block">
+<div class="ph2"><span class="chip sig-up">同花顺概念</span><b>同花顺机器人概念（指数代理）</b>
+<span class="sub">口径：板块指数代理 · 日期 2026-10-23</span></div>
+<div class="robot-summary">
+  <div><span>强弱分</span><b>3.00</b><small>弱势 · 板块指数代理</small></div>
+  <div><span>3日趋势增量</span><b>1.000</b><small>最新分减3个交易日前</small></div>
+  <div><span>上涨扩散</span><b>—/—</b><small>指数代理不可用 · 阈值60%</small></div>
+  <div><span>成交额放大</span><b>1.34倍</b><small>相对20日均额 · 阈值1.15</small></div>
+  <div><span>分化度</span><b>—</b><small>个股9级标准差</small></div>
+</div>
+<div class="gates"><div class="gate no"><b>× 连续抬升</b><span>最近3条分数严格递增且累计≥0.30</span></div><div class="gate no"><b>× 上涨扩散</b><span>当日上涨家数占比≥60%</span></div><div class="gate ok"><b>✓ 量能配合</b><span>成交额/20日均额≥1.15</span></div><div class="gate no"><b>× 阈值突破</b><span>确认窗口内真实上穿5/6/7任一阈值</span></div></div>
+<div class="note warnbox"><b>结论：反弹修复，未通过原版真拐头确认。</b><br>
+拦截明细：非连续；扩散度缺失；窗口内未有效上穿5/6/7任一阈值。最近3条强弱分：2.0000 → 1.0000 → 3.0000。</div>
+<div class="note warnbox"><b>口径限制：同花顺概念指数；成分名单在现网不可得，只能算指数代理。</b>本卡只能看板块指数自身趋势与量能，<b>不能当作成分股9级均值</b>，也不能用它替代下面的成员版12股分数。</div>
+
+<div class="note">价格：板块指数；成交额：同花顺板块指数自带成交额。级别只描述均线状态，不表示三买成立。</div>
+</div>
+
+<div class="concept-block">
+<div class="ph2"><span class="chip sig-up">同花顺概念</span><b>同花顺人形机器人（指数代理）</b>
+<span class="sub">口径：板块指数代理 · 日期 2026-10-23</span></div>
+<div class="robot-summary">
+  <div><span>强弱分</span><b>3.00</b><small>弱势 · 板块指数代理</small></div>
+  <div><span>3日趋势增量</span><b>1.000</b><small>最新分减3个交易日前</small></div>
+  <div><span>上涨扩散</span><b>—/—</b><small>指数代理不可用 · 阈值60%</small></div>
+  <div><span>成交额放大</span><b>1.46倍</b><small>相对20日均额 · 阈值1.15</small></div>
+  <div><span>分化度</span><b>—</b><small>个股9级标准差</small></div>
+</div>
+<div class="gates"><div class="gate no"><b>× 连续抬升</b><span>最近3条分数严格递增且累计≥0.30</span></div><div class="gate no"><b>× 上涨扩散</b><span>当日上涨家数占比≥60%</span></div><div class="gate ok"><b>✓ 量能配合</b><span>成交额/20日均额≥1.15</span></div><div class="gate no"><b>× 阈值突破</b><span>确认窗口内真实上穿5/6/7任一阈值</span></div></div>
+<div class="note warnbox"><b>结论：反弹修复，未通过原版真拐头确认。</b><br>
+拦截明细：非连续；扩散度缺失；窗口内未有效上穿5/6/7任一阈值。最近3条强弱分：2.0000 → 1.0000 → 3.0000。</div>
+<div class="note warnbox"><b>口径限制：同花顺概念指数；成分名单在现网不可得，只能算指数代理。</b>本卡只能看板块指数自身趋势与量能，<b>不能当作成分股9级均值</b>，也不能用它替代下面的成员版12股分数。</div>
+
+<div class="note">价格：板块指数；成交额：同花顺板块指数自带成交额。级别只描述均线状态，不表示三买成立。</div>
+</div>
 </div>
 
 <h2>板块强弱排行榜<span class="h2sub">原版分档与二次过滤；覆盖率不足时仅作样本参考</span></h2>
