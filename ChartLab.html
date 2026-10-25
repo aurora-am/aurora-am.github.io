@@ -1206,6 +1206,8 @@ body.wb-readonly .wb-datenav{opacity:1}
     #page-strength .strength-actions{display:flex;gap:8px;flex-shrink:0}
     #page-strength .strength-btn{font-size:12px;padding:6px 12px;border:1px solid var(--card-border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);cursor:pointer;white-space:nowrap;transition:background .15s,box-shadow .15s}
     #page-strength .strength-btn:hover{background:var(--primary-light);box-shadow:var(--shadow)}
+    #page-strength .strength-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+    #page-strength .strength-btn.primary:hover{background:var(--primary-dark);color:#fff;box-shadow:var(--shadow-hover)}
     #page-strength .strength-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
     #page-strength .strength-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 9px;border-radius:999px;background:var(--primary-light);color:var(--text-secondary);border:1px solid var(--card-border)}
     #page-strength .strength-tag i{font-style:normal;opacity:.85}
@@ -1224,12 +1226,19 @@ body.wb-readonly .wb-datenav{opacity:1}
     /* 板块行 + 行内抽屉 */
     #page-strength tr.str-row{cursor:pointer;transition:background .18s}
     #page-strength tr.str-row.active{background:var(--primary-light)}
-    #page-strength tr.str-row .str-caret{display:inline-block;width:14px;color:var(--text-light);transition:transform .25s ease,color .2s}
-    #page-strength tr.str-row.active .str-caret{transform:rotate(90deg);color:var(--primary)}
+    #page-strength tr.str-row .str-caret{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--primary-light);color:var(--primary);transition:transform .3s cubic-bezier(.34,1.56,.64,1),background .2s,color .2s;vertical-align:-4px;margin-right:4px}
+    #page-strength tr.str-row .str-caret svg{display:block}
+    #page-strength tr.str-row:hover .str-caret{background:var(--primary);color:#fff}
+    #page-strength tr.str-row.active .str-caret{transform:rotate(90deg);background:var(--primary);color:#fff}
+    #page-strength .str-name-link{color:var(--primary);cursor:pointer;text-decoration:none;border-bottom:1px dashed transparent;transition:border-color .15s}
+    #page-strength .str-name-link:hover{border-bottom-color:var(--primary)}
     #page-strength .str-drawer-tr>td{padding:0!important;border-bottom:1px solid var(--card-border);background:transparent}
-    #page-strength .str-drawer{overflow:hidden;max-height:0;opacity:0;transition:max-height .34s cubic-bezier(.4,0,.2,1),opacity .26s ease}
+    #page-strength .str-drawer{overflow:hidden;max-height:0;opacity:0;transition:max-height .42s cubic-bezier(.4,0,.2,1),opacity .3s ease}
     #page-strength .str-drawer.open{max-height:1600px;opacity:1}
-    #page-strength .str-drawer-inner{padding:12px 14px 16px;background:linear-gradient(180deg,var(--primary-light) 0%,transparent 60%)}
+    #page-strength .str-drawer-inner{padding:12px 14px 16px;background:linear-gradient(180deg,var(--primary-light) 0%,transparent 60%);transform:translateY(-8px) scale(.995);transform-origin:top center;transition:transform .42s cubic-bezier(.34,1.3,.64,1)}
+    #page-strength .str-drawer.open .str-drawer-inner{transform:none}
+    #page-strength .str-drawer.open .str-log,#page-strength .str-drawer.open .str-scroll{animation:strFadeUp .42s both}
+    @keyframes strFadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
     #page-strength .str-drawer-h{font-size:12.5px;font-weight:600;color:var(--text);margin:2px 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     #page-strength .str-drawer-h::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--primary)}
     #page-strength .str-log{max-height:150px;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:4px}
@@ -1237,11 +1246,18 @@ body.wb-readonly .wb-datenav{opacity:1}
     #page-strength .str-empty{font-size:12px;color:var(--text-light);padding:4px 0}
 
     /* 悬浮 K 线浮窗 */
-    .str-kline-pop{position:fixed;z-index:1600;width:540px;max-width:92vw;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);box-shadow:var(--shadow-hover);padding:8px 10px 4px;display:none}
+    .str-kline-pop{position:fixed;z-index:1600;width:790px;max-width:94vw;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);box-shadow:var(--shadow-hover);padding:8px 10px 4px;display:none}
     .str-kline-pop.show{display:block;animation:strPop .18s ease}
     @keyframes strPop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
     .str-kline-pop-hd{font-size:12.5px;font-weight:600;color:var(--text);margin:0 0 4px;display:flex;justify-content:space-between;gap:10px}
     .str-kline-pop-hd span{font-weight:400;color:var(--text-secondary)}
+
+    /* 导入弹窗 */
+    #page-strength .str-import-tip{font-size:12px;color:var(--text-secondary);margin:0 0 10px;line-height:1.8}
+    #page-strength .str-import-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    #page-strength .str-import-ta{width:100%;height:132px;border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:8px 10px;font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--input-bg,#fff);color:var(--text);resize:vertical;box-sizing:border-box}
+    #page-strength .str-import-file{font-size:12px;color:var(--text-secondary)}
+    #page-strength .str-import-ok{color:var(--green)}
 
     /* 说明弹窗 */
     #page-strength .strength-modal{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:1700}
@@ -1263,6 +1279,7 @@ body.wb-readonly .wb-datenav{opacity:1}
       <div class="strength-toolbar">
         <div id="strengthMeta" class="strength-meta">加载中…</div>
         <div class="strength-actions">
+          <button class="strength-btn primary" onclick="strOpenImport()">＋ 导入成分</button>
           <button class="strength-btn" onclick="downloadCsvTemplate()">⬇ 下载CSV模板</button>
           <button class="strength-btn" onclick="showImportHelp()">❓ 导入器说明</button>
         </div>
@@ -1278,7 +1295,34 @@ body.wb-readonly .wb-datenav{opacity:1}
   <!-- 悬浮 K 线浮窗（仅 hover 预览，不点击跳转） -->
   <div id="strKlinePop" class="str-kline-pop">
     <div class="str-kline-pop-hd"><span id="strKlinePopTitle"></span><span>近 260 日 · 悬浮预览</span></div>
-    <div id="strKlinePopBody" style="height:220px"></div>
+    <div id="strKlinePopBody" style="height:360px"></div>
+  </div>
+
+  <!-- 导入成分 -->
+  <div id="strImportModal" class="strength-modal" onclick="if(event.target===this)strCloseImport()">
+    <div class="strength-modal-box">
+      <div class="strength-modal-head"><div>＋ 导入板块成分</div><button onclick="strCloseImport()">✕</button></div>
+      <div class="strength-modal-body">
+        <p class="str-import-tip">粘贴 CSV（列：板块名称,股票代码,股票名称）或选择 .csv 文件。导入后立即在本页新增板块与成分股；个股若已有强弱数据则直接复用，新票标注「待补数据」。<br><b>说明：</b>本页是静态站点，浏览器导入仅当前设备生效、可导出 JSON；要写入正式数据库（sector / sector_member 表）请用「导入器说明」中的本地命令。</p>
+        <div class="str-import-row">
+          <input type="file" id="strImportFile" class="str-import-file" accept=".csv,text/csv" onchange="strImportPickFile(this)">
+          <span id="strImportFileHint" class="str-import-file"></span>
+        </div>
+        <textarea id="strImportText" class="str-import-ta" placeholder="板块名称,股票代码,股票名称&#10;示例板块,002472,双环传动"></textarea>
+        <div class="str-import-row" style="margin-top:12px;justify-content:flex-end">
+          <button class="strength-btn" onclick="strCloseImport()">取消</button>
+          <button class="strength-btn primary" onclick="strDoImport()">导入并刷新</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 个股 K 线详情（点击名称打开，200 根 + MACD） -->
+  <div id="strKlineModal" class="strength-modal" onclick="if(event.target===this)strCloseDetail()">
+    <div class="strength-modal-box" style="max-width:1080px">
+      <div class="strength-modal-head"><div id="strKlineModalTitle"></div><button onclick="strCloseDetail()">✕</button></div>
+      <div class="strength-modal-body" style="padding:8px 10px"><div id="strKlineModalBody" style="height:480px"></div></div>
+    </div>
   </div>
 
   <!-- 导入器说明 -->
@@ -7607,18 +7651,21 @@ function restoreDark() {
 
 /* ===== 板块强弱雷达（JS模块插入） ===== */
 /* ===================== 缠论板块强弱雷达 ===================== */
-var STR = { data: null, kline: {}, loading: false, openSid: null, trend: null };
+var STR = { data: null, kline: {}, loading: false, openSid: null, trend: null, memberIndex: null, _uid: 0 };
 var STR_DATA_BASE = 'wbdata/';   // 板块强弱数据根（与 WBData 内部 BASE 同值，但独立声明）
 var STR_TREND_DATES = null;
 var STR_SERIES_TURN = [];        // [{name, pts:[{idx,date,value,state}]}]
 var STR_MA_NAMES = ['MA5','MA13','MA21','MA34','MA55','MA89','MA144','MA233'];
 var STR_MA_COLORS = ['#e34d59','#1aad5e','#4995ff','#f5a623','#9b59b6','#16a085','#e67e22','#7f8c8d'];
+var STR_DEFAULT_DAYS = 22;       // 默认只展示近 1 个月（约 22 个交易日）
+var STR_USER_KEY = 'strUserBoards_v1';
 
 function strSafe(n, d){ return (n===null||n===undefined||n===''||(typeof n==='number'&&isNaN(n))) ? d : n; }
 function strEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function strNum(v, d){ return (v==null || (typeof v==='number' && isNaN(v))) ? (d==null?'-':d) : v; }
 function strUp(){ return (TC && TC.red) || '#e34d59'; }
 function strDn(){ return (TC && TC.green) || '#1aad5e'; }
+function strCaret(){ return '<span class="str-caret"><svg viewBox="0 0 24 24" width="13" height="13"><path d="M9 5.5l7 6.5-7 6.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'; }
 
 /* ---------- 取数 ---------- */
 function renderStrengthRadar(){
@@ -7631,11 +7678,15 @@ function renderStrengthRadar(){
   fetch(STR_DATA_BASE + 'sector-strength-radar.json', { cache:'no-store' })
     .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     .catch(function(){
-      // 兼容旧文件名
       return fetch(STR_DATA_BASE + 'strength_data.json', { cache:'no-store' }).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); });
     })
-    .then(function(d){ STR.data=d; STR.loading=false; renderStrengthBoard(); })
-    .catch(function(e){ STR.loading=false; wrap.innerHTML='<div style="padding:24px;color:'+strUp()+'">板块强弱数据加载失败：'+strEsc(e.message)+'<br>请确认 sector-strength-radar.json 已发布到同目录</div>'; });
+    .then(function(d){
+      STR.data = d; STR.loading = false;
+      strLoadUserBoards();
+      STR.memberIndex = strBuildMemberIndex();
+      renderStrengthBoard();
+    })
+    .catch(function(e){ STR.loading = false; wrap.innerHTML='<div style="padding:24px;color:'+strUp()+'">板块强弱数据加载失败：'+strEsc(e.message)+'<br>请确认 sector-strength-radar.json 已发布到同目录</div>'; });
 }
 
 /* ---------- 顶部信息 + 总榜（完整 10 列） ---------- */
@@ -7650,15 +7701,15 @@ function renderStrengthBoard(){
   var tagHtml = '<div class="strength-tags">';
   (d.sectors||[]).forEach(function(s){
     var hist = s.history||[];
-    var upd = hist.length ? hist[hist.length-1].date : (d.latest_date||'-');
+    var upd = hist.length ? hist[hist.length-1].date : (s.updated_at||d.latest_date||'-');
     tagHtml += '<span class="strength-tag">'+strEsc(s.name)+'<i>源:'+strEsc(s.source||'-')+'</i><i>更新:'+upd+'</i></span>';
   });
   tagHtml += '</div>';
   info.innerHTML = '<div>最新交易日 <b>'+strEsc(d.latest_date)+'</b> · 今天 '+strEsc(d.today)+' · '+lag
     + ' · <span style="color:var(--text-secondary)">量能：'+(d.volume_proxy?'成交量代理(成交额未全量覆盖)':'成交额')+'</span>'
-    + ' · <span style="color:var(--text-secondary)">红涨绿跌 · 结论仅供参考不构成投资建议</span></div>' + tagHtml;
+    + ' · <span style="color:var(--text-secondary)">图表默认近 '+STR_DEFAULT_DAYS+' 个交易日 · 红涨绿跌 · 仅供参考</span></div>' + tagHtml;
 
-  var secs = (d.sectors||[]).slice().sort(function(a,b){ return (strSafe(b.latest.strength_avg,0)||0)-(strSafe(a.latest.strength_avg,0)||0); });
+  var secs = (d.sectors||[]).slice().sort(function(a,b){ return (strSafe(b.latest&&b.latest.strength_avg,0)||0)-(strSafe(a.latest&&a.latest.strength_avg,0)||0); });
   STR.secsSorted = secs;
   var cols = ['板块','强弱分','拐头','阶段','成分股数','上升只数','下降只数','持平只数','上升占比','3日增量'];
   var html = '<div class="str-scroll"><table class="str-table"><thead><tr>'
@@ -7672,7 +7723,7 @@ function renderStrengthBoard(){
     var tCol = turn==='UP' ? strUp() : (turn==='DOWN' ? strDn() : 'var(--text-secondary)');
     var d3Col = d3==='-' ? 'var(--text-secondary)' : (d3.indexOf('+')>=0 ? strUp() : strDn());
     html += '<tr class="str-row" data-sid="'+s.sector_id+'" onclick="strToggleDrawer('+s.sector_id+')">'
-      + '<td><span class="str-caret">▶</span> '+strEsc(s.name)+'</td>'
+      + '<td>'+strCaret()+' '+strEsc(s.name)+(s._user?' <span style="font-size:10px;color:var(--primary);border:1px solid var(--primary);border-radius:6px;padding:0 4px">本地</span>':'')+'</td>'
       + '<td><b>'+strNum(L.strength_avg)+'</b></td>'
       + '<td style="color:'+tCol+';font-weight:600">'+strEsc(turn)+'</td>'
       + '<td>'+strEsc(L.phase||'-')+'</td>'
@@ -7688,6 +7739,7 @@ function renderStrengthBoard(){
   html += '</tbody></table></div>';
   document.getElementById('strengthBoardTable').innerHTML = html;
   renderStrengthTrend(secs);
+  strPreloadBundles();
 }
 
 /* ---------- 行内抽屉：互斥展开 / 再次点击收起 ---------- */
@@ -7715,17 +7767,18 @@ function strToggleDrawer(sid){
   drw.classList.add('open');
   if(row) row.classList.add('active');
   STR.openSid = sid;
-  loadKlineBundle(sid, function(){});             // 预取 K 线，hover 更顺
+  loadKlineBundle(sid, function(){});             // 预取 K 线
 }
 
 function strRenderDrawer(sid, inner){
   var s = null; (STR.data.sectors||[]).forEach(function(x){ if(x.sector_id===sid) s=x; });
   if(!s) return;
+  var isUser = !!s._user;
   /* ① 拐头复核日志 */
   var log = (s.history||[]).filter(function(h){ return h.turn_log; }).slice(-15).reverse();
   var h = '<div class="str-drawer-h">拐头复核日志 <span style="font-weight:400;color:var(--text-light);font-size:11px">'+strEsc(s.sector_code||'')+' · '+strNum(s.member_count)+' 只 · 源:'+strEsc(s.source||'-')+'</span></div>';
   if(!log.length){
-    h += '<div class="str-empty">近期无明确拐头信号</div>';
+    h += '<div class="str-empty">'+(isUser?'本地导入板块暂无历史拐头（导出 JSON 并经本地管线重算后补齐）':'近期无明确拐头信号')+'</div>';
   } else {
     h += '<div class="str-log">';
     log.forEach(function(x){
@@ -7735,10 +7788,10 @@ function strRenderDrawer(sid, inner){
     });
     h += '</div>';
   }
-  /* ② 成分股表（完整 10 列） */
+  /* ② 成分股表（完整 10 列，名称可点击看 K 线） */
   var mem = (s.members||[]).slice().sort(function(a,b){ return (strSafe(b.level,0)||0)-(strSafe(a.level,0)||0); });
   var mcols = ['板块','代码','名称','收盘价','强弱级别','站上均线数','昨日级别','3天前级别','趋势','量比(3日20日)'];
-  h += '<div class="str-drawer-h" style="margin-top:12px">成分股（悬浮行查看 K 线）<span style="font-weight:400;color:var(--text-light);font-size:11px">'+mem.length+' 只 · 按强弱级别降序</span></div>';
+  h += '<div class="str-drawer-h" style="margin-top:12px">成分股（悬浮看 K 线 · 点名称看详情）<span style="font-weight:400;color:var(--text-light);font-size:11px">'+mem.length+' 只 · 按强弱级别降序</span></div>';
   h += '<div class="str-scroll" style="max-height:360px"><table class="str-table"><thead><tr>'
      + mcols.map(function(c){ return '<th>'+c+'</th>'; }).join('') + '</tr></thead><tbody>';
   mem.forEach(function(m){
@@ -7750,7 +7803,7 @@ function strRenderDrawer(sid, inner){
     h += '<tr onmouseenter="strHoverKline(event,\''+m.code+'\','+sid+')" onmouseleave="strHideKline()">'
       + '<td>'+strEsc(s.name)+'</td>'
       + '<td>'+strEsc(m.code)+'</td>'
-      + '<td>'+strEsc(m.name)+'</td>'
+      + '<td><a class="str-name-link" onclick="event.stopPropagation();strOpenDetail(\''+m.code+'\','+sid+')">'+strEsc(m.name)+'</a></td>'
       + '<td>'+(m.close==null?'-':m.close)+'</td>'
       + '<td><b>'+strNum(lv)+'</b></td>'
       + '<td>'+strNum(m.above)+'</td>'
@@ -7764,14 +7817,16 @@ function strRenderDrawer(sid, inner){
   inner.innerHTML = h;
 }
 
-/* ---------- 趋势折线：滚轮缩放 / 框选放大 / 拖拽平移 + 拐点自适应降采样 ---------- */
+/* ---------- 趋势折线：默认近1月 + 滚轮/框选/拖拽 + 拐点自适应降采样 ---------- */
 function renderStrengthTrend(secs){
   var el = document.getElementById('strengthTrendChart');
   if(!el) return;
-  var dates = ((secs[0]||{}).history||[]).map(function(h){ return h.date; });
+  var withHist = (secs||[]).filter(function(s){ return (s.history||[]).length > 0; });
+  if(!withHist.length){ el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">暂无历史趋势数据（本地导入板块需经本地管线重算后才绘制）</div>'; return; }
+  var dates = (withHist[0].history||[]).map(function(h){ return h.date; });
   STR_TREND_DATES = dates;
   STR_SERIES_TURN = [];
-  var series = secs.map(function(s){
+  var series = withHist.map(function(s){
     var hmap = {}; (s.history||[]).forEach(function(h){ hmap[h.date]=h; });
     var hData = dates.map(function(dt){ var h=hmap[dt]; return h ? h.strength_avg : null; });
     var pts = [];
@@ -7788,6 +7843,9 @@ function renderStrengthTrend(secs){
       markPoint:{ symbol:'pin', symbolSize:26, label:{fontSize:9,color:'#fff',formatter:function(p){ return p.data.state; }}, data:[] }
     };
   });
+  var n = dates.length;
+  var startPct = n > STR_DEFAULT_DAYS ? ((n - STR_DEFAULT_DAYS) / (n - 1) * 100) : 0;
+  startPct = Math.max(0, Math.min(100, startPct));
   var C = TC;
   var opt = {
     backgroundColor:'transparent', animationDuration:300,
@@ -7797,7 +7855,7 @@ function renderStrengthTrend(secs){
         restore:{ title:'还原' }
       }
     },
-    legend:{ data:secs.map(function(s){ return s.name; }), textStyle:{color:C.textSecondary}, top:0, left:0 },
+    legend:{ data:withHist.map(function(s){ return s.name; }), textStyle:{color:C.textSecondary}, top:0, left:0 },
     tooltip:{ trigger:'axis', axisPointer:{ type:'line', lineStyle:{color:C.border} } },
     grid:{ left:46, right:16, top:42, bottom:54 },
     xAxis:{ type:'category', data:dates, boundaryGap:false,
@@ -7808,10 +7866,10 @@ function renderStrengthTrend(secs){
       axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary},
       splitLine:{lineStyle:{color:C.splitLine}} },
     dataZoom:[
-      { type:'inside', xAxisIndex:0, filterMode:'filter', zoomOnMouseWheel:true, moveOnMouseMove:true, moveOnMouseWheel:false, start:0, end:100 },
+      { type:'inside', xAxisIndex:0, filterMode:'filter', zoomOnMouseWheel:true, moveOnMouseMove:true, moveOnMouseWheel:false, start:startPct, end:100 },
       { type:'slider', xAxisIndex:0, filterMode:'filter', height:16, bottom:8,
         borderColor:C.border, textStyle:{color:C.textSecondary},
-        fillerColor:'rgba(26,115,232,0.10)', handleStyle:{color:C.primary}, start:0, end:100 }
+        fillerColor:'rgba(26,115,232,0.10)', handleStyle:{color:C.primary}, start:startPct, end:100 }
     ],
     series:series
   };
@@ -7835,7 +7893,7 @@ function strUpdateTurnMarks(){
   var s0 = Math.floor(startPct/100*(n-1));
   var s1 = Math.ceil(endPct/100*(n-1));
   var visible = Math.max(1, s1-s0+1);
-  var target = 14;                                  // 每个板块在该窗口的目标标记数
+  var target = 12;
   var gap = Math.max(1, Math.ceil(visible/target));
   var seriesOpt = [];
   STR_SERIES_TURN.forEach(function(sr){
@@ -7853,18 +7911,17 @@ function strUpdateTurnMarks(){
   try { ch.setOption({ series:seriesOpt }); } catch(e){}
 }
 
-/* ---------- 悬浮 K 线浮窗（仅 hover，不点击） ---------- */
+/* ---------- 悬浮 K 线浮窗（放大，hover 即看） ---------- */
 function strHoverKline(ev, code, sid){
   var pop = document.getElementById('strKlinePop');
   if(!pop) return;
   var s = null; (STR.data.sectors||[]).forEach(function(x){ if(x.sector_id===sid) s=x; });
-  var nm = code;
-  if(s && s.members){ s.members.forEach(function(m){ if(m.code===code) nm = m.name; }); }
+  var nm = strNameOf(code);
   document.getElementById('strKlinePopTitle').innerHTML = '<b>'+strEsc(code)+'</b> '+strEsc(nm)+' <span style="font-weight:400">· '+(s?strEsc(s.name):'')+'</span>';
 
   var x = (ev && ev.clientX) || 0, y = (ev && ev.clientY) || 0;
-  var w = 552, hgt = 270;
-  var left = Math.min(x + 16, (window.innerWidth || 1280) - w - 12);
+  var w = 812, hgt = 448;
+  var left = Math.min(x + 18, (window.innerWidth || 1280) - w - 12);
   var top = Math.min(y + 14, (window.innerHeight || 800) - hgt - 12);
   if(left < 8) left = 8;
   if(top < 8) top = 8;
@@ -7875,7 +7932,7 @@ function strHoverKline(ev, code, sid){
   var k = STR.kline[sid] && STR.kline[sid][code];
   if(k){
     if(pop.getAttribute('data-code') !== code){
-      applyKline('strKlinePopBody', k, 220);
+      applyKline('strKlinePopBody', strSliceK(k, 160), 360);
       pop.setAttribute('data-code', code);
     }
   } else {
@@ -7884,7 +7941,7 @@ function strHoverKline(ev, code, sid){
     loadKlineBundle(sid, function(){
       var k2 = STR.kline[sid] && STR.kline[sid][code];
       if(k2 && pop.classList.contains('show')){
-        applyKline('strKlinePopBody', k2, 220);
+        applyKline('strKlinePopBody', strSliceK(k2, 160), 360);
         pop.setAttribute('data-code', code);
       }
     });
@@ -7895,13 +7952,214 @@ function strHideKline(){
   if(pop) pop.classList.remove('show');
 }
 
-/* ---------- K 线懒加载分片 ---------- */
+/* ---------- 点击名称：详情弹窗（近 200 根 + MACD） ---------- */
+function strOpenDetail(code, sid){
+  var s = null; (STR.data.sectors||[]).forEach(function(x){ if(x.sector_id===sid) s=x; });
+  loadKlineBundle(sid, function(){
+    var k = STR.kline[sid] && STR.kline[sid][code];
+    document.getElementById('strKlineModalTitle').innerHTML = '<b>'+strEsc(code)+'</b> '+strEsc(strNameOf(code))
+      + ' <span style="font-weight:400;color:var(--text-secondary)">· '+(s?strEsc(s.name):'')+' · 近 200 根日K + MACD</span>';
+    var box = document.getElementById('strKlineModalBody');
+    box.innerHTML = '';
+    document.getElementById('strKlineModal').classList.add('open');
+    setTimeout(function(){ if(k) applyKline('strKlineModalBody', strSliceK(k, 200), 480); }, 30);
+  });
+}
+function strCloseDetail(){ document.getElementById('strKlineModal').classList.remove('open'); }
+
+/* 截取最近 n 根；兼容大小写均线键 */
+function strSliceK(k, n){
+  var len = (k.date||[]).length;
+  var s = Math.max(0, len - (n||len));
+  var out = { name:k.name };
+  ['date','o','h','l','c','ma5','ma13','ma21','ma34','ma55','ma89','ma144','ma233','dif','dea','macd'].forEach(function(key){
+    var a = k[key]; if(a) out[key] = a.slice(s);
+  });
+  return out;
+}
+
+function strNameOf(code){
+  var m = STR.memberIndex && STR.memberIndex[code];
+  return (m && m.name) ? m.name : code;
+}
+function strBuildMemberIndex(){
+  var idx = {};
+  (STR.data.sectors||[]).forEach(function(s){ (s.members||[]).forEach(function(m){ if(!idx[m.code]) idx[m.code]=m; }); });
+  return idx;
+}
+
+/* ---------- K 线懒加载 + 预取（提升 hover 响应） ---------- */
 function loadKlineBundle(sectorId, cb){
   if(STR.kline[sectorId]){ if(cb) cb(); return; }
-  fetch(STR_DATA_BASE + 'strength_kline_'+sectorId+'.json', { cache:'no-store' })
+  fetch(STR_DATA_BASE + 'strength_kline_'+sectorId+'.json')
     .then(function(r){ return r.json(); })
     .then(function(d){ STR.kline[sectorId]=d.members; if(cb) cb(); })
     .catch(function(e){ console.error('kline bundle', sectorId, e.message); if(cb) cb(); });
+}
+var _strPreloaded = false;
+function strPreloadBundles(){
+  if(_strPreloaded) return; _strPreloaded = true;
+  var list = (STR.data.sectors||[]).filter(function(s){ return !s._user && s.member_count>0; })
+    .sort(function(a,b){ return a.member_count - b.member_count; })
+    .map(function(s){ return s.sector_id; });
+  var i = 0;
+  function next(){
+    if(i >= list.length) return;
+    var sid = list[i++];
+    if(STR.kline[sid]){ next(); return; }
+    fetch(STR_DATA_BASE + 'strength_kline_'+sid+'.json')
+      .then(function(r){ return r.json(); })
+      .then(function(d){ STR.kline[sid]=d.members; })
+      .catch(function(){})
+      .then(function(){ setTimeout(next, 40); });
+  }
+  setTimeout(next, 350);
+}
+
+/* ---------- 导入成分（浏览器本地生效） ---------- */
+function strOpenImport(){ var m=document.getElementById('strImportModal'); if(m) m.classList.add('open'); }
+function strCloseImport(){ var m=document.getElementById('strImportModal'); if(m) m.classList.remove('open'); }
+function strImportPickFile(inp){
+  var f = inp && inp.files && inp.files[0]; if(!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    document.getElementById('strImportText').value = rd.result;
+    document.getElementById('strImportFileHint').textContent = '已读取：'+f.name;
+  };
+  rd.readAsText(f, 'utf-8');
+}
+function strParseCsv(txt){
+  var out = [];
+  String(txt||'').replace(/\r/g,'').split('\n').forEach(function(line){
+    line = line.trim(); if(!line) return;
+    var p = line.split(','); if(p.length < 2) return;
+    var sec = (p[0]||'').trim(), code = (p[1]||'').trim(), nm = (p[2]||'').trim();
+    if(!sec) return;
+    if(sec.indexOf('板块')>=0 && code.indexOf('代码')>=0) return;   // 表头
+    code = code.split('.')[0].replace(/\D/g,'');
+    if(code.length !== 6) return;
+    out.push({ sector:sec, code:code, name:nm||code });
+  });
+  return out;
+}
+function strBuildBoard(name, rows){
+  var idx = STR.memberIndex || {};
+  var members = [], up=0, dn=0, flat=0, known=0, sum=0;
+  rows.forEach(function(r){
+    var ex = idx[r.code];
+    var m;
+    if(ex){ m = { code:ex.code, name:(r.name||ex.name), level:ex.level, above:ex.above, prev_level:ex.prev_level,
+                 level_3d_ago:ex.level_3d_ago, trend:ex.trend, vol_ratio_3_20:ex.vol_ratio_3_20,
+                 close:ex.close, chg_pct:ex.chg_pct, ma_ready:ex.ma_ready }; }
+    else { m = { code:r.code, name:r.name, level:null, above:null, prev_level:null, level_3d_ago:null,
+                 trend:null, vol_ratio_3_20:null, close:null, chg_pct:null, ma_ready:false }; }
+    members.push(m);
+    if(m.level != null){ known++; sum += m.level; }
+    if(m.chg_pct != null){ if(m.chg_pct>0) up++; else if(m.chg_pct<0) dn++; else flat++; }
+  });
+  var strength = known ? Math.round(sum/known*100)/100 : null;
+  var total = up+dn+flat;
+  return {
+    sector_id: ++STR._uid,
+    name: name,
+    sector_code: 'IMPORT',
+    category: '浏览器导入',
+    source: '浏览器导入(本地)',
+    updated_at: new Date().toISOString().slice(0,10),
+    member_count: members.length,
+    history: [],
+    latest: {
+      strength_avg: strength,
+      up_ratio: total ? Math.round(up/total*1000)/1000 : null,
+      delta_3d: null,
+      turn_state: null,
+      phase: strength==null ? '待补数据' : '新导入',
+      up: up, down: dn, flat: flat
+    },
+    members: members,
+    _user: true
+  };
+}
+function strMakeMember(r){
+  var idx = STR.memberIndex || {}; var ex = idx[r.code];
+  if(ex){ return { code:ex.code, name:(r.name||ex.name), level:ex.level, above:ex.above, prev_level:ex.prev_level,
+                   level_3d_ago:ex.level_3d_ago, trend:ex.trend, vol_ratio_3_20:ex.vol_ratio_3_20,
+                   close:ex.close, chg_pct:ex.chg_pct, ma_ready:ex.ma_ready }; }
+  return { code:r.code, name:r.name, level:null, above:null, prev_level:null, level_3d_ago:null,
+           trend:null, vol_ratio_3_20:null, close:null, chg_pct:null, ma_ready:false };
+}
+function strComputeLatest(members){
+  var up=0,dn=0,flat=0,known=0,sum=0;
+  (members||[]).forEach(function(m){
+    if(m.level!=null){ known++; sum += m.level; }
+    if(m.chg_pct!=null){ if(m.chg_pct>0) up++; else if(m.chg_pct<0) dn++; else flat++; }
+  });
+  var total = up+dn+flat;
+  return {
+    strength_avg: known ? Math.round(sum/known*100)/100 : null,
+    up_ratio: total ? Math.round(up/total*1000)/1000 : null,
+    delta_3d: null, turn_state: null,
+    phase: known ? '新导入' : '待补数据',
+    up: up, down: dn, flat: flat
+  };
+}
+function strDoImport(){
+  var txt = document.getElementById('strImportText').value;
+  var rows = strParseCsv(txt);
+  if(!rows.length){ if(window.showNotify) showNotify('⚠️ 未解析到有效行（需 板块名称,股票代码,股票名称）', 3500); return; }
+  var groups = {};
+  rows.forEach(function(r){ (groups[r.sector]=groups[r.sector]||[]).push(r); });
+  if(!STR._uid){
+    var mx = 9000; (STR.data.sectors||[]).forEach(function(s){ if(s.sector_id>mx) mx=s.sector_id; }); STR._uid = mx;
+  }
+  var added = 0, mergedBoards = 0, newMembers = 0;
+  Object.keys(groups).forEach(function(name){
+    var idx = -1;
+    for(var i=0;i<STR.data.sectors.length;i++){ if(STR.data.sectors[i].name===name){ idx=i; break; } }
+    var g = groups[name];
+    if(idx >= 0){
+      /* 已有板块：追加成分（不清空原成分） */
+      var cur = STR.data.sectors[idx];
+      cur.members = cur.members || [];
+      var codes = {}; cur.members.forEach(function(m){ codes[m.code]=1; });
+      g.forEach(function(r){
+        if(!codes[r.code]){ cur.members.push(strMakeMember(r)); codes[r.code]=1; newMembers++; }
+      });
+      cur.member_count = cur.members.length;
+      cur.latest = Object.assign({}, cur.latest||{}, strComputeLatest(cur.members));
+      if(!cur.history) cur.history = [];
+      if(!cur._user){ cur._user = true; cur.source = (cur.source ? cur.source+' + ' : '') + '本地追加'; }
+      mergedBoards++;
+    } else {
+      var b = strBuildBoard(name, g);
+      STR.data.sectors.push(b);
+      added++;
+    }
+  });
+  strSaveUserBoards();
+  STR.memberIndex = strBuildMemberIndex();
+  STR.openSid = null;
+  renderStrengthBoard();
+  strCloseImport();
+  if(window.showNotify) showNotify('✅ 导入完成：新增 '+added+' 个板块 · 追加成分 '+newMembers+' 只 · 合并 '+mergedBoards+' 个板块（本地生效）', 4800);
+}
+function strSaveUserBoards(){
+  try {
+    var arr = (STR.data.sectors||[]).filter(function(s){ return s._user; });
+    localStorage.setItem(STR_USER_KEY, JSON.stringify(arr));
+  } catch(e){}
+}
+function strLoadUserBoards(){
+  try {
+    var raw = localStorage.getItem(STR_USER_KEY); if(!raw) return;
+    var arr = JSON.parse(raw); if(!arr || !arr.length) return;
+    arr.forEach(function(b){
+      b._user = true;
+      var idx = -1;
+      for(var i=0;i<STR.data.sectors.length;i++){ if(STR.data.sectors[i].name===b.name){ idx=i; break; } }
+      if(idx>=0) STR.data.sectors[idx] = b; else STR.data.sectors.push(b);
+    });
+  } catch(e){}
 }
 
 function downloadCsvTemplate(){
@@ -7929,7 +8187,7 @@ function applyKline(containerId, k, h){
   var candle = dates.map(function(d,i){ return [k.o[i], k.c[i], k.l[i], k.h[i]]; });
   var maSeries = STR_MA_NAMES.map(function(name, idx){
     var col = STR_MA_COLORS[idx];
-    return { name:name, type:'line', data:k[name], showSymbol:false, connectNulls:true,
+    return { name:name, type:'line', data:(k[name] || k[name.toLowerCase()]), showSymbol:false, connectNulls:true,
       lineStyle:{width:1,color:col}, itemStyle:{color:col} };
   });
   var macdData = (k.macd||[]).map(function(v){ return {value:v, itemStyle:{color:(v>=0?C.red:C.green)}}; });
