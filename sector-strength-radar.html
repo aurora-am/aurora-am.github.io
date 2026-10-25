@@ -119,6 +119,10 @@ footer{text-align:center;color:var(--dim);font-size:11px;padding:18px 0 8px;line
 .kt-proxy{background:#e2e8f0;color:#475569}
 .concept-block{border:1px solid var(--bd);border-radius:10px;padding:11px;margin-bottom:12px;background:#fff}
 .concept-block .ph2{margin-bottom:9px}
+.pagenav{background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.pagenav .nav-tag{background:#4338ca;color:#fff;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:700}
+.pagenav a{color:#3730a3;font-weight:700;text-decoration:underline;word-break:break-all}
+.pagenav .dim{color:#64748b;font-size:12px;flex-basis:100%}
 @media(max-width:640px){
 .wrap{padding:8px 8px 30px}
 header{padding:14px}
@@ -138,6 +142,13 @@ header h1{font-size:16px}
     规则版本 v2.0（原版四重拐头 · 停用启动期与自动荐股）
   </div>
 </header>
+
+<nav class="pagenav">
+  <span class="nav-tag">页面导航</span>
+  <b>本页 = 板块强弱雷达（强弱数值数据源 + 口径混排）</b>
+  <a href="board-screener.html">→ 板块强弱筛选看板：个股明细 / 站上均线数 / 悬浮K线预览 / 点击详情缩放</a>
+  <span class="dim">当前混排 <b>44</b> 个板块 = 标准均值 <b>32</b>（红色，参与真拐头） + 指数代理 <b>12</b>（灰色，不参与）。新改动的板块混排与口径列在下方「板块强弱排行榜（混排）」一节。</span>
+</nav>
 
 <div class="notice"><b>先读结论：</b>本页只把9级强弱、趋势、扩散、分化与量能当数值数据源。旧“启动期”四象限及自动荐股已停用；三买必须人工复核四要件。行业真实9级回测总收益 <b>-10.0%</b>、年化 <b>-8.0%</b>、超额年化 <b>-12.9%</b>，旧信号不能当买点。行业个股覆盖不完整，低覆盖行业只能作样本参考。</div>
 
