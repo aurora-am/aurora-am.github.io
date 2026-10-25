@@ -1201,29 +1201,62 @@ body.wb-readonly .wb-datenav{opacity:1}
 <!-- ==================== PAGE: 缠论板块强弱雷达 ==================== -->
 <div class="page" id="page-strength">
   <style>
-    #page-strength .strength-meta{font-size:12px;color:var(--text-secondary);line-height:1.8}
-    #page-strength .strength-toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+    #page-strength .strength-meta{font-size:12px;color:var(--text-secondary);line-height:1.9}
+    #page-strength .strength-toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
     #page-strength .strength-actions{display:flex;gap:8px;flex-shrink:0}
-    #page-strength .strength-btn{font-size:12px;padding:5px 10px;border:1px solid var(--border,#d8e2ee);border-radius:6px;background:var(--bg,#fff);color:var(--text-primary);cursor:pointer;white-space:nowrap}
-    #page-strength .strength-btn:hover{background:var(--primary-light,#e8f0fe)}
+    #page-strength .strength-btn{font-size:12px;padding:6px 12px;border:1px solid var(--card-border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text);cursor:pointer;white-space:nowrap;transition:background .15s,box-shadow .15s}
+    #page-strength .strength-btn:hover{background:var(--primary-light);box-shadow:var(--shadow)}
     #page-strength .strength-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-    #page-strength .strength-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 8px;border-radius:10px;background:var(--primary-light,#e8f0fe);color:var(--text-secondary);border:1px solid var(--border,#d8e2ee)}
+    #page-strength .strength-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 9px;border-radius:999px;background:var(--primary-light);color:var(--text-secondary);border:1px solid var(--card-border)}
     #page-strength .strength-tag i{font-style:normal;opacity:.85}
-    #page-strength .strength-sub-h{font-size:13px;font-weight:600;margin:14px 0 6px;color:var(--text-primary)}
-    #page-strength #strengthBoardTable table th,#page-strength #strengthMemberTable table th{position:sticky;top:0;background:var(--bg,#fff);z-index:1}
-    #page-strength #strengthBoardTable tbody tr:hover,#page-strength #strengthMemberTable tbody tr:hover{background:var(--primary-light,#e8f0fe)}
-    .strength-drawer{position:fixed;top:0;right:0;height:100%;width:440px;max-width:92vw;background:var(--bg,#fff);box-shadow:-6px 0 24px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .25s ease;z-index:1200;display:flex;flex-direction:column}
-    .strength-drawer.open{transform:translateX(0)}
-    .strength-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border,#d8e2ee);font-weight:600}
-    .strength-drawer-body{padding:10px 14px 18px;overflow:auto;flex:1}
-    .strength-drawer-head button{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-secondary)}
-    .strength-log{max-height:170px;overflow:auto}
-    .strength-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1300}
-    .strength-modal.open{display:flex}
-    .strength-modal-box{background:var(--bg,#fff);width:92vw;max-width:920px;border-radius:10px;overflow:hidden}
-    .strength-modal-box .strength-drawer-body{padding:12px}
-    @media(max-width:768px){ .strength-drawer{width:100%;max-width:100vw} }
+    #page-strength .strength-sub-h{font-size:13px;font-weight:600;margin:16px 0 8px;color:var(--text)}
+
+    /* 表格：完整渲染 + 横向滚动，不挤压错位 */
+    #page-strength .str-scroll{overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--card-border);border-radius:var(--radius-sm);background:var(--card-bg)}
+    #page-strength table.str-table{width:100%;border-collapse:collapse;font-size:12.5px}
+    #page-strength table.str-table th{position:sticky;top:0;z-index:2;background:var(--primary-light);color:var(--text);font-weight:600;white-space:nowrap;padding:9px 12px;text-align:right;border-bottom:1px solid var(--card-border)}
+    #page-strength table.str-table th:first-child,
+    #page-strength table.str-table td:first-child{text-align:left}
+    #page-strength table.str-table td{white-space:nowrap;padding:8px 12px;text-align:right;border-bottom:1px solid var(--card-border);color:var(--text)}
+    #page-strength table.str-table tbody tr:last-child td{border-bottom:none}
+    #page-strength table.str-table tbody tr:hover{background:var(--primary-light)}
+
+    /* 板块行 + 行内抽屉 */
+    #page-strength tr.str-row{cursor:pointer;transition:background .18s}
+    #page-strength tr.str-row.active{background:var(--primary-light)}
+    #page-strength tr.str-row .str-caret{display:inline-block;width:14px;color:var(--text-light);transition:transform .25s ease,color .2s}
+    #page-strength tr.str-row.active .str-caret{transform:rotate(90deg);color:var(--primary)}
+    #page-strength .str-drawer-tr>td{padding:0!important;border-bottom:1px solid var(--card-border);background:transparent}
+    #page-strength .str-drawer{overflow:hidden;max-height:0;opacity:0;transition:max-height .34s cubic-bezier(.4,0,.2,1),opacity .26s ease}
+    #page-strength .str-drawer.open{max-height:1600px;opacity:1}
+    #page-strength .str-drawer-inner{padding:12px 14px 16px;background:linear-gradient(180deg,var(--primary-light) 0%,transparent 60%)}
+    #page-strength .str-drawer-h{font-size:12.5px;font-weight:600;color:var(--text);margin:2px 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    #page-strength .str-drawer-h::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--primary)}
+    #page-strength .str-log{max-height:150px;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:4px}
+    #page-strength .str-log-item{font-size:12px;padding:5px 10px;border-left:3px solid var(--gray);border-radius:0 var(--radius-sm) var(--radius-sm) 0;background:var(--card-bg);color:var(--text-secondary)}
+    #page-strength .str-empty{font-size:12px;color:var(--text-light);padding:4px 0}
+
+    /* 悬浮 K 线浮窗 */
+    .str-kline-pop{position:fixed;z-index:1600;width:540px;max-width:92vw;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);box-shadow:var(--shadow-hover);padding:8px 10px 4px;display:none}
+    .str-kline-pop.show{display:block;animation:strPop .18s ease}
+    @keyframes strPop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    .str-kline-pop-hd{font-size:12.5px;font-weight:600;color:var(--text);margin:0 0 4px;display:flex;justify-content:space-between;gap:10px}
+    .str-kline-pop-hd span{font-weight:400;color:var(--text-secondary)}
+
+    /* 说明弹窗 */
+    #page-strength .strength-modal{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:1700}
+    #page-strength .strength-modal.open{display:flex}
+    #page-strength .strength-modal-box{background:var(--card-bg);width:92vw;max-width:660px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-hover)}
+    #page-strength .strength-modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--card-border);font-weight:600;color:var(--text)}
+    #page-strength .strength-modal-body{padding:14px 16px;font-size:13px;line-height:1.95;max-height:70vh;overflow:auto;color:var(--text)}
+    #page-strength .strength-modal-head button{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-secondary)}
+
+    @media(max-width:768px){
+      .str-kline-pop{width:94vw}
+      #page-strength .strength-actions{width:100%}
+    }
   </style>
+
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🧭 缠论板块强弱雷达</span><span class="card-toggle">▼</span></div>
     <div class="card-body">
@@ -1234,37 +1267,25 @@ body.wb-readonly .wb-datenav{opacity:1}
           <button class="strength-btn" onclick="showImportHelp()">❓ 导入器说明</button>
         </div>
       </div>
-      <div class="strength-sub-h">板块强弱趋势（折线为强弱分 · 标记点为真拐头）</div>
-      <div id="strengthTrendChart" style="height:340px"></div>
-      <div class="strength-sub-h">板块总榜（点击板块展开成分股与拐头复核）</div>
+      <div class="strength-sub-h">板块强弱趋势（滚轮缩放 · 框选放大 · 拖拽平移）</div>
+      <div id="strengthTrendChart" style="height:380px"></div>
+      <div class="strength-sub-h">板块总榜（点击行内展开成分股与拐头复核）</div>
       <div id="strengthBoardTable"></div>
       <div class="disclaimer">缠论 8 条斐波那契均线（MA5/13/21/34/55/89/144/233）站上数 → 个股 9 级强弱 → 板块等权算术平均。拐头判定复用已修复 C1 规则（窗口累计增量≥0.3，允许单日回落）。量能采用成交量代理。红涨绿跌；结论仅供参考，不构成投资建议。</div>
     </div>
   </div>
 
-  <div id="strengthDrawer" class="strength-drawer">
-    <div class="strength-drawer-head"><div id="strengthDrawerTitle"></div><button onclick="closeSectorDrawer()">✕</button></div>
-    <div class="strength-drawer-body">
-      <div class="strength-sub-h">拐头复核日志</div>
-      <div id="strengthTurnLog" class="strength-log"></div>
-      <div class="strength-sub-h">成分股（点击查看 K 线详情 · 悬浮预览）</div>
-      <div id="strengthMemberTable"></div>
-      <div class="strength-sub-h">K 线预览（悬浮成分股查看 · 8 均线 + MACD 副图）</div>
-      <div id="strengthKlinePreview" style="height:320px"></div>
-    </div>
+  <!-- 悬浮 K 线浮窗（仅 hover 预览，不点击跳转） -->
+  <div id="strKlinePop" class="str-kline-pop">
+    <div class="str-kline-pop-hd"><span id="strKlinePopTitle"></span><span>近 260 日 · 悬浮预览</span></div>
+    <div id="strKlinePopBody" style="height:220px"></div>
   </div>
 
-  <div id="strengthModal" class="strength-modal" onclick="if(event.target===this)closeStockDetail()">
-    <div class="strength-modal-box">
-      <div class="strength-drawer-head"><div id="strengthModalTitle"></div><button onclick="closeStockDetail()">✕</button></div>
-      <div class="strength-drawer-body"><div id="strengthModalKline" style="height:460px"></div></div>
-    </div>
-  </div>
-
+  <!-- 导入器说明 -->
   <div id="strengthImportHelp" class="strength-modal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="strength-modal-box" style="max-width:660px">
-      <div class="strength-drawer-head"><div>📥 本地 CSV 导入器说明（不做浏览器上传）</div><button onclick="document.getElementById('strengthImportHelp').classList.remove('open')">✕</button></div>
-      <div class="strength-drawer-body" style="font-size:13px;line-height:1.95">
+    <div class="strength-modal-box">
+      <div class="strength-modal-head"><div>📥 本地 CSV 导入器说明（不做浏览器上传）</div><button onclick="document.getElementById('strengthImportHelp').classList.remove('open')">✕</button></div>
+      <div class="strength-modal-body">
         <p><b>一、CSV 格式（三列，UTF-8）</b><br>
         <code>板块名称,股票代码,股票名称</code><br>
         示例：<code>机器人概念,002472,双环传动</code>。板块名称需与看板板块一致；若 DB 中不存在，会自动新建为「手工概念」板块，不会丢数据。股票代码 6 位，首位 6 归 SH，其余归 SZ。</p>
@@ -7586,14 +7607,20 @@ function restoreDark() {
 
 /* ===== 板块强弱雷达（JS模块插入） ===== */
 /* ===================== 缠论板块强弱雷达 ===================== */
-var STR = { data: null, kline: {}, loading: false };
-var STR_DATA_BASE = 'wbdata/';   // 板块强弱数据根（与 WBData 内部的 BASE 同值，但独立声明；WBData 的 BASE 在 IIFE 内非全局）
+var STR = { data: null, kline: {}, loading: false, openSid: null, trend: null };
+var STR_DATA_BASE = 'wbdata/';   // 板块强弱数据根（与 WBData 内部 BASE 同值，但独立声明）
 var STR_TREND_DATES = null;
+var STR_SERIES_TURN = [];        // [{name, pts:[{idx,date,value,state}]}]
 var STR_MA_NAMES = ['MA5','MA13','MA21','MA34','MA55','MA89','MA144','MA233'];
 var STR_MA_COLORS = ['#e34d59','#1aad5e','#4995ff','#f5a623','#9b59b6','#16a085','#e67e22','#7f8c8d'];
 
 function strSafe(n, d){ return (n===null||n===undefined||n===''||(typeof n==='number'&&isNaN(n))) ? d : n; }
+function strEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function strNum(v, d){ return (v==null || (typeof v==='number' && isNaN(v))) ? (d==null?'-':d) : v; }
+function strUp(){ return (TC && TC.red) || '#e34d59'; }
+function strDn(){ return (TC && TC.green) || '#1aad5e'; }
 
+/* ---------- 取数 ---------- */
 function renderStrengthRadar(){
   var wrap = document.getElementById('strengthBoardTable');
   if(!wrap) return;
@@ -7601,10 +7628,280 @@ function renderStrengthRadar(){
   if(STR.loading) return;
   STR.loading = true;
   wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-secondary)">加载板块强弱数据…</div>';
-  fetch(STR_DATA_BASE + 'strength_data.json')
+  fetch(STR_DATA_BASE + 'sector-strength-radar.json', { cache:'no-store' })
     .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .catch(function(){
+      // 兼容旧文件名
+      return fetch(STR_DATA_BASE + 'strength_data.json', { cache:'no-store' }).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); });
+    })
     .then(function(d){ STR.data=d; STR.loading=false; renderStrengthBoard(); })
-    .catch(function(e){ STR.loading=false; wrap.innerHTML='<div style="padding:24px;color:#e34d59">板块强弱数据加载失败：'+e.message+'<br>请稍后重试，或确认 strength_data.json 已发布到 mimihub.cloud/wbdata/</div>'; });
+    .catch(function(e){ STR.loading=false; wrap.innerHTML='<div style="padding:24px;color:'+strUp()+'">板块强弱数据加载失败：'+strEsc(e.message)+'<br>请确认 sector-strength-radar.json 已发布到同目录</div>'; });
+}
+
+/* ---------- 顶部信息 + 总榜（完整 10 列） ---------- */
+function renderStrengthBoard(){
+  var d = STR.data; if(!d) return;
+  STR.openSid = null;
+  STR_SERIES_TURN = [];
+  var info = document.getElementById('strengthMeta');
+  var lag = (d.lag_days!=null && d.lag_days>=3)
+    ? '<span style="color:'+strUp()+';font-weight:600">⚠️ 数据滞后 '+d.lag_days+' 天</span>'
+    : '<span style="color:var(--text-secondary)">数据新鲜</span>';
+  var tagHtml = '<div class="strength-tags">';
+  (d.sectors||[]).forEach(function(s){
+    var hist = s.history||[];
+    var upd = hist.length ? hist[hist.length-1].date : (d.latest_date||'-');
+    tagHtml += '<span class="strength-tag">'+strEsc(s.name)+'<i>源:'+strEsc(s.source||'-')+'</i><i>更新:'+upd+'</i></span>';
+  });
+  tagHtml += '</div>';
+  info.innerHTML = '<div>最新交易日 <b>'+strEsc(d.latest_date)+'</b> · 今天 '+strEsc(d.today)+' · '+lag
+    + ' · <span style="color:var(--text-secondary)">量能：'+(d.volume_proxy?'成交量代理(成交额未全量覆盖)':'成交额')+'</span>'
+    + ' · <span style="color:var(--text-secondary)">红涨绿跌 · 结论仅供参考不构成投资建议</span></div>' + tagHtml;
+
+  var secs = (d.sectors||[]).slice().sort(function(a,b){ return (strSafe(b.latest.strength_avg,0)||0)-(strSafe(a.latest.strength_avg,0)||0); });
+  STR.secsSorted = secs;
+  var cols = ['板块','强弱分','拐头','阶段','成分股数','上升只数','下降只数','持平只数','上升占比','3日增量'];
+  var html = '<div class="str-scroll"><table class="str-table"><thead><tr>'
+    + cols.map(function(c){ return '<th>'+c+'</th>'; }).join('')
+    + '</tr></thead><tbody>';
+  secs.forEach(function(s){
+    var L = s.latest || {};
+    var upPct = (L.up_ratio!=null) ? (Math.round(L.up_ratio*100)+'%') : '-';
+    var d3 = (L.delta_3d!=null) ? ((L.delta_3d>=0?'+':'')+L.delta_3d.toFixed(2)) : '-';
+    var turn = L.turn_state || '-';
+    var tCol = turn==='UP' ? strUp() : (turn==='DOWN' ? strDn() : 'var(--text-secondary)');
+    var d3Col = d3==='-' ? 'var(--text-secondary)' : (d3.indexOf('+')>=0 ? strUp() : strDn());
+    html += '<tr class="str-row" data-sid="'+s.sector_id+'" onclick="strToggleDrawer('+s.sector_id+')">'
+      + '<td><span class="str-caret">▶</span> '+strEsc(s.name)+'</td>'
+      + '<td><b>'+strNum(L.strength_avg)+'</b></td>'
+      + '<td style="color:'+tCol+';font-weight:600">'+strEsc(turn)+'</td>'
+      + '<td>'+strEsc(L.phase||'-')+'</td>'
+      + '<td>'+strNum(s.member_count)+'</td>'
+      + '<td style="color:'+strUp()+'">'+strNum(L.up)+'</td>'
+      + '<td style="color:'+strDn()+'">'+strNum(L.down)+'</td>'
+      + '<td>'+strNum(L.flat)+'</td>'
+      + '<td>'+upPct+'</td>'
+      + '<td style="color:'+d3Col+'">'+d3+'</td>'
+      + '</tr>';
+    html += '<tr class="str-drawer-tr"><td colspan="'+cols.length+'"><div class="str-drawer" id="strDrw_'+s.sector_id+'"><div class="str-drawer-inner" id="strDrwInner_'+s.sector_id+'"></div></div></td></tr>';
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('strengthBoardTable').innerHTML = html;
+  renderStrengthTrend(secs);
+}
+
+/* ---------- 行内抽屉：互斥展开 / 再次点击收起 ---------- */
+function strToggleDrawer(sid){
+  var drw = document.getElementById('strDrw_'+sid);
+  var row = document.querySelector('tr.str-row[data-sid="'+sid+'"]');
+  if(!drw) return;
+  if(STR.openSid === sid){                       // 同一行 → 收起
+    drw.classList.remove('open');
+    if(row) row.classList.remove('active');
+    STR.openSid = null;
+    return;
+  }
+  if(STR.openSid != null){                        // 关闭其它
+    var od = document.getElementById('strDrw_'+STR.openSid);
+    var orow = document.querySelector('tr.str-row[data-sid="'+STR.openSid+'"]');
+    if(od) od.classList.remove('open');
+    if(orow) orow.classList.remove('active');
+  }
+  var inner = document.getElementById('strDrwInner_'+sid);
+  if(inner && !inner.getAttribute('data-built')){
+    strRenderDrawer(sid, inner);
+    inner.setAttribute('data-built','1');
+  }
+  drw.classList.add('open');
+  if(row) row.classList.add('active');
+  STR.openSid = sid;
+  loadKlineBundle(sid, function(){});             // 预取 K 线，hover 更顺
+}
+
+function strRenderDrawer(sid, inner){
+  var s = null; (STR.data.sectors||[]).forEach(function(x){ if(x.sector_id===sid) s=x; });
+  if(!s) return;
+  /* ① 拐头复核日志 */
+  var log = (s.history||[]).filter(function(h){ return h.turn_log; }).slice(-15).reverse();
+  var h = '<div class="str-drawer-h">拐头复核日志 <span style="font-weight:400;color:var(--text-light);font-size:11px">'+strEsc(s.sector_code||'')+' · '+strNum(s.member_count)+' 只 · 源:'+strEsc(s.source||'-')+'</span></div>';
+  if(!log.length){
+    h += '<div class="str-empty">近期无明确拐头信号</div>';
+  } else {
+    h += '<div class="str-log">';
+    log.forEach(function(x){
+      var isUp = x.turn_state==='UP';
+      var col = isUp ? strUp() : (x.turn_state==='DOWN' ? strDn() : 'var(--gray)');
+      h += '<div class="str-log-item" style="border-left-color:'+col+'"><b style="color:'+col+'">'+(isUp?'上拐':'下拐')+'</b> '+strEsc(x.date)+' <span>'+strEsc(x.turn_log||'')+'</span></div>';
+    });
+    h += '</div>';
+  }
+  /* ② 成分股表（完整 10 列） */
+  var mem = (s.members||[]).slice().sort(function(a,b){ return (strSafe(b.level,0)||0)-(strSafe(a.level,0)||0); });
+  var mcols = ['板块','代码','名称','收盘价','强弱级别','站上均线数','昨日级别','3天前级别','趋势','量比(3日20日)'];
+  h += '<div class="str-drawer-h" style="margin-top:12px">成分股（悬浮行查看 K 线）<span style="font-weight:400;color:var(--text-light);font-size:11px">'+mem.length+' 只 · 按强弱级别降序</span></div>';
+  h += '<div class="str-scroll" style="max-height:360px"><table class="str-table"><thead><tr>'
+     + mcols.map(function(c){ return '<th>'+c+'</th>'; }).join('') + '</tr></thead><tbody>';
+  mem.forEach(function(m){
+    var lv = strSafe(m.level,null), pv = strSafe(m.prev_level,null), l3 = strSafe(m.level_3d_ago,null);
+    var tr = m.trend || '';
+    var trCol = tr==='↑' ? strUp() : (tr==='↓' ? strDn() : 'var(--text-secondary)');
+    var vr = strSafe(m.vol_ratio_3_20,null);
+    var vrCol = vr==null ? 'var(--text-secondary)' : (vr>=1 ? strUp() : strDn());
+    h += '<tr onmouseenter="strHoverKline(event,\''+m.code+'\','+sid+')" onmouseleave="strHideKline()">'
+      + '<td>'+strEsc(s.name)+'</td>'
+      + '<td>'+strEsc(m.code)+'</td>'
+      + '<td>'+strEsc(m.name)+'</td>'
+      + '<td>'+(m.close==null?'-':m.close)+'</td>'
+      + '<td><b>'+strNum(lv)+'</b></td>'
+      + '<td>'+strNum(m.above)+'</td>'
+      + '<td>'+strNum(pv)+'</td>'
+      + '<td>'+strNum(l3)+'</td>'
+      + '<td style="color:'+trCol+';font-weight:600">'+(tr||'-')+'</td>'
+      + '<td style="color:'+vrCol+'">'+(vr==null?'-':vr.toFixed(2))+'</td>'
+      + '</tr>';
+  });
+  h += '</tbody></table></div>';
+  inner.innerHTML = h;
+}
+
+/* ---------- 趋势折线：滚轮缩放 / 框选放大 / 拖拽平移 + 拐点自适应降采样 ---------- */
+function renderStrengthTrend(secs){
+  var el = document.getElementById('strengthTrendChart');
+  if(!el) return;
+  var dates = ((secs[0]||{}).history||[]).map(function(h){ return h.date; });
+  STR_TREND_DATES = dates;
+  STR_SERIES_TURN = [];
+  var series = secs.map(function(s){
+    var hmap = {}; (s.history||[]).forEach(function(h){ hmap[h.date]=h; });
+    var hData = dates.map(function(dt){ var h=hmap[dt]; return h ? h.strength_avg : null; });
+    var pts = [];
+    (s.history||[]).forEach(function(h){
+      if(h.turn_log){
+        var idx = dates.indexOf(h.date);
+        if(idx>=0) pts.push({ idx:idx, date:h.date, value:h.strength_avg, state:h.turn_state });
+      }
+    });
+    STR_SERIES_TURN.push({ name:s.name, pts:pts });
+    return {
+      name:s.name, type:'line', data:hData, smooth:true, showSymbol:false, connectNulls:true,
+      lineStyle:{width:2}, emphasis:{focus:'series'},
+      markPoint:{ symbol:'pin', symbolSize:26, label:{fontSize:9,color:'#fff',formatter:function(p){ return p.data.state; }}, data:[] }
+    };
+  });
+  var C = TC;
+  var opt = {
+    backgroundColor:'transparent', animationDuration:300,
+    toolbox:{ right:6, top:0, itemSize:13, iconStyle:{borderColor:C.textSecondary},
+      feature:{
+        dataZoom:{ xAxisIndex:0, title:{zoom:'框选放大',back:'还原缩放'}, brushStyle:{borderColor:C.primary,color:'rgba(26,115,232,0.12)'} },
+        restore:{ title:'还原' }
+      }
+    },
+    legend:{ data:secs.map(function(s){ return s.name; }), textStyle:{color:C.textSecondary}, top:0, left:0 },
+    tooltip:{ trigger:'axis', axisPointer:{ type:'line', lineStyle:{color:C.border} } },
+    grid:{ left:46, right:16, top:42, bottom:54 },
+    xAxis:{ type:'category', data:dates, boundaryGap:false,
+      axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary, hideOverlap:true} },
+    yAxis:{ type:'value', scale:true,
+      min:function(v){ return Math.max(0, Math.floor((v.min||0)-0.4)); },
+      max:function(v){ return Math.min(9.6, Math.ceil((v.max||9)+0.4)); },
+      axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary},
+      splitLine:{lineStyle:{color:C.splitLine}} },
+    dataZoom:[
+      { type:'inside', xAxisIndex:0, filterMode:'filter', zoomOnMouseWheel:true, moveOnMouseMove:true, moveOnMouseWheel:false, start:0, end:100 },
+      { type:'slider', xAxisIndex:0, filterMode:'filter', height:16, bottom:8,
+        borderColor:C.border, textStyle:{color:C.textSecondary},
+        fillerColor:'rgba(26,115,232,0.10)', handleStyle:{color:C.primary}, start:0, end:100 }
+    ],
+    series:series
+  };
+  if(charts.strengthTrend){ charts.strengthTrend.dispose(); }
+  charts.strengthTrend = echarts.init(el);
+  charts.strengthTrend.setOption(opt);
+  charts.strengthTrend.on('dataZoom', function(){ strUpdateTurnMarks(); });
+  strUpdateTurnMarks();
+}
+
+/* 按当前缩放窗口自适应拐点密度：放大 → 保留全部；缩小 → 等距降采样 */
+function strUpdateTurnMarks(){
+  var ch = charts.strengthTrend; if(!ch) return;
+  var n = (STR_TREND_DATES||[]).length; if(!n) return;
+  var startPct = 0, endPct = 100;
+  try {
+    var o = ch.getOption();
+    var dz = (o.dataZoom||[])[0];
+    if(dz){ if(dz.start!=null) startPct = dz.start; if(dz.end!=null) endPct = dz.end; }
+  } catch(e){}
+  var s0 = Math.floor(startPct/100*(n-1));
+  var s1 = Math.ceil(endPct/100*(n-1));
+  var visible = Math.max(1, s1-s0+1);
+  var target = 14;                                  // 每个板块在该窗口的目标标记数
+  var gap = Math.max(1, Math.ceil(visible/target));
+  var seriesOpt = [];
+  STR_SERIES_TURN.forEach(function(sr){
+    var kept = [], lastIdx = -1e9;
+    for(var i=0;i<sr.pts.length;i++){
+      var p = sr.pts[i];
+      if(p.idx < s0 || p.idx > s1) continue;
+      if(p.idx - lastIdx < gap) continue;
+      lastIdx = p.idx;
+      kept.push({ coord:[p.date, p.value], value:p.value, state:p.state,
+        itemStyle:{ color: p.state==='UP' ? strUp() : strDn() } });
+    }
+    seriesOpt.push({ markPoint:{ data:kept } });
+  });
+  try { ch.setOption({ series:seriesOpt }); } catch(e){}
+}
+
+/* ---------- 悬浮 K 线浮窗（仅 hover，不点击） ---------- */
+function strHoverKline(ev, code, sid){
+  var pop = document.getElementById('strKlinePop');
+  if(!pop) return;
+  var s = null; (STR.data.sectors||[]).forEach(function(x){ if(x.sector_id===sid) s=x; });
+  var nm = code;
+  if(s && s.members){ s.members.forEach(function(m){ if(m.code===code) nm = m.name; }); }
+  document.getElementById('strKlinePopTitle').innerHTML = '<b>'+strEsc(code)+'</b> '+strEsc(nm)+' <span style="font-weight:400">· '+(s?strEsc(s.name):'')+'</span>';
+
+  var x = (ev && ev.clientX) || 0, y = (ev && ev.clientY) || 0;
+  var w = 552, hgt = 270;
+  var left = Math.min(x + 16, (window.innerWidth || 1280) - w - 12);
+  var top = Math.min(y + 14, (window.innerHeight || 800) - hgt - 12);
+  if(left < 8) left = 8;
+  if(top < 8) top = 8;
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.classList.add('show');
+
+  var k = STR.kline[sid] && STR.kline[sid][code];
+  if(k){
+    if(pop.getAttribute('data-code') !== code){
+      applyKline('strKlinePopBody', k, 220);
+      pop.setAttribute('data-code', code);
+    }
+  } else {
+    document.getElementById('strKlinePopBody').innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">K线加载中…</div>';
+    pop.setAttribute('data-code', '');
+    loadKlineBundle(sid, function(){
+      var k2 = STR.kline[sid] && STR.kline[sid][code];
+      if(k2 && pop.classList.contains('show')){
+        applyKline('strKlinePopBody', k2, 220);
+        pop.setAttribute('data-code', code);
+      }
+    });
+  }
+}
+function strHideKline(){
+  var pop = document.getElementById('strKlinePop');
+  if(pop) pop.classList.remove('show');
+}
+
+/* ---------- K 线懒加载分片 ---------- */
+function loadKlineBundle(sectorId, cb){
+  if(STR.kline[sectorId]){ if(cb) cb(); return; }
+  fetch(STR_DATA_BASE + 'strength_kline_'+sectorId+'.json', { cache:'no-store' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ STR.kline[sectorId]=d.members; if(cb) cb(); })
+    .catch(function(e){ console.error('kline bundle', sectorId, e.message); if(cb) cb(); });
 }
 
 function downloadCsvTemplate(){
@@ -7623,140 +7920,6 @@ function showImportHelp(){
   var el = document.getElementById('strengthImportHelp');
   if(el) el.classList.add('open');
 }
-
-function renderStrengthBoard(){
-  var d = STR.data; if(!d) return;
-  var info = document.getElementById('strengthMeta');
-  var lag = (d.lag_days!=null && d.lag_days>=3)
-    ? '<span style="color:#e34d59;font-weight:600">⚠️ 数据缓存滞后 '+d.lag_days+' 天</span>'
-    : '<span style="color:var(--text-secondary)">数据新鲜</span>';
-  var tagHtml = '<div class="strength-tags">';
-  d.sectors.forEach(function(s){
-    var hist = s.history||[];
-    var upd = hist.length ? hist[hist.length-1].date : (d.latest_date||'-');
-    tagHtml += '<span class="strength-tag" title="'+s.name+' 数据源">'+s.name
-      + '<i>源:'+strSafe(s.source,'-')+'</i><i>更新:'+upd+'</i></span>';
-  });
-  tagHtml += '</div>';
-  info.innerHTML = '<div>最新交易日 <b>'+d.latest_date+'</b> · 今天 '+d.today+' · '+lag
-    + ' · <span style="color:var(--text-secondary)">量能：'+(d.volume_proxy?'成交量代理(成交额未全量覆盖)':'成交额')+'</span>'
-    + ' · <span style="color:var(--text-secondary)">红涨绿跌 · 结论仅供参考不构成投资建议</span></div>'
-    + tagHtml;
-
-  var secs = d.sectors.slice().sort(function(a,b){ return (strSafe(b.latest.strength_avg,0)||0)-(strSafe(a.latest.strength_avg,0)||0); });
-  var html = '<div class="table-wrap"><table><thead><tr><th>板块</th><th>强弱分</th><th>上涨占比</th><th>涨/跌/平</th><th>3日增量</th><th>拐头</th><th>阶段</th></tr></thead><tbody>';
-  secs.forEach(function(s){
-    var L=s.latest||{};
-    var up = (L.up_ratio!=null)?Math.round(L.up_ratio*100):'-';
-    var d3 = (L.delta_3d!=null)?((L.delta_3d>=0?'+':'')+L.delta_3d.toFixed(2)):'-';
-    var turn = L.turn_state||'-';
-    var tColor = turn==='UP'?'#e34d59':(turn==='DOWN'?'#1aad5e':'var(--text-secondary)');
-    html += '<tr onclick="openSectorDrawer('+s.sector_id+')" style="cursor:pointer">'
-      + '<td>'+s.name+'<div style="font-size:11px;color:var(--text-secondary)">'+(s.sector_code||'')+'</div></td>'
-      + '<td><b>'+strSafe(L.strength_avg,'-')+'</b></td>'
-      + '<td>'+up+'%</td>'
-      + '<td>'+(L.up||0)+'/'+(L.down||0)+'/'+(L.flat||0)+'</td>'
-      + '<td style="color:'+(d3.indexOf('+')>=0?'#e34d59':'#1aad5e')+'">'+d3+'</td>'
-      + '<td style="color:'+tColor+';font-weight:600">'+turn+'</td>'
-      + '<td>'+strSafe(L.phase,'-')+'</td></tr>';
-  });
-  html += '</tbody></table></div>';
-  document.getElementById('strengthBoardTable').innerHTML = html;
-  renderStrengthTrend(secs);
-}
-
-function renderStrengthTrend(secs){
-  var el = document.getElementById('strengthTrendChart');
-  if(!el) return;
-  var dates = (secs[0].history||[]).map(function(h){return h.date;});
-  STR_TREND_DATES = dates;
-  var series = secs.map(function(s){
-    var hmap = {}; s.history.forEach(function(h){ hmap[h.date]=h; });
-    var hData = dates.map(function(dt){ var h=hmap[dt]; return h?h.strength_avg:null; });
-    var turnPts = [];
-    s.history.forEach(function(h){ if(h.turn_log){ var st=h.turn_state==='UP'?'#e34d59':'#1aad5e'; turnPts.push({value:h.strength_avg, date:h.date, state:h.turn_state, itemStyle:{color:st}}); } });
-    return { name:s.name, type:'line', data:hData, smooth:true, showSymbol:false, lineWidth:2,
-      connectNulls:true,
-      markPoint: turnPts.length? { symbol:'pin', symbolSize:30, label:{fontSize:9,color:'#fff',formatter:function(p){return p.data.state;}},
-        data: turnPts.map(function(p){ return {coord:[p.date, p.value], itemStyle:{color:p.itemStyle.color}}; }) } : undefined };
-  });
-  var C = TC;
-  var opt = {
-    backgroundColor:'transparent', animation:false,
-    legend:{ data:secs.map(function(s){return s.name;}), textStyle:{color:C.textSecondary}, top:0 },
-    tooltip:{ trigger:'axis' },
-    grid:{ left:46, right:14, top:34, bottom:30 },
-    xAxis:{ type:'category', data:dates, axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary, hideOverlap:true} },
-    yAxis:{ type:'value', min:0, max:9, interval:1, axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary}, splitLine:{lineStyle:{color:C.splitLine}} },
-    series:series
-  };
-  if(charts.strengthTrend){ charts.strengthTrend.dispose(); }
-  charts.strengthTrend = echarts.init(el);
-  charts.strengthTrend.setOption(opt);
-}
-
-function openSectorDrawer(sectorId){
-  var s = null; STR.data.sectors.forEach(function(x){ if(x.sector_id===sectorId) s=x; });
-  if(!s) return;
-  document.getElementById('strengthDrawerTitle').innerHTML = s.name
-    + ' <span style="font-size:12px;color:var(--text-secondary)">'+s.sector_code+' · '+s.member_count+'只 · 数据源:'+s.source+'</span>';
-  // 拐头复核日志
-  var log = (s.history||[]).filter(function(h){return h.turn_log;});
-  var logHtml = log.length? '' : '<div style="color:var(--text-secondary);font-size:12px">近期无明确拐头信号</div>';
-  log.slice(-12).reverse().forEach(function(h){
-    var col = h.turn_state==='UP'?'#e34d59':(h.turn_state==='DOWN'?'#1aad5e':'var(--text-secondary)');
-    logHtml += '<div style="border-left:3px solid '+col+';padding:4px 8px;margin:4px 0;font-size:12px">'
-      + '<b style="color:'+col+'">'+h.turn_state+'</b> '+h.date+' <span style="color:var(--text-secondary)">'+h.turn_log+'</span></div>';
-  });
-  document.getElementById('strengthTurnLog').innerHTML = logHtml;
-  // 成员表
-  var mem = (s.members||[]).slice().sort(function(a,b){ return (strSafe(b.level,0)||0)-(strSafe(a.level,0)||0); });
-  var mh = '<div class="table-wrap"><table><thead><tr><th>代码</th><th>名称</th><th>强弱级</th><th>涨跌%</th><th>MA就绪</th></tr></thead><tbody>';
-  mem.forEach(function(m){
-    var chg = strSafe(m.chg_pct,null);
-    var chgCol = (chg==null)?'var(--text-secondary)':(chg>=0?'#e34d59':'#1aad5e');
-    mh += '<tr onclick="openStockDetail(\''+m.code+'\','+s.sector_id+')" onmouseenter="previewStock(\''+m.code+'\','+s.sector_id+')" style="cursor:pointer">'
-      + '<td>'+m.code+'</td><td>'+m.name+'</td>'
-      + '<td><b>'+strSafe(m.level,'-')+'</b>'+(m.above!=null?'<span style="font-size:11px;color:var(--text-secondary)">('+m.above+'/8)</span>':'')+'</td>'
-      + '<td style="color:'+chgCol+'">'+(chg==null?'-':(chg>=0?'+':'')+chg+'%')+'</td>'
-      + '<td>'+(m.ma_ready?'✅':'⚠️')+'</td></tr>';
-  });
-  mh += '</tbody></table></div>';
-  document.getElementById('strengthMemberTable').innerHTML = mh;
-  document.getElementById('strengthKlinePreview').innerHTML = '';
-  document.getElementById('strengthDrawer').classList.add('open');
-  loadKlineBundle(sectorId, function(){});
-}
-
-function closeSectorDrawer(){ document.getElementById('strengthDrawer').classList.remove('open'); }
-
-function loadKlineBundle(sectorId, cb){
-  if(STR.kline[sectorId]){ cb(); return; }
-  fetch(STR_DATA_BASE + 'strength_kline_'+sectorId+'.json')
-    .then(function(r){ return r.json(); })
-    .then(function(d){ STR.kline[sectorId]=d.members; cb(); })
-    .catch(function(e){ console.error('kline bundle', sectorId, e.message); cb(); });
-}
-
-function previewStock(code, sectorId){
-  var k = STR.kline[sectorId] && STR.kline[sectorId][code];
-  var el = document.getElementById('strengthKlinePreview');
-  if(!k){ el.innerHTML='<div style="color:var(--text-secondary);font-size:12px;padding:12px">K线分片加载中…</div>'; return; }
-  el.innerHTML='';
-  applyKline('strengthKlinePreview', k, 300);
-}
-
-function openStockDetail(code, sectorId){
-  loadKlineBundle(sectorId, function(){
-    var k = STR.kline[sectorId] && STR.kline[sectorId][code];
-    document.getElementById('strengthModalTitle').innerHTML = code+' '+(k?k.name:'')+' · 近'+((k&&k.date)?k.date.length:'')+'根日K';
-    var box = document.getElementById('strengthModalKline');
-    box.innerHTML='';
-    document.getElementById('strengthModal').classList.add('open');
-    if(k) applyKline('strengthModalKline', k, 440);
-  });
-}
-function closeStockDetail(){ document.getElementById('strengthModal').classList.remove('open'); }
 
 function applyKline(containerId, k, h){
   var el = document.getElementById(containerId);
