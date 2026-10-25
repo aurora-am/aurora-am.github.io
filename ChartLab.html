@@ -8008,7 +8008,8 @@ function strPreloadBundles(){
   if(_strPreloaded) return; _strPreloaded = true;
   var list = (STR.data.sectors||[]).filter(function(s){ return !s._user && s.member_count>0; })
     .sort(function(a,b){ return a.member_count - b.member_count; })
-    .map(function(s){ return s.sector_id; });
+    .map(function(s){ return s.sector_id; })
+    .slice(0, 8);   /* 板块数较多时只预热前 8 个，其余滚动/悬浮时按需加载 */
   var i = 0;
   function next(){
     if(i >= list.length) return;
