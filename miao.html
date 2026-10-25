@@ -879,6 +879,7 @@ body.wb-readonly .wb-datenav{opacity:1}
     <div class="nav-item" data-page="overnight" onclick="navigateTo('overnight')"><span class="nav-icon">⚡</span> 隔夜判断</div>
     <div class="nav-item" data-page="notes" onclick="navigateTo('notes')"><span class="nav-icon">📝</span> 复盘笔记</div>
     <div class="nav-item" data-page="tthelper" onclick="navigateTo('tthelper')"><span class="nav-icon">💱</span> 做T助手</div>
+    <div class="nav-item" data-page="strength" onclick="navigateTo('strength')"><span class="nav-icon">📊</span> 板块强弱</div>
   </nav>
 
   <!-- Main Content -->
@@ -1197,6 +1198,91 @@ body.wb-readonly .wb-datenav{opacity:1}
     </div>
   </div>
 </div>
+<!-- ==================== PAGE: 缠论板块强弱雷达 ==================== -->
+<div class="page" id="page-strength">
+  <style>
+    #page-strength .strength-meta{font-size:12px;color:var(--text-secondary);line-height:1.8}
+    #page-strength .strength-toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+    #page-strength .strength-actions{display:flex;gap:8px;flex-shrink:0}
+    #page-strength .strength-btn{font-size:12px;padding:5px 10px;border:1px solid var(--border,#d8e2ee);border-radius:6px;background:var(--bg,#fff);color:var(--text-primary);cursor:pointer;white-space:nowrap}
+    #page-strength .strength-btn:hover{background:var(--primary-light,#e8f0fe)}
+    #page-strength .strength-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    #page-strength .strength-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 8px;border-radius:10px;background:var(--primary-light,#e8f0fe);color:var(--text-secondary);border:1px solid var(--border,#d8e2ee)}
+    #page-strength .strength-tag i{font-style:normal;opacity:.85}
+    #page-strength .strength-sub-h{font-size:13px;font-weight:600;margin:14px 0 6px;color:var(--text-primary)}
+    #page-strength #strengthBoardTable table th,#page-strength #strengthMemberTable table th{position:sticky;top:0;background:var(--bg,#fff);z-index:1}
+    #page-strength #strengthBoardTable tbody tr:hover,#page-strength #strengthMemberTable tbody tr:hover{background:var(--primary-light,#e8f0fe)}
+    .strength-drawer{position:fixed;top:0;right:0;height:100%;width:440px;max-width:92vw;background:var(--bg,#fff);box-shadow:-6px 0 24px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .25s ease;z-index:1200;display:flex;flex-direction:column}
+    .strength-drawer.open{transform:translateX(0)}
+    .strength-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border,#d8e2ee);font-weight:600}
+    .strength-drawer-body{padding:10px 14px 18px;overflow:auto;flex:1}
+    .strength-drawer-head button{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-secondary)}
+    .strength-log{max-height:170px;overflow:auto}
+    .strength-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1300}
+    .strength-modal.open{display:flex}
+    .strength-modal-box{background:var(--bg,#fff);width:92vw;max-width:920px;border-radius:10px;overflow:hidden}
+    .strength-modal-box .strength-drawer-body{padding:12px}
+    @media(max-width:768px){ .strength-drawer{width:100%;max-width:100vw} }
+  </style>
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">🧭 缠论板块强弱雷达</span><span class="card-toggle">▼</span></div>
+    <div class="card-body">
+      <div class="strength-toolbar">
+        <div id="strengthMeta" class="strength-meta">加载中…</div>
+        <div class="strength-actions">
+          <button class="strength-btn" onclick="downloadCsvTemplate()">⬇ 下载CSV模板</button>
+          <button class="strength-btn" onclick="showImportHelp()">❓ 导入器说明</button>
+        </div>
+      </div>
+      <div class="strength-sub-h">板块强弱趋势（折线为强弱分 · 标记点为真拐头）</div>
+      <div id="strengthTrendChart" style="height:340px"></div>
+      <div class="strength-sub-h">板块总榜（点击板块展开成分股与拐头复核）</div>
+      <div id="strengthBoardTable"></div>
+      <div class="disclaimer">缠论 8 条斐波那契均线（MA5/13/21/34/55/89/144/233）站上数 → 个股 9 级强弱 → 板块等权算术平均。拐头判定复用已修复 C1 规则（窗口累计增量≥0.3，允许单日回落）。量能采用成交量代理。红涨绿跌；结论仅供参考，不构成投资建议。</div>
+    </div>
+  </div>
+
+  <div id="strengthDrawer" class="strength-drawer">
+    <div class="strength-drawer-head"><div id="strengthDrawerTitle"></div><button onclick="closeSectorDrawer()">✕</button></div>
+    <div class="strength-drawer-body">
+      <div class="strength-sub-h">拐头复核日志</div>
+      <div id="strengthTurnLog" class="strength-log"></div>
+      <div class="strength-sub-h">成分股（点击查看 K 线详情 · 悬浮预览）</div>
+      <div id="strengthMemberTable"></div>
+      <div class="strength-sub-h">K 线预览（悬浮成分股查看 · 8 均线 + MACD 副图）</div>
+      <div id="strengthKlinePreview" style="height:320px"></div>
+    </div>
+  </div>
+
+  <div id="strengthModal" class="strength-modal" onclick="if(event.target===this)closeStockDetail()">
+    <div class="strength-modal-box">
+      <div class="strength-drawer-head"><div id="strengthModalTitle"></div><button onclick="closeStockDetail()">✕</button></div>
+      <div class="strength-drawer-body"><div id="strengthModalKline" style="height:460px"></div></div>
+    </div>
+  </div>
+
+  <div id="strengthImportHelp" class="strength-modal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="strength-modal-box" style="max-width:660px">
+      <div class="strength-drawer-head"><div>📥 本地 CSV 导入器说明（不做浏览器上传）</div><button onclick="document.getElementById('strengthImportHelp').classList.remove('open')">✕</button></div>
+      <div class="strength-drawer-body" style="font-size:13px;line-height:1.95">
+        <p><b>一、CSV 格式（三列，UTF-8）</b><br>
+        <code>板块名称,股票代码,股票名称</code><br>
+        示例：<code>机器人概念,002472,双环传动</code>。板块名称需与看板板块一致；若 DB 中不存在，会自动新建为「手工概念」板块，不会丢数据。股票代码 6 位，首位 6 归 SH，其余归 SZ。</p>
+        <p><b>二、本地执行（隔离 venv）</b><br>
+        在 <code>D:\WorkBuddy\板块强弱</code> 目录下运行：<br>
+        <code>python import_csv.py --csv 你的文件.csv</code><br>
+        优先用会话内 NeoData MCP 落盘文件：加 <code>--neodata-dir 目录</code>；<br>
+        只校验不写库：加 <code>--dry</code>。</p>
+        <p><b>三、覆盖式更新规则</b><br>
+        该板块旧成分置为历史（is_current=0），写入新成分并标记「人工CSV导入」；K 线按股票代码保留不删，仅补齐缺失新票（NeoData 优先，akshare 前复权兜底）；随后自动全量重算该板块强弱快照并写 import_log。</p>
+        <p><b>四、刷新线上数据</b><br>
+        导入完成后依次执行 <code>python update_daily.py</code> 与 <code>python export_json.py</code>，再发布即可在线上看到最新结果。</p>
+        <p style="color:var(--text-secondary)">说明：页面无服务端，绝不接收浏览器上传；所有导入在本地终端完成，页面仅提供模板下载与说明。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-tthelper">
   <iframe src="tt-helper.html" title="做T助手" loading="lazy"></iframe>
 </div>
@@ -7421,6 +7507,8 @@ function renderPageCharts(page) {
     try { if (!notesCurDate) loadNotes(notesTodayStr()); } catch(e) {}
   } else if (page === 'theme') {
     try { renderThemeRadar(); } catch(e) { console.error('themeRadar:', e.message); }
+  } else if (page === 'strength') {
+    try { renderStrengthRadar(); } catch(e) { console.error('strength:', e.message); }
   }
 }
 
@@ -7494,6 +7582,216 @@ function restoreDark() {
   applyDarkUI();
 }
 
+
+
+/* ===== 板块强弱雷达（JS模块插入） ===== */
+/* ===================== 缠论板块强弱雷达 ===================== */
+var STR = { data: null, kline: {}, loading: false };
+var STR_TREND_DATES = null;
+var STR_MA_NAMES = ['MA5','MA13','MA21','MA34','MA55','MA89','MA144','MA233'];
+var STR_MA_COLORS = ['#e34d59','#1aad5e','#4995ff','#f5a623','#9b59b6','#16a085','#e67e22','#7f8c8d'];
+
+function strSafe(n, d){ return (n===null||n===undefined||n===''||(typeof n==='number'&&isNaN(n))) ? d : n; }
+
+function renderStrengthRadar(){
+  var wrap = document.getElementById('strengthBoardTable');
+  if(!wrap) return;
+  if(STR.data){ renderStrengthBoard(); return; }
+  if(STR.loading) return;
+  STR.loading = true;
+  wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-secondary)">加载板块强弱数据…</div>';
+  fetch(BASE + 'strength_data.json')
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(d){ STR.data=d; STR.loading=false; renderStrengthBoard(); })
+    .catch(function(e){ STR.loading=false; wrap.innerHTML='<div style="padding:24px;color:#e34d59">板块强弱数据加载失败：'+e.message+'<br>请稍后重试，或确认 strength_data.json 已发布到 mimihub.cloud/wbdata/</div>'; });
+}
+
+function downloadCsvTemplate(){
+  var lines = ['板块名称,股票代码,股票名称',
+               '机器人概念,002472,双环传动',
+               '共封装光学(CPO),300308,中际旭创'];
+  var blob = new Blob(['\ufeff' + lines.join('\r\n') + '\r\n'], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '板块强弱_成分导入模板.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 200);
+}
+
+function showImportHelp(){
+  var el = document.getElementById('strengthImportHelp');
+  if(el) el.classList.add('open');
+}
+
+function renderStrengthBoard(){
+  var d = STR.data; if(!d) return;
+  var info = document.getElementById('strengthMeta');
+  var lag = (d.lag_days!=null && d.lag_days>=3)
+    ? '<span style="color:#e34d59;font-weight:600">⚠️ 数据缓存滞后 '+d.lag_days+' 天</span>'
+    : '<span style="color:var(--text-secondary)">数据新鲜</span>';
+  var tagHtml = '<div class="strength-tags">';
+  d.sectors.forEach(function(s){
+    var hist = s.history||[];
+    var upd = hist.length ? hist[hist.length-1].date : (d.latest_date||'-');
+    tagHtml += '<span class="strength-tag" title="'+s.name+' 数据源">'+s.name
+      + '<i>源:'+strSafe(s.source,'-')+'</i><i>更新:'+upd+'</i></span>';
+  });
+  tagHtml += '</div>';
+  info.innerHTML = '<div>最新交易日 <b>'+d.latest_date+'</b> · 今天 '+d.today+' · '+lag
+    + ' · <span style="color:var(--text-secondary)">量能：'+(d.volume_proxy?'成交量代理(成交额未全量覆盖)':'成交额')+'</span>'
+    + ' · <span style="color:var(--text-secondary)">红涨绿跌 · 结论仅供参考不构成投资建议</span></div>'
+    + tagHtml;
+
+  var secs = d.sectors.slice().sort(function(a,b){ return (strSafe(b.latest.strength_avg,0)||0)-(strSafe(a.latest.strength_avg,0)||0); });
+  var html = '<div class="table-wrap"><table><thead><tr><th>板块</th><th>强弱分</th><th>上涨占比</th><th>涨/跌/平</th><th>3日增量</th><th>拐头</th><th>阶段</th></tr></thead><tbody>';
+  secs.forEach(function(s){
+    var L=s.latest||{};
+    var up = (L.up_ratio!=null)?Math.round(L.up_ratio*100):'-';
+    var d3 = (L.delta_3d!=null)?((L.delta_3d>=0?'+':'')+L.delta_3d.toFixed(2)):'-';
+    var turn = L.turn_state||'-';
+    var tColor = turn==='UP'?'#e34d59':(turn==='DOWN'?'#1aad5e':'var(--text-secondary)');
+    html += '<tr onclick="openSectorDrawer('+s.sector_id+')" style="cursor:pointer">'
+      + '<td>'+s.name+'<div style="font-size:11px;color:var(--text-secondary)">'+(s.sector_code||'')+'</div></td>'
+      + '<td><b>'+strSafe(L.strength_avg,'-')+'</b></td>'
+      + '<td>'+up+'%</td>'
+      + '<td>'+(L.up||0)+'/'+(L.down||0)+'/'+(L.flat||0)+'</td>'
+      + '<td style="color:'+(d3.indexOf('+')>=0?'#e34d59':'#1aad5e')+'">'+d3+'</td>'
+      + '<td style="color:'+tColor+';font-weight:600">'+turn+'</td>'
+      + '<td>'+strSafe(L.phase,'-')+'</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('strengthBoardTable').innerHTML = html;
+  renderStrengthTrend(secs);
+}
+
+function renderStrengthTrend(secs){
+  var el = document.getElementById('strengthTrendChart');
+  if(!el) return;
+  var dates = (secs[0].history||[]).map(function(h){return h.date;});
+  STR_TREND_DATES = dates;
+  var series = secs.map(function(s){
+    var hmap = {}; s.history.forEach(function(h){ hmap[h.date]=h; });
+    var hData = dates.map(function(dt){ var h=hmap[dt]; return h?h.strength_avg:null; });
+    var turnPts = [];
+    s.history.forEach(function(h){ if(h.turn_log){ var st=h.turn_state==='UP'?'#e34d59':'#1aad5e'; turnPts.push({value:h.strength_avg, date:h.date, state:h.turn_state, itemStyle:{color:st}}); } });
+    return { name:s.name, type:'line', data:hData, smooth:true, showSymbol:false, lineWidth:2,
+      connectNulls:true,
+      markPoint: turnPts.length? { symbol:'pin', symbolSize:30, label:{fontSize:9,color:'#fff',formatter:function(p){return p.data.state;}},
+        data: turnPts.map(function(p){ return {coord:[p.date, p.value], itemStyle:{color:p.itemStyle.color}}; }) } : undefined };
+  });
+  var C = TC;
+  var opt = {
+    backgroundColor:'transparent', animation:false,
+    legend:{ data:secs.map(function(s){return s.name;}), textStyle:{color:C.textSecondary}, top:0 },
+    tooltip:{ trigger:'axis' },
+    grid:{ left:46, right:14, top:34, bottom:30 },
+    xAxis:{ type:'category', data:dates, axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary, hideOverlap:true} },
+    yAxis:{ type:'value', min:0, max:9, interval:1, axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary}, splitLine:{lineStyle:{color:C.splitLine}} },
+    series:series
+  };
+  if(charts.strengthTrend){ charts.strengthTrend.dispose(); }
+  charts.strengthTrend = echarts.init(el);
+  charts.strengthTrend.setOption(opt);
+}
+
+function openSectorDrawer(sectorId){
+  var s = null; STR.data.sectors.forEach(function(x){ if(x.sector_id===sectorId) s=x; });
+  if(!s) return;
+  document.getElementById('strengthDrawerTitle').innerHTML = s.name
+    + ' <span style="font-size:12px;color:var(--text-secondary)">'+s.sector_code+' · '+s.member_count+'只 · 数据源:'+s.source+'</span>';
+  // 拐头复核日志
+  var log = (s.history||[]).filter(function(h){return h.turn_log;});
+  var logHtml = log.length? '' : '<div style="color:var(--text-secondary);font-size:12px">近期无明确拐头信号</div>';
+  log.slice(-12).reverse().forEach(function(h){
+    var col = h.turn_state==='UP'?'#e34d59':(h.turn_state==='DOWN'?'#1aad5e':'var(--text-secondary)');
+    logHtml += '<div style="border-left:3px solid '+col+';padding:4px 8px;margin:4px 0;font-size:12px">'
+      + '<b style="color:'+col+'">'+h.turn_state+'</b> '+h.date+' <span style="color:var(--text-secondary)">'+h.turn_log+'</span></div>';
+  });
+  document.getElementById('strengthTurnLog').innerHTML = logHtml;
+  // 成员表
+  var mem = (s.members||[]).slice().sort(function(a,b){ return (strSafe(b.level,0)||0)-(strSafe(a.level,0)||0); });
+  var mh = '<div class="table-wrap"><table><thead><tr><th>代码</th><th>名称</th><th>强弱级</th><th>涨跌%</th><th>MA就绪</th></tr></thead><tbody>';
+  mem.forEach(function(m){
+    var chg = strSafe(m.chg_pct,null);
+    var chgCol = (chg==null)?'var(--text-secondary)':(chg>=0?'#e34d59':'#1aad5e');
+    mh += '<tr onclick="openStockDetail(\''+m.code+'\','+s.sector_id+')" onmouseenter="previewStock(\''+m.code+'\','+s.sector_id+')" style="cursor:pointer">'
+      + '<td>'+m.code+'</td><td>'+m.name+'</td>'
+      + '<td><b>'+strSafe(m.level,'-')+'</b>'+(m.above!=null?'<span style="font-size:11px;color:var(--text-secondary)">('+m.above+'/8)</span>':'')+'</td>'
+      + '<td style="color:'+chgCol+'">'+(chg==null?'-':(chg>=0?'+':'')+chg+'%')+'</td>'
+      + '<td>'+(m.ma_ready?'✅':'⚠️')+'</td></tr>';
+  });
+  mh += '</tbody></table></div>';
+  document.getElementById('strengthMemberTable').innerHTML = mh;
+  document.getElementById('strengthKlinePreview').innerHTML = '';
+  document.getElementById('strengthDrawer').classList.add('open');
+  loadKlineBundle(sectorId, function(){});
+}
+
+function closeSectorDrawer(){ document.getElementById('strengthDrawer').classList.remove('open'); }
+
+function loadKlineBundle(sectorId, cb){
+  if(STR.kline[sectorId]){ cb(); return; }
+  fetch(BASE + 'strength_kline_'+sectorId+'.json')
+    .then(function(r){ return r.json(); })
+    .then(function(d){ STR.kline[sectorId]=d.members; cb(); })
+    .catch(function(e){ console.error('kline bundle', sectorId, e.message); cb(); });
+}
+
+function previewStock(code, sectorId){
+  var k = STR.kline[sectorId] && STR.kline[sectorId][code];
+  var el = document.getElementById('strengthKlinePreview');
+  if(!k){ el.innerHTML='<div style="color:var(--text-secondary);font-size:12px;padding:12px">K线分片加载中…</div>'; return; }
+  el.innerHTML='';
+  applyKline('strengthKlinePreview', k, 300);
+}
+
+function openStockDetail(code, sectorId){
+  loadKlineBundle(sectorId, function(){
+    var k = STR.kline[sectorId] && STR.kline[sectorId][code];
+    document.getElementById('strengthModalTitle').innerHTML = code+' '+(k?k.name:'')+' · 近'+((k&&k.date)?k.date.length:'')+'根日K';
+    var box = document.getElementById('strengthModalKline');
+    box.innerHTML='';
+    document.getElementById('strengthModal').classList.add('open');
+    if(k) applyKline('strengthModalKline', k, 440);
+  });
+}
+function closeStockDetail(){ document.getElementById('strengthModal').classList.remove('open'); }
+
+function applyKline(containerId, k, h){
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  var C = TC;
+  var dates = k.date;
+  var candle = dates.map(function(d,i){ return [k.o[i], k.c[i], k.l[i], k.h[i]]; });
+  var maSeries = STR_MA_NAMES.map(function(name, idx){
+    var col = STR_MA_COLORS[idx];
+    return { name:name, type:'line', data:k[name], showSymbol:false, connectNulls:true,
+      lineStyle:{width:1,color:col}, itemStyle:{color:col} };
+  });
+  var macdData = (k.macd||[]).map(function(v){ return {value:v, itemStyle:{color:(v>=0?C.red:C.green)}}; });
+  var opt = {
+    backgroundColor:'transparent', animation:false,
+    legend:{ data: STR_MA_NAMES.concat(['DIF','DEA','MACD']), textStyle:{color:C.textSecondary}, top:0, type:'scroll' },
+    tooltip:{ trigger:'axis', axisPointer:{type:'cross'} },
+    axisPointer:{ link:[{xAxisIndex:'all'}] },
+    grid:[ {left:52,right:14,top:30,height:'60%'}, {left:52,right:14,top:'78%',height:'16%'} ],
+    xAxis:[ {type:'category', data:dates, axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary,hideOverlap:true}, gridIndex:0},
+            {type:'category', data:dates, axisLine:{lineStyle:{color:C.border}}, axisLabel:{show:false}, gridIndex:1} ],
+    yAxis:[ {scale:true, axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary}, splitLine:{lineStyle:{color:C.splitLine}}, gridIndex:0},
+            {scale:true, axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary}, splitLine:{lineStyle:{color:C.splitLine}}, gridIndex:1} ],
+    series:[
+      { name:'K', type:'candlestick', data:candle, xAxisIndex:0, yAxisIndex:0,
+        itemStyle:{color:C.red, color0:C.green, borderColor:C.red, borderColor0:C.green} }
+    ].concat(maSeries).concat([
+      { name:'MACD', type:'bar', data:macdData, xAxisIndex:1, yAxisIndex:1 },
+      { name:'DIF', type:'line', data:k.dif, xAxisIndex:1, yAxisIndex:1, showSymbol:false, lineStyle:{width:1,color:C.primary} },
+      { name:'DEA', type:'line', data:k.dea, xAxisIndex:1, yAxisIndex:1, showSymbol:false, lineStyle:{width:1,color:'#e67e22'} }
+    ])
+  };
+  if(charts[containerId]){ charts[containerId].dispose(); }
+  charts[containerId] = echarts.init(el);
+  charts[containerId].setOption(opt);
+}
 
 function getCurrentPage() {
   var active = document.querySelector('.page.active');
