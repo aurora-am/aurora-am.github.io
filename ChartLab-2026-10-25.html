@@ -7929,7 +7929,7 @@ function strHoverKline(ev, code, sid){
   pop.style.top = top + 'px';
   pop.classList.add('show');
 
-  var k = STR.kline[sid] && STR.kline[sid][code];
+  var k = (STR.kline[sid] && STR.kline[sid][code]) || strFindKline(code);
   if(k){
     if(pop.getAttribute('data-code') !== code){
       applyKline('strKlinePopBody', strSliceK(k, 160), 360);
@@ -7939,13 +7939,17 @@ function strHoverKline(ev, code, sid){
     document.getElementById('strKlinePopBody').innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">K线加载中…</div>';
     pop.setAttribute('data-code', '');
     loadKlineBundle(sid, function(){
-      var k2 = STR.kline[sid] && STR.kline[sid][code];
-      if(k2 && pop.classList.contains('show')){
-        applyKline('strKlinePopBody', strSliceK(k2, 160), 360);
-        pop.setAttribute('data-code', code);
+      var k2 = (STR.kline[sid] && STR.kline[sid][code]) || strFindKline(code);
+      if(pop.classList.contains('show')){
+        if(k2){ applyKline('strKlinePopBody', strSliceK(k2, 160), 360); pop.setAttribute('data-code', code); }
+        else { document.getElementById('strKlinePopBody').innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">暂无该股 K 线（本地导入的新票需经本地管线补齐）</div>'; }
       }
     });
   }
+}
+function strFindKline(code){
+  for(var sid in STR.kline){ var b = STR.kline[sid]; if(b && b[code]) return b[code]; }
+  return null;
 }
 function strHideKline(){
   var pop = document.getElementById('strKlinePop');
@@ -7956,13 +7960,16 @@ function strHideKline(){
 function strOpenDetail(code, sid){
   var s = null; (STR.data.sectors||[]).forEach(function(x){ if(x.sector_id===sid) s=x; });
   loadKlineBundle(sid, function(){
-    var k = STR.kline[sid] && STR.kline[sid][code];
+    var k = (STR.kline[sid] && STR.kline[sid][code]) || strFindKline(code);
     document.getElementById('strKlineModalTitle').innerHTML = '<b>'+strEsc(code)+'</b> '+strEsc(strNameOf(code))
       + ' <span style="font-weight:400;color:var(--text-secondary)">· '+(s?strEsc(s.name):'')+' · 近 200 根日K + MACD</span>';
     var box = document.getElementById('strKlineModalBody');
     box.innerHTML = '';
     document.getElementById('strKlineModal').classList.add('open');
-    setTimeout(function(){ if(k) applyKline('strKlineModalBody', strSliceK(k, 200), 480); }, 30);
+    setTimeout(function(){
+      if(k) applyKline('strKlineModalBody', strSliceK(k, 200), 480);
+      else box.innerHTML = '<div style="padding:24px;color:var(--text-secondary)">暂无该股 K 线（本地导入的新票需经本地管线补齐）</div>';
+    }, 30);
   });
 }
 function strCloseDetail(){ document.getElementById('strKlineModal').classList.remove('open'); }
