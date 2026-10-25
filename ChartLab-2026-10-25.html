@@ -7587,6 +7587,7 @@ function restoreDark() {
 /* ===== 板块强弱雷达（JS模块插入） ===== */
 /* ===================== 缠论板块强弱雷达 ===================== */
 var STR = { data: null, kline: {}, loading: false };
+var STR_DATA_BASE = 'wbdata/';   // 板块强弱数据根（与 WBData 内部的 BASE 同值，但独立声明；WBData 的 BASE 在 IIFE 内非全局）
 var STR_TREND_DATES = null;
 var STR_MA_NAMES = ['MA5','MA13','MA21','MA34','MA55','MA89','MA144','MA233'];
 var STR_MA_COLORS = ['#e34d59','#1aad5e','#4995ff','#f5a623','#9b59b6','#16a085','#e67e22','#7f8c8d'];
@@ -7600,7 +7601,7 @@ function renderStrengthRadar(){
   if(STR.loading) return;
   STR.loading = true;
   wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-secondary)">加载板块强弱数据…</div>';
-  fetch(BASE + 'strength_data.json')
+  fetch(STR_DATA_BASE + 'strength_data.json')
     .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     .then(function(d){ STR.data=d; STR.loading=false; renderStrengthBoard(); })
     .catch(function(e){ STR.loading=false; wrap.innerHTML='<div style="padding:24px;color:#e34d59">板块强弱数据加载失败：'+e.message+'<br>请稍后重试，或确认 strength_data.json 已发布到 mimihub.cloud/wbdata/</div>'; });
@@ -7731,7 +7732,7 @@ function closeSectorDrawer(){ document.getElementById('strengthDrawer').classLis
 
 function loadKlineBundle(sectorId, cb){
   if(STR.kline[sectorId]){ cb(); return; }
-  fetch(BASE + 'strength_kline_'+sectorId+'.json')
+  fetch(STR_DATA_BASE + 'strength_kline_'+sectorId+'.json')
     .then(function(r){ return r.json(); })
     .then(function(d){ STR.kline[sectorId]=d.members; cb(); })
     .catch(function(e){ console.error('kline bundle', sectorId, e.message); cb(); });
