@@ -1267,9 +1267,42 @@ body.wb-readonly .wb-datenav{opacity:1}
     #page-strength .strength-modal-body{padding:14px 16px;font-size:13px;line-height:1.95;max-height:70vh;overflow:auto;color:var(--text)}
     #page-strength .strength-modal-head button{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-secondary)}
 
+    /* 趋势图自定义 tooltip（三模式：拐点 > 单线 > 榜单） */
+    #strTrendTip{position:fixed;left:0;top:0;z-index:1800;display:none;pointer-events:none;
+      min-width:172px;max-width:330px;background:var(--card-bg);border:1px solid var(--card-border);
+      border-radius:var(--radius-sm);box-shadow:var(--shadow-hover);padding:9px 11px;font-size:12px;color:var(--text);
+      animation:strTipIn .12s ease-out}
+    @keyframes strTipIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+    #strTrendTip .stp-h{display:flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;margin-bottom:6px;white-space:nowrap}
+    #strTrendTip .stp-h i{width:8px;height:8px;border-radius:50%;flex:0 0 8px;display:inline-block}
+    #strTrendTip .stp-h em{font-style:normal;font-weight:400;color:var(--text-light);font-size:11px;margin-left:auto}
+    #strTrendTip .stp-r{display:flex;justify-content:space-between;gap:14px;line-height:1.85;color:var(--text-secondary);white-space:nowrap}
+    #strTrendTip .stp-r b{color:var(--text);font-variant-numeric:tabular-nums}
+    #strTrendTip .stp-r b.big{font-size:14px}
+    #strTrendTip .stp-badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600;line-height:1.7}
+    #strTrendTip .stp-note{margin-top:5px;padding-top:5px;border-top:1px dashed var(--card-border);color:var(--text-light);font-size:11px;line-height:1.65;white-space:normal}
+    #strTrendTip .stp-list{display:flex;flex-direction:column;gap:1px;max-height:268px;overflow:hidden}
+    #strTrendTip .stp-li{display:flex;align-items:center;gap:7px;line-height:1.95;font-size:12px;white-space:nowrap}
+    #strTrendTip .stp-li u{width:16px;flex:0 0 16px;text-align:right;text-decoration:none;color:var(--text-light);font-size:11px;font-variant-numeric:tabular-nums}
+    #strTrendTip .stp-li i{width:7px;height:7px;border-radius:50%;flex:0 0 7px;display:inline-block}
+    #strTrendTip .stp-li span{flex:1;overflow:hidden;text-overflow:ellipsis;max-width:132px}
+    #strTrendTip .stp-li b{font-variant-numeric:tabular-nums;font-weight:600}
+    #strTrendTip .stp-tag{font-size:10px;padding:0 4px;border-radius:4px;line-height:1.6}
+    #strTrendTip .stp-more{color:var(--text-light);font-size:11px;line-height:1.9;text-align:center;border-top:1px dashed var(--card-border);margin-top:4px;padding-top:4px}
+
+    /* 历史日期查看提示条 */
+    #page-strength .str-viewbar{display:none;align-items:center;gap:10px;font-size:12px;padding:6px 11px;margin:0 0 8px;
+      border:1px solid var(--primary);border-radius:var(--radius-sm);background:var(--primary-light);color:var(--text)}
+    #page-strength .str-viewbar.show{display:flex}
+    #page-strength .str-viewbar b{color:var(--primary)}
+    #page-strength .str-viewbar button{margin-left:auto;font-size:11.5px;padding:3px 10px;border-radius:999px;cursor:pointer;
+      border:1px solid var(--primary);background:var(--primary);color:#fff;font-weight:600}
+    #page-strength .str-viewbar button:hover{background:var(--primary-dark)}
+
     @media(max-width:768px){
       .str-kline-pop{width:94vw}
       #page-strength .strength-actions{width:100%}
+      #strTrendTip{max-width:78vw}
     }
   </style>
 
@@ -1286,11 +1319,15 @@ body.wb-readonly .wb-datenav{opacity:1}
       </div>
       <div class="strength-sub-h">板块强弱趋势（滚轮缩放 · 框选放大 · 拖拽平移）</div>
       <div id="strengthTrendChart" style="height:380px"></div>
-      <div class="strength-sub-h">板块总榜（点击行内展开成分股与拐头复核）</div>
+      <div class="strength-sub-h">板块总榜（点击行内展开成分股与拐头复核 · 点趋势图任意日期可回看当日榜单）</div>
+      <div id="strengthViewBar" class="str-viewbar"></div>
       <div id="strengthBoardTable"></div>
       <div class="disclaimer">缠论 8 条斐波那契均线（MA5/13/21/34/55/89/144/233）站上数 → 个股 9 级强弱 → 板块等权算术平均。拐头判定复用已修复 C1 规则（窗口累计增量≥0.3，允许单日回落）。量能采用成交量代理。红涨绿跌；结论仅供参考，不构成投资建议。</div>
     </div>
   </div>
+
+  <!-- 趋势图自定义 tooltip（拐点 / 单线 / 当日榜单 三模式） -->
+  <div id="strTrendTip"></div>
 
   <!-- 悬浮 K 线浮窗（仅 hover 预览，不点击跳转） -->
   <div id="strKlinePop" class="str-kline-pop">
@@ -7655,6 +7692,14 @@ var STR = { data: null, kline: {}, loading: false, openSid: null, trend: null, m
 var STR_DATA_BASE = 'wbdata/';   // 板块强弱数据根（与 WBData 内部 BASE 同值，但独立声明）
 var STR_TREND_DATES = null;
 var STR_SERIES_TURN = [];        // [{name, pts:[{idx,date,value,state}]}]
+var STR_TREND_VALS = {};         // name -> [values] 对齐 STR_TREND_DATES
+var STR_TREND_COLOR = {};        // name -> 折线颜色
+var STR_TREND_TURN = {};         // name -> { date: {state, log, value} }
+var STR_TURN_VISIBLE = [];       // 当前实际绘制的拐点（降采样后）[{name,idx,date,value,state}]
+var STR_TREND_SECS = [];         // 当前参与绘制的板块（按渲染顺序）
+var STR_LEGEND_SEL = {};         // 图例勾选状态
+STR.hoverPx = null;              // 最近一次悬浮像素，供缩放/平移后重算
+STR.viewDate = null;             // 历史日期查看（点击趋势图触发）
 var STR_MA_NAMES = ['MA5','MA13','MA21','MA34','MA55','MA89','MA144','MA233'];
 var STR_MA_COLORS = ['#e34d59','#1aad5e','#4995ff','#f5a623','#9b59b6','#16a085','#e67e22','#7f8c8d'];
 var STR_DEFAULT_DAYS = 22;       // 默认只展示近 1 个月（约 22 个交易日）
@@ -7709,16 +7754,65 @@ function renderStrengthBoard(){
     + ' · <span style="color:var(--text-secondary)">量能：'+(d.volume_proxy?'成交量代理(成交额未全量覆盖)':'成交额')+'</span>'
     + ' · <span style="color:var(--text-secondary)">图表默认近 '+STR_DEFAULT_DAYS+' 个交易日 · 红涨绿跌 · 仅供参考</span></div>' + tagHtml;
 
-  var secs = (d.sectors||[]).slice().sort(function(a,b){ return (strSafe(b.latest&&b.latest.strength_avg,0)||0)-(strSafe(a.latest&&a.latest.strength_avg,0)||0); });
+  var byLatest = (d.sectors||[]).slice().sort(function(a,b){ return (strSafe(b.latest&&b.latest.strength_avg,0)||0)-(strSafe(a.latest&&a.latest.strength_avg,0)||0); });
+  STR.secsLatest = byLatest;
+  /* 数据刷新后原来选中的历史日期可能已不在窗口内 → 自动回最新 */
+  if(STR.viewDate && !(byLatest[0] && strHistMap(byLatest[0])[STR.viewDate])) STR.viewDate = null;
+  strUpdateViewBar();
+  strRenderBoardTable();
+  renderStrengthTrend(byLatest);
+  strPreloadBundles();
+}
+
+/* ---------- 点击趋势图 → 总榜切到历史日期 ---------- */
+function strHistMap(s){
+  if(!s._hm){
+    var m = {};
+    (s.history||[]).forEach(function(h){ m[h.date] = h; });
+    s._hm = m;
+  }
+  return s._hm;
+}
+function strRowData(s){
+  if(!STR.viewDate) return s.latest || {};
+  var h = strHistMap(s)[STR.viewDate];
+  if(!h) return { strength_avg:null };
+  return { strength_avg:h.strength_avg, turn_state:h.turn_state, phase:h.phase,
+           up:h.up, down:h.down, flat:h.flat, up_ratio:h.up_ratio, delta_3d:h.delta_3d };
+}
+function strUpdateViewBar(){
+  var bar = document.getElementById('strengthViewBar');
+  if(!bar) return;
+  if(!STR.viewDate){ bar.className = 'str-viewbar'; bar.innerHTML = ''; return; }
+  bar.className = 'str-viewbar show';
+  bar.innerHTML = '正在回看 <b>' + strFmtDate(STR.viewDate) + '</b> 的板块强弱排名（共 '
+    + (STR.secsLatest||[]).length + ' 个板块）· 成分股明细仍为最新快照'
+    + '<button onclick="strSetViewDate(null)">回到最新</button>';
+}
+function strSetViewDate(dt){
+  var latest = (STR.data && STR.data.latest_date) ? String(STR.data.latest_date) : null;
+  if(dt && latest && String(dt) === latest) dt = null;   /* 点最新一天 = 回到实时 */
+  if((dt || null) === (STR.viewDate || null)) return;
+  STR.viewDate = dt || null;
+  strUpdateViewBar();
+  strRenderBoardTable();
+}
+
+function strRenderBoardTable(){
+  var d = STR.data; if(!d) return;
+  STR.openSid = null;
+  var secs = (STR.secsLatest||[]).slice().sort(function(a,b){
+    return (strSafe(strRowData(b).strength_avg, 0)||0) - (strSafe(strRowData(a).strength_avg, 0)||0);
+  });
   STR.secsSorted = secs;
   var cols = ['板块','强弱分','拐头','阶段','成分股数','上升只数','下降只数','持平只数','上升占比','3日增量'];
   var html = '<div class="str-scroll"><table class="str-table"><thead><tr>'
     + cols.map(function(c){ return '<th>'+c+'</th>'; }).join('')
     + '</tr></thead><tbody>';
   secs.forEach(function(s){
-    var L = s.latest || {};
+    var L = strRowData(s);
     var upPct = (L.up_ratio!=null) ? (Math.round(L.up_ratio*100)+'%') : '-';
-    var d3 = (L.delta_3d!=null) ? ((L.delta_3d>=0?'+':'')+L.delta_3d.toFixed(2)) : '-';
+    var d3 = (L.delta_3d!=null) ? ((L.delta_3d>=0?'+':'')+Number(L.delta_3d).toFixed(2)) : '-';
     var turn = L.turn_state || '-';
     var tCol = turn==='UP' ? strUp() : (turn==='DOWN' ? strDn() : 'var(--text-secondary)');
     var d3Col = d3==='-' ? 'var(--text-secondary)' : (d3.indexOf('+')>=0 ? strUp() : strDn());
@@ -7738,8 +7832,6 @@ function renderStrengthBoard(){
   });
   html += '</tbody></table></div>';
   document.getElementById('strengthBoardTable').innerHTML = html;
-  renderStrengthTrend(secs);
-  strPreloadBundles();
 }
 
 /* ---------- 行内抽屉：互斥展开 / 再次点击收起 ---------- */
@@ -7774,9 +7866,12 @@ function strRenderDrawer(sid, inner){
   var s = null; (STR.data.sectors||[]).forEach(function(x){ if(x.sector_id===sid) s=x; });
   if(!s) return;
   var isUser = !!s._user;
+  var vHint = STR.viewDate
+    ? '<div class="str-empty" style="color:var(--primary);font-weight:600">正在回看 '+strFmtDate(STR.viewDate)+' 的榜单 · 下方拐头日志为完整历史，成分股明细仍为最新快照</div>'
+    : '';
   /* ① 拐头复核日志 */
   var log = (s.history||[]).filter(function(h){ return h.turn_log; }).slice(-15).reverse();
-  var h = '<div class="str-drawer-h">拐头复核日志 <span style="font-weight:400;color:var(--text-light);font-size:11px">'+strEsc(s.sector_code||'')+' · '+strNum(s.member_count)+' 只 · 源:'+strEsc(s.source||'-')+'</span></div>';
+  var h = vHint + '<div class="str-drawer-h">拐头复核日志 <span style="font-weight:400;color:var(--text-light);font-size:11px">'+strEsc(s.sector_code||'')+' · '+strNum(s.member_count)+' 只 · 源:'+strEsc(s.source||'-')+'</span></div>';
   if(!log.length){
     h += '<div class="str-empty">'+(isUser?'本地导入板块暂无历史拐头（导出 JSON 并经本地管线重算后补齐）':'近期无明确拐头信号')+'</div>';
   } else {
@@ -7822,13 +7917,26 @@ function renderStrengthTrend(secs){
   var el = document.getElementById('strengthTrendChart');
   if(!el) return;
   var withHist = (secs||[]).filter(function(s){ return (s.history||[]).length > 0; });
-  if(!withHist.length){ el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">暂无历史趋势数据（本地导入板块需经本地管线重算后才绘制）</div>'; return; }
+  if(!withHist.length){ el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">暂无历史趋势数据（本地导入板块需经本地管线重算后才绘制）</div>'; strTipHide(); return; }
   var dates = (withHist[0].history||[]).map(function(h){ return h.date; });
   STR_TREND_DATES = dates;
   STR_SERIES_TURN = [];
+  STR_TREND_VALS = {};
+  STR_TREND_TURN = {};
+  STR_TREND_COLOR = {};
+  STR_TURN_VISIBLE = [];
+  STR_TREND_SECS = withHist;
+  STR_LEGEND_SEL = {};
+  STR.hoverPx = null;
   var series = withHist.map(function(s){
-    var hmap = {}; (s.history||[]).forEach(function(h){ hmap[h.date]=h; });
+    var hmap = {}, tmap = {};
+    (s.history||[]).forEach(function(h){
+      hmap[h.date] = h;
+      if(h.turn_log) tmap[h.date] = { state:h.turn_state, log:h.turn_log, value:h.strength_avg };
+    });
     var hData = dates.map(function(dt){ var h=hmap[dt]; return h ? h.strength_avg : null; });
+    STR_TREND_VALS[s.name] = hData;
+    STR_TREND_TURN[s.name] = tmap;
     var pts = [];
     (s.history||[]).forEach(function(h){
       if(h.turn_log){
@@ -7856,7 +7964,8 @@ function renderStrengthTrend(secs){
       }
     },
     legend:{ data:withHist.map(function(s){ return s.name; }), textStyle:{color:C.textSecondary}, top:0, left:0 },
-    tooltip:{ trigger:'axis', axisPointer:{ type:'line', lineStyle:{color:C.border} } },
+    /* tooltip 交给自建 DOM 实现：拐点 > 单线 > 当日榜单，三档互斥 */
+    tooltip:{ show:false },
     grid:{ left:46, right:16, top:42, bottom:54 },
     xAxis:{ type:'category', data:dates, boundaryGap:false,
       axisLine:{lineStyle:{color:C.border}}, axisLabel:{color:C.textSecondary, hideOverlap:true} },
@@ -7876,9 +7985,178 @@ function renderStrengthTrend(secs){
   if(charts.strengthTrend){ charts.strengthTrend.dispose(); }
   charts.strengthTrend = echarts.init(el);
   charts.strengthTrend.setOption(opt);
+  /* 颜色取自 echarts 实际调色板，保证 tooltip 圆点与折线一致 */
+  var pal = [];
+  try { pal = charts.strengthTrend.getOption().color || []; } catch(e){}
+  withHist.forEach(function(s,i){ STR_TREND_COLOR[s.name] = pal.length ? pal[i % pal.length] : '#888'; });
   charts.strengthTrend.on('dataZoom', function(){ strUpdateTurnMarks(); });
+  strBindTrendHover(charts.strengthTrend);
   strUpdateTurnMarks();
 }
+
+/* ==================== 趋势图 tooltip：三模式 ==================== */
+function strAlpha(hex, a){
+  var h = String(hex||'').replace('#','');
+  if(h.length===3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  if(h.length!==6) return 'rgba(26,115,232,'+a+')';
+  return 'rgba('+parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16)+','+a+')';
+}
+function strFmtDate(d){
+  d = String(d||'');
+  return d.length===8 ? (d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8)) : d;
+}
+function strTipHide(){
+  var el = document.getElementById('strTrendTip');
+  if(el){ el.style.display='none'; el.innerHTML=''; }
+}
+function strTipShow(html, cx, cy){
+  var el = document.getElementById('strTrendTip');
+  if(!el || !html) return;
+  el.innerHTML = html;
+  el.style.display = 'block';
+  el.style.left = '0px'; el.style.top = '0px';
+  var w = el.offsetWidth, h = el.offsetHeight;
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var x = cx + 18, y = cy + 14;
+  if(x + w > vw - 10) x = cx - w - 18;         /* 右侧越界 → 翻到左侧，避免遮住线条 */
+  if(x < 10) x = 10;
+  if(y + h > vh - 10) y = cy - h - 14;          /* 下方越界 → 翻到上方 */
+  if(y < 10) y = 10;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+}
+function strInGrid(ch, x, y){
+  try { return ch.containPixel({gridIndex:0}, [x, y]); } catch(e){ return false; }
+}
+function strDataToPix(ch, idx, val){
+  try {
+    var p = ch.convertToPixel({seriesIndex:0}, [idx, val]);
+    if(p && isFinite(p[0]) && isFinite(p[1])) return p;
+  } catch(e){}
+  return null;
+}
+function strPixToIdx(ch, px){
+  try {
+    var v = ch.convertFromPixel({seriesIndex:0}, [px, 0]);
+    if(v && isFinite(v[0])) return Math.round(v[0]);
+  } catch(e){}
+  return -1;
+}
+function strTurnLabel(st){ return st==='UP' ? '真拐头向上' : '真拐头向下'; }
+
+function strTipTurnHTML(tp){
+  var up = tp.state==='UP';
+  var col = up ? strUp() : strDn();
+  var log = (STR_TREND_TURN[tp.name]||{})[tp.date];
+  var val = tp.value==null ? '-' : Number(tp.value).toFixed(2);
+  var h = '<div class="stp-h"><i style="background:'+col+'"></i>'+strEsc(tp.name)+'<em>'+strFmtDate(tp.date)+'</em></div>'
+        + '<div class="stp-r"><span>拐点类型</span><b><span class="stp-badge" style="background:'+strAlpha(col,.12)+';color:'+col+'">'+strTurnLabel(tp.state)+'</span></b></div>'
+        + '<div class="stp-r"><span>当日强弱分</span><b class="big" style="color:'+col+'">'+val+'</b></div>';
+  if(log && log.log) h += '<div class="stp-note">'+strEsc(log.log)+'</div>';
+  return h;
+}
+function strTipLineHTML(name, color, dt, val, turn){
+  var st = turn && turn.state ? turn.state : null;
+  var col = st ? (st==='UP' ? strUp() : strDn()) : 'var(--text-secondary)';
+  var h = '<div class="stp-h"><i style="background:'+color+'"></i>'+strEsc(name)+'<em>'+strFmtDate(dt)+'</em></div>'
+        + '<div class="stp-r"><span>强弱分</span><b class="big" style="color:'+color+'">'+Number(val).toFixed(2)+'</b></div>'
+        + '<div class="stp-r"><span>拐头状态</span><b style="color:'+col+'">'+(st ? strTurnLabel(st) : '无')+'</b></div>';
+  return h;
+}
+function strTipRankHTML(dt, rows){
+  var LIMIT = 10;
+  var h = '<div class="stp-h"><i style="background:var(--primary)"></i>'+strFmtDate(dt)+' · 强弱排名<em>共 '+rows.length+' 个</em></div><div class="stp-list">';
+  rows.slice(0, LIMIT).forEach(function(r, i){
+    var tg = '';
+    if(r.turn && r.turn.state){
+      var c = r.turn.state==='UP' ? strUp() : strDn();
+      tg = '<span class="stp-tag" style="background:'+strAlpha(c,.12)+';color:'+c+'">'+(r.turn.state==='UP'?'上拐':'下拐')+'</span>';
+    }
+    h += '<div class="stp-li"><u>'+(i+1)+'</u><i style="background:'+r.color+'"></i><span>'+strEsc(r.name)+'</span>'+tg+'<b>'+r.v.toFixed(2)+'</b></div>';
+  });
+  h += '</div>';
+  if(rows.length > LIMIT) h += '<div class="stp-more">还有 '+(rows.length-LIMIT)+' 个板块省略</div>';
+  h += '<div class="stp-more" style="border:none;margin-top:1px;padding-top:0">点击图表锁看该日榜单</div>';
+  return h;
+}
+
+/* 单次悬浮判定：拐点标记 > 单线条 > 空白处榜单 */
+function strTrendHoverAt(ch, px){
+  if(!px || !STR_TREND_DATES || !STR_TREND_DATES.length){ strTipHide(); return; }
+  if(!strInGrid(ch, px.x, px.y)){ strTipHide(); return; }
+  var idx = strPixToIdx(ch, px.x);
+  if(idx < 0 || idx >= STR_TREND_DATES.length){ strTipHide(); return; }
+  var dt = STR_TREND_DATES[idx];
+
+  /* ① 水滴拐点：命中即只报这一个拐点，不再走下面两档 */
+  var hit = null, hitD = 1e9;
+  for(var i=0;i<STR_TURN_VISIBLE.length;i++){
+    var tp = STR_TURN_VISIBLE[i];
+    var xy = strDataToPix(ch, tp.idx, tp.value);
+    if(!xy) continue;
+    var dx = Math.abs(xy[0] - px.x), dy = px.y - xy[1];
+    if(dx <= 13 && dy >= -27 && dy <= 8){          /* pin 主体画在锚点上方 */
+      var d = dx + Math.abs(dy + 10);
+      if(d < hitD){ hitD = d; hit = tp; }
+    }
+  }
+  if(hit){ strTipShow(strTipTurnHTML(hit), px.cx, px.cy); return; }
+
+  /* ② 单条折线：取垂直距离最近的一条，够近才算“落在线上” */
+  var best = null, bestDy = 1e9;
+  STR_TREND_SECS.forEach(function(s){
+    if(STR_LEGEND_SEL[s.name] === false) return;
+    var arr = STR_TREND_VALS[s.name]; if(!arr) return;
+    var v = arr[idx]; if(v == null) return;
+    var p2 = strDataToPix(ch, idx, v); if(!p2) return;
+    var dy2 = Math.abs(p2[1] - px.y);
+    if(dy2 < bestDy){ bestDy = dy2; best = { s:s, v:v }; }
+  });
+  if(best && bestDy <= 9){
+    strTipShow(strTipLineHTML(best.s.name, STR_TREND_COLOR[best.s.name]||'#888', dt, best.v,
+      (STR_TREND_TURN[best.s.name]||{})[dt]), px.cx, px.cy);
+    return;
+  }
+
+  /* ③ 空白处：当天当前可见板块排行榜 */
+  var rows = [];
+  STR_TREND_SECS.forEach(function(s){
+    if(STR_LEGEND_SEL[s.name] === false) return;
+    var arr = STR_TREND_VALS[s.name]; if(!arr) return;
+    var v = arr[idx]; if(v == null) return;
+    rows.push({ name:s.name, v:v, color:STR_TREND_COLOR[s.name]||'#888',
+                turn:(STR_TREND_TURN[s.name]||{})[dt] });
+  });
+  if(!rows.length){ strTipHide(); return; }   /* 该日无任何数据 → 不弹 */
+  rows.sort(function(a,b){ return b.v - a.v; });
+  strTipShow(strTipRankHTML(dt, rows), px.cx, px.cy);
+}
+
+function strBindTrendHover(ch){
+  var zr = ch.getZr();
+  zr.on('mousemove', function(e){
+    var nv = e.event || {};
+    STR.hoverPx = { x:e.offsetX, y:e.offsetY, cx:nv.clientX||0, cy:nv.clientY||0 };
+    strTrendHoverAt(ch, STR.hoverPx);
+  });
+  zr.on('globalout', function(){ STR.hoverPx = null; strTipHide(); });
+  /* 点击图表任意日期 → 下方总榜切到该日 */
+  zr.on('click', function(e){
+    if(!strInGrid(ch, e.offsetX, e.offsetY)) return;
+    var idx = strPixToIdx(ch, e.offsetX);
+    if(idx < 0 || idx >= (STR_TREND_DATES||[]).length) return;
+    strSetViewDate(STR_TREND_DATES[idx]);
+  });
+  ch.on('legendselectchanged', function(p){
+    STR_LEGEND_SEL = p.selected || {};
+    if(STR.hoverPx) strTrendHoverAt(ch, STR.hoverPx);
+  });
+  /* 缩放/平移后按当前鼠标位置重算，日期跟手 */
+  ch.on('dataZoom', function(){
+    if(STR.hoverPx) setTimeout(function(){ strTrendHoverAt(ch, STR.hoverPx); }, 0);
+  });
+}
+
 
 /* 按当前缩放窗口自适应拐点密度：放大 → 保留全部；缩小 → 等距降采样 */
 function strUpdateTurnMarks(){
@@ -7896,6 +8174,7 @@ function strUpdateTurnMarks(){
   var target = 12;
   var gap = Math.max(1, Math.ceil(visible/target));
   var seriesOpt = [];
+  var visible = [];
   STR_SERIES_TURN.forEach(function(sr){
     var kept = [], lastIdx = -1e9;
     for(var i=0;i<sr.pts.length;i++){
@@ -7905,9 +8184,11 @@ function strUpdateTurnMarks(){
       lastIdx = p.idx;
       kept.push({ coord:[p.date, p.value], value:p.value, state:p.state,
         itemStyle:{ color: p.state==='UP' ? strUp() : strDn() } });
+      visible.push({ name:sr.name, idx:p.idx, date:p.date, value:p.value, state:p.state });
     }
     seriesOpt.push({ markPoint:{ data:kept } });
   });
+  STR_TURN_VISIBLE = visible;   /* 供 tooltip 做拐点命中检测，与实际绘制点严格一致 */
   try { ch.setOption({ series:seriesOpt }); } catch(e){}
 }
 
