@@ -1336,11 +1336,7 @@ body.wb-readonly .wb-datenav{opacity:1}
     <div class="card-body">
       <div class="strength-toolbar">
         <div id="strengthMeta" class="strength-meta">加载中…</div>
-        <div class="strength-actions">
-          <button class="strength-btn primary" onclick="strOpenImport()">＋ 导入成分</button>
-          <button class="strength-btn" onclick="downloadCsvTemplate()">⬇ 下载CSV模板</button>
-          <button class="strength-btn" onclick="showImportHelp()">❓ 导入器说明</button>
-        </div>
+        <!-- WB_PATCH: csv importer removed 2026-10-26（按用户要求移除导入器按钮） -->
       </div>
       <div class="strength-sub-h">板块强弱趋势（滚轮缩放 · 框选放大 · 拖拽平移）</div>
       <div id="strengthTrendChart" style="height:380px"></div>
@@ -1360,25 +1356,7 @@ body.wb-readonly .wb-datenav{opacity:1}
     <div id="strKlinePopBody" style="height:360px"></div>
   </div>
 
-  <!-- 导入成分 -->
-  <div id="strImportModal" class="strength-modal" onclick="if(event.target===this)strCloseImport()">
-    <div class="strength-modal-box">
-      <div class="strength-modal-head"><div>＋ 导入板块成分</div><button onclick="strCloseImport()">✕</button></div>
-      <div class="strength-modal-body">
-        <p class="str-import-tip">粘贴 CSV（列：板块名称,股票代码,股票名称）或选择 .csv 文件。导入后立即在本页新增板块与成分股；个股若已有强弱数据则直接复用，新票标注「待补数据」。<br><b>说明：</b>本页是静态站点，浏览器导入仅当前设备生效、可导出 JSON；要写入正式数据库（sector / sector_member 表）请用「导入器说明」中的本地命令。</p>
-        <div class="str-import-row">
-          <input type="file" id="strImportFile" class="str-import-file" accept=".csv,text/csv" onchange="strImportPickFile(this)">
-          <span id="strImportFileHint" class="str-import-file"></span>
-        </div>
-        <textarea id="strImportText" class="str-import-ta" placeholder="板块名称,股票代码,股票名称&#10;示例板块,002472,双环传动"></textarea>
-        <div class="str-import-row" style="margin-top:12px;justify-content:flex-end">
-          <button class="strength-btn" onclick="strCloseImport()">取消</button>
-          <button class="strength-btn primary" onclick="strDoImport()">导入并刷新</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <!-- WB_PATCH: importer modal removed 2026-10-26 -->
   <!-- 个股 K 线详情（点击名称打开，200 根 + MACD） -->
   <div id="strKlineModal" class="strength-modal" onclick="if(event.target===this)strCloseDetail()">
     <div class="strength-modal-box" style="max-width:1080px">
@@ -1387,27 +1365,7 @@ body.wb-readonly .wb-datenav{opacity:1}
     </div>
   </div>
 
-  <!-- 导入器说明 -->
-  <div id="strengthImportHelp" class="strength-modal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="strength-modal-box">
-      <div class="strength-modal-head"><div>📥 本地 CSV 导入器说明（不做浏览器上传）</div><button onclick="document.getElementById('strengthImportHelp').classList.remove('open')">✕</button></div>
-      <div class="strength-modal-body">
-        <p><b>一、CSV 格式（三列，UTF-8）</b><br>
-        <code>板块名称,股票代码,股票名称</code><br>
-        示例：<code>机器人概念,002472,双环传动</code>。板块名称需与看板板块一致；若 DB 中不存在，会自动新建为「手工概念」板块，不会丢数据。股票代码 6 位，首位 6 归 SH，其余归 SZ。</p>
-        <p><b>二、本地执行（隔离 venv）</b><br>
-        在 <code>D:\WorkBuddy\板块强弱</code> 目录下运行：<br>
-        <code>python import_csv.py --csv 你的文件.csv</code><br>
-        优先用会话内 NeoData MCP 落盘文件：加 <code>--neodata-dir 目录</code>；<br>
-        只校验不写库：加 <code>--dry</code>。</p>
-        <p><b>三、覆盖式更新规则</b><br>
-        该板块旧成分置为历史（is_current=0），写入新成分并标记「人工CSV导入」；K 线按股票代码保留不删，仅补齐缺失新票（NeoData 优先，akshare 前复权兜底）；随后自动全量重算该板块强弱快照并写 import_log。</p>
-        <p><b>四、刷新线上数据</b><br>
-        导入完成后依次执行 <code>python update_daily.py</code> 与 <code>python export_json.py</code>，再发布即可在线上看到最新结果。</p>
-        <p style="color:var(--text-secondary)">说明：页面无服务端，绝不接收浏览器上传；所有导入在本地终端完成，页面仅提供模板下载与说明。</p>
-      </div>
-    </div>
-  </div>
+<!-- WB_PATCH: import help modal removed 2026-10-26 -->
 </div>
 
 <div class="page" id="page-tthelper">
