@@ -6024,6 +6024,47 @@ function ensureOverseas() {
     if (_ovRetry < 30) { _ovRetry++; setTimeout(ensureOverseas, 30000); }
   });
 }
+var _shKlFetching = false, _shKlLast = 0;
+/* 上证60日K线自愈：sh60d 只由每日分片提供，盘中实时模式无分片 → K线图空到收盘。
+   主通道：东财 push2his 指数日K（走 LiveFeed.jsonpAny 多主机互备+熔断）；兜底：腾讯指数日K。每 60 秒节流重试，含今日实时bar。 */
+function ensureShKline() {
+  if (_shKlFetching) return;
+  if (DATA.kline && DATA.kline.sh60d && DATA.kline.sh60d.dates && DATA.kline.sh60d.dates.length) return;
+  if (Date.now() - _shKlLast < 60000) return;
+  _shKlLast = Date.now(); _shKlFetching = true;
+  function _applyRows(rows, mode) {
+    // mode 'em': "日期,开,收,高,低,量,额" ｜ mode 'tx': [日期,开,收,高,低,量]
+    var dates = [], ohlc = [], vols = [];
+    rows.forEach(function (r) {
+      var p = (mode === 'em') ? String(r).split(',') : r;
+      dates.push(mode === 'em' ? p[0] : p[0]);
+      ohlc.push([+p[1], +p[2], +p[4], +p[3]]);   // [开,收,低,高] 与分片口径一致
+      vols.push(+p[5] || 0);
+    });
+    DATA.kline = DATA.kline || { sh60d: { dates: [], ohlc: [], volumes: [] } };
+    DATA.kline.sh60d = { dates: dates, ohlc: ohlc, volumes: vols };
+    try { renderPageCharts(getCurrentPage()); } catch (e) {}
+  }
+  var emUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.000001&klt=101&fqt=0&lmt=70&end=20500101'
+            + '&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57&ut=fa5fd1943c7b386f172d6893dbfba10b';
+  var pEm = (LiveFeed && LiveFeed.jsonpAny) ? LiveFeed.jsonpAny([emUrl], 9000) : Promise.reject(new Error('no-jsonp'));
+  pEm.then(function (j) {
+    _shKlFetching = false;
+    var rows = j && j.data && j.data.klines;
+    if (!rows || rows.length < 30) throw new Error('kline-empty');
+    _applyRows(rows, 'em');
+  }).catch(function () {
+    // 兜底：腾讯指数日K（双模式 JSONP，WAF 偶发收紧时可能失败，静默等下一轮）
+    if (typeof chanJsonp !== 'function') { _shKlFetching = false; return; }
+    chanJsonp('https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=sh000001,day,,,70,').then(function (j) {
+      _shKlFetching = false;
+      var d = j && j.data && (j.data.sh000001 || j.data.sz000001);
+      var rows = (d && (d.qfqday || d.day)) || null;
+      if (!rows || rows.length < 30) throw new Error('kline-empty');
+      _applyRows(rows, 'tx');
+    }).catch(function () { _shKlFetching = false; });
+  });
+}
 function renderPreMarket() {
   var ovWrap = document.getElementById('overseasMini');
   if (!ovWrap) return;
@@ -10793,6 +10834,8 @@ function fetchQuotes() {
     _lastAutoLiveKick = Date.now();
     try { autoLiveRefreshOnce(true); } catch (e) {}
   }
+  // 🛡️ 自愈：上证60日K线为空（当日无分片且实时payload不含kline）→ 内部节流每 60 秒从腾讯补齐
+  try { ensureShKline(); } catch (e) {}
   if (_quoteLiveFail < 3) {
     LiveFeed.quotes().then(function (q) {
       _quoteLiveFail = 0;
