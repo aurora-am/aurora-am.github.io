@@ -9781,7 +9781,15 @@ function applyPayload(res) {
     }
   }
   if (d.limitUp) {
-    DATA.limitUp = d.limitUp;
+    /* 🛡️ 2026-10-26 修：30 秒全量刷新会重放缓存的 live payload，若其间实时涨停池已增长
+       （新票涨停/新题材成卡），回放会把池子回滚到 30 秒前 → 卡片闪没、60 秒轮询后又闪回
+       ——正是「一会有数据一会没数据」的又一振荡源。同日 live 回放且当前池不小于新池时，
+       保留当前池；历史日期/换日/池子骤缩（上游毛刺）仍正常覆盖。 */
+    var _curLU = (DATA.limitUp && DATA.limitUp.list) ? DATA.limitUp.list.length : 0;
+    var _newLU = (d.limitUp && d.limitUp.list) ? d.limitUp.list.length : 0;
+    if (!(res.live === true && DATA.date === (res.date || DATA.date) && _curLU >= 10 && _newLU < _curLU)) {
+      DATA.limitUp = d.limitUp;
+    }
     if (!DATA.limitUp.attempted) DATA.limitUp.attempted = DATA.limitUp.count || 1;
     /* 兼容 {streak,count} 形状的梯队（导出器回归时）：用 list 本地重建为 [{level,stocks}] */
     (function () {
