@@ -5534,10 +5534,10 @@ function refreshThemeBackRows() {
               var t = null;
               DATA.themeRadar.themes.forEach(function (z) { if (z.name === tg.name) t = z; });
               if (!t) { t = { name: tg.name, count: 0, lbcMax: 1, front: [], backRows: [], forceShow: !!tg.force }; DATA.themeRadar.themes.push(t); }
-              // 🛡️ 后排缩水护栏：本次筛出 0 只但成员列表明显截断/毛刺（<50 只）时保留旧后排，防"有一会没有"；
-              //    成员拉全（≥50）且确实无人达标（如板块整体涨停）才诚实清空
+              // 🛡️ 后排缩水护栏 v2：按「可用行数」（涨幅字段可解析）判定——东财毛刺常返回 50+ 行但 f3 全为 '-'，
+              //    过滤后可用行为 0，若按原始行数会误清空（10:47 实测）。可用行 ≥20 仍无人达标（如板块整体涨停）才诚实清空。
               if (back.length) t.backRows = back;
-              else if ((members || []).length >= 50) t.backRows = [];
+              else if ((clean || []).length >= 20) t.backRows = [];
               if (tg.force) {   // 强制题材：用板块内真实涨停股填充前排，使卡片完整
                 t.front = clean
                   .filter(function (x) { return +x.f3 >= 9.5; })
