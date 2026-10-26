@@ -1041,6 +1041,9 @@ body.wb-readonly .wb-datenav{opacity:1}
       <div id="ldBar" class="wr-note"></div>
       <div id="ldMetrics" class="ld-metrics"></div>
       <div id="ldStrategy"></div>
+      <div id="ldLadder"></div>
+      <div id="ldTheme"></div>
+      <div id="ldSecond"></div>
       <div id="ldBoard"></div>
       <div id="ldNotes"></div>
       <div id="ldFoot" class="wr-foot"></div>
@@ -10261,8 +10264,83 @@ function ldBoardHtml(D) {
   return h + '</tbody></table></div>';
 }
 
-function ldNotesHtml() {
-  var table = [
+/* 🛡️ leader-ext（2026-10-26）：连板梯队 / 题材热度+预计板块高度 / 一进二候选（对标 leader.html，算法同源 leader_engine）
+   ladder/secondBoard 由 _build_leader.cjs 构建时产出（此前未渲染）；题材热度与预计高度前端从 rows 现算。 */
+function ldLadderHtml(D) {
+  var lad = D.ladder || [];
+  var m = D.metrics || {};
+  var head = '<div class="ld-sec-h">🪜 连板梯队 <span class="cnt" style="font-size:11.5px;color:var(--text-secondary)">（梯队越完整情绪越健康；断层=接力断档）</span></div>';
+  if (!lad.length) return head + '<div class="wr-empty">梯队数据缺失（构建未产出）</div>';
+  var maxStreak = m.maxStreak || lad[0].level;
+  var rows = lad.map(function (l) {
+    var col = l.level >= 5 ? 'var(--red)' : l.level >= 3 ? '#d46b08' : 'var(--text)';
+    var names = (l.stocks || []).slice(0, 8).map(function (s) {
+      return '<span title="' + ((s.theme || '') + ' · ' + (s.sealTime || '')) + '">' + s.name + '</span>';
+    }).join('、') + ((l.stocks || []).length > 8 ? ' 等' + l.count + ' 只' : '');
+    return '<div style="margin:4px 0;font-size:12px;line-height:1.8"><b style="color:' + col + '">' + l.level + ' 板（' + l.count + ' 只）</b>：' + (names || '—') + '</div>';
+  }).join('');
+  var lv = lad.map(function (l) { return l.level + '板×' + l.count; }).reverse().join(' · ');
+  return head + '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px">梯队结构：<b>' + lv + '</b> ｜ 市场最高 <b>' + maxStreak + '</b> 板 · 理论空间 <b>' + (maxStreak + 1) + '</b> 板</div><div style="margin-top:6px">' + rows + '</div>';
+}
+function ldThemeHtml(D) {
+  var rows = D.rows || [];
+  var head = '<div class="ld-sec-h">🔥 题材热度 · 板块预计高度 <span class="cnt" style="font-size:11.5px;color:var(--text-secondary)">（预计高度 = 龙头板数 + 家数加成[≥3家+1/≥5家+2/≥7家+3]，市场最高板封顶；算法与 leader 面板同源）</span></div>';
+  if (!rows.length) return head + '<div class="wr-empty">暂无题材数据</div>';
+  var maxStreak = (D.metrics || {}).maxStreak || rows.reduce(function (a, r) { return Math.max(a, r.streak || 0); }, 0);
+  var map = {};
+  rows.forEach(function (r) {
+    if (!r.theme) return;
+    var t = map[r.theme] || (map[r.theme] = { name: r.theme, count: 0, maxLbc: 0, leader: '', _ls: -1, hi: [] });
+    t.count = Math.max(t.count, r.themeCount || 1);
+    if ((r.streak || 0) > t.maxLbc || ((r.streak || 0) === t.maxLbc && (r.score || 0) > t._ls)) {
+      t.maxLbc = r.streak || 0; t.leader = r.name; t._ls = r.score || 0;
+    }
+    if ((r.streak || 0) >= 2) t.hi.push(r.name + (r.streak >= 2 ? r.streak + '板' : ''));
+  });
+  var arr = Object.keys(map).map(function (k) { return map[k]; });
+  arr.sort(function (a, b) { return b.count - a.count || b.maxLbc - a.maxLbc; });
+  var h = '<div class="wr-scroll"><table class="wr-table"><thead><tr>' +
+    '<th style="width:16%">题材</th><th style="width:11%">涨停家数</th><th style="width:10%">当前高度</th>' +
+    '<th style="width:15%">预计板块高度</th><th style="width:13%">题材龙</th><th>连板代表</th>' +
+    '</tr></thead><tbody>';
+  arr.slice(0, 8).forEach(function (t) {
+    var bonus = t.count >= 7 ? 3 : t.count >= 5 ? 2 : t.count >= 3 ? 1 : 0;
+    var sh = Math.min(t.maxLbc + bonus, maxStreak + 1);
+    var hcol = sh >= 5 ? 'var(--red)' : sh >= 3 ? '#d46b08' : 'var(--text)';
+    h += '<tr><td><b>' + t.name + '</b></td>' +
+      '<td>' + t.count + (t.count >= 5 ? ' <span style="color:var(--red)">强</span>' : t.count >= 3 ? ' <span style="color:#d46b08">中</span>' : '') + '</td>' +
+      '<td>' + (t.maxLbc || 1) + ' 板</td>' +
+      '<td><b style="color:' + hcol + '">' + sh + ' 板</b> <span style="font-size:10.5px;color:var(--text-secondary)">（+' + bonus + '）</span></td>' +
+      '<td><span class="ld-tag">' + (t.leader || '—') + '</span></td>' +
+      '<td style="font-size:11.5px;color:var(--text-secondary)">' + ((t.hi || []).slice(0, 5).join('、') || '—') + '</td></tr>';
+  });
+  return h + '</tbody></table></div>' +
+    '<div style="font-size:11px;color:var(--text-secondary);margin-top:6px;line-height:1.7">题材热度排序：涨停家数 → 高度。预计高度为「龙头晋级 + 后排扩员」的机械推演，非承诺；若龙头断板 / 后排无接力，实际高度即止步于当前板。</div>';
+}
+function ldSecondHtml(D) {
+  var list = D.secondBoard || [];
+  var head = '<div class="ld-sec-h">🎯 一进二候选（首板→2板） <span class="cnt" style="font-size:11.5px;color:var(--text-secondary)">（共 ' + list.length + ' 只 · 评分 = 题材家数+上板时间+换手健康+市值适配+封单，≥70 高 / 55~69 中高 / 45~54 中）</span></div>';
+  if (!list.length) return head + '<div class="wr-empty">今日无一进二候选（题材 &lt;3 家或均为一字板，或构建数据缺失）</div>';
+  var h = '<div class="wr-scroll"><table class="wr-table"><thead><tr>' +
+    '<th style="width:15%">名称</th><th style="width:9%">题材</th><th style="width:13%">评分/档位</th>' +
+    '<th style="width:9%">涨停价</th><th style="width:10%">上板</th><th style="width:8%">换手</th>' +
+    '<th style="width:14%">次日参考价</th><th>评分理由</th></tr></thead><tbody>';
+  list.forEach(function (x, i) {
+    var g = x.score >= 70 ? ['高', 'var(--red)'] : x.score >= 55 ? ['中高', '#d46b08'] : x.score >= 45 ? ['中', 'var(--text)'] : ['需盘面', 'var(--text-secondary)'];
+    h += '<tr>' +
+      '<td><div class="wr-name">' + (i + 1) + '. ' + x.name + '</div><div class="wr-code">' + x.code + '</div></td>' +
+      '<td>' + (x.theme || WR_DASH) + '</td>' +
+      '<td><b style="color:' + g[1] + ';font-size:14px">' + x.score + '</b> <span class="wr-badge weak" style="color:' + g[1] + '">' + g[0] + '</span></td>' +
+      '<td>' + wrN(x.limitPrice) + '</td>' +
+      '<td style="font-size:11px">' + (x.sealTime || WR_DASH) + '</td>' +
+      '<td>' + wrN(x.turnover, 1) + '%</td>' +
+      '<td style="font-size:11.5px">弱转强 ≥<b>' + wrN(x.weakToStrong) + '</b><br><span style="color:var(--text-secondary)">回踩参考 ' + wrN(x.breakDown) + '</span></td>' +
+      '<td title="' + ((x.reason || '').replace(/"/g, '')) + '" style="font-size:11px;color:var(--text-secondary)">' + (x.reason || WR_DASH) + '</td></tr>';
+  });
+  return h + '</tbody></table></div>' +
+    '<div style="font-size:11px;color:var(--text-secondary);margin-top:6px;line-height:1.7">口径：仅「题材 ≥3 家涨停且非一字」的首板入选；次日竞价高开站上弱转强参考价可确认晋级，跌破回踩参考价视为晋级失败（失效即走）。本面板不做历史回测、不标实证概率，历史晋级率请参考 leader 独立页。</div>';
+}
+function ldNotesHtml() {  var table = [
     ['缩量封板（换手<5% 且不开板）', '持筹锁仓 · 强', '不卖；未上车继续等分歧，不追缩量加速'],
     ['缩量开板 → 快速回封', '洗盘', '回封即是低吸买点，可打回封'],
     ['放量不回封（换手>15%，尤其>20%）', '出货 / 派发', '减仓或离场，不接飞刀'],
@@ -10287,14 +10365,14 @@ function ldNotesHtml() {
 }
 
 function renderLeader() {
-  var ids = ['ldBar', 'ldMetrics', 'ldStrategy', 'ldBoard', 'ldNotes', 'ldFoot'];
+  var ids = ['ldBar', 'ldMetrics', 'ldStrategy', 'ldLadder', 'ldTheme', 'ldSecond', 'ldBoard', 'ldNotes', 'ldFoot'];
   var el = {};
   ids.forEach(function (i) { el[i] = document.getElementById(i); });
   if (!el.ldBoard) return;
   var D = ldData();
   if (!D || !(D.rows || []).length) {
     el.ldBar.innerHTML = '暂无龙头战法数据（由 _build_leader.cjs 生成后注入）';
-    ['ldMetrics', 'ldStrategy', 'ldBoard', 'ldNotes'].forEach(function (i) { if (el[i]) el[i].innerHTML = ''; });
+    ['ldMetrics', 'ldStrategy', 'ldLadder', 'ldTheme', 'ldSecond', 'ldBoard', 'ldNotes'].forEach(function (i) { if (el[i]) el[i].innerHTML = ''; });
     return;
   }
   el.ldBar.innerHTML = '📅 数据日期 <b>' + (D.dataDate || WR_DASH) + '</b> · 生成于 ' + (D.generatedAt || WR_DASH) +
@@ -10302,6 +10380,10 @@ function renderLeader() {
     '<br>📡 数据来源：' + (D.source || WR_DASH);
   el.ldMetrics.innerHTML = ldMetricsHtml(D);
   el.ldStrategy.innerHTML = ldStrategyHtml(D);
+  /* 🛡️ leader-ext（2026-10-26）：梯队 / 题材热度+预计高度 / 一进二候选 */
+  el.ldLadder.innerHTML = ldLadderHtml(D);
+  el.ldTheme.innerHTML = ldThemeHtml(D);
+  el.ldSecond.innerHTML = ldSecondHtml(D);
   el.ldBoard.innerHTML = ldBoardHtml(D);
   el.ldNotes.innerHTML = ldNotesHtml();
   el.ldFoot.innerHTML =
