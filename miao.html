@@ -4676,6 +4676,63 @@ function renderMainFundPool() {
 
 /* ===== 缠论买点候选（一买 / 二买 / 三买 三标签，默认三买）===== */
 var chanBuyActiveTab = 3; // 默认展示三买
+/* ===== WB_PATCH chanfresh: 缠论候选时效复核（2026-10-26）=====
+   问题：chanBuyList 是扫描日（asOf）静态快照，展示时点信号可能已失效——
+   跌破买点低点（一买破背驰低/二买破更低低/三买破三买低）= 信号失败；
+   远离买点>15% = 追高无操作价值。渲染时拉批量报价复核，硬剔除并诚实标注；
+   报价失败则不过滤、明示"未经时效复核"。 */
+var _chanReview = { key: '', at: 0, atText: '', drop: null, prices: null, noQuote: 0, dropStat: { below: 0, far: 0 }, failed: false, pending: false, valid: false };
+function reviewChanBuyFreshness(M) {
+  var all = M.list || [];
+  var uniq = [], seen = {};
+  all.forEach(function (x) { if (x.code && x.price && !seen[x.code]) { seen[x.code] = 1; uniq.push(x.code); } });
+  var key = (M.asOf || '') + '#' + uniq.length + '#' + (uniq[0] || '') + '#' + (uniq[uniq.length - 1] || '');
+  if (_chanReview.key === key && !_chanReview.pending && Date.now() - _chanReview.at < 300000) { _chanReview.valid = !_chanReview.failed; return; }
+  if (_chanReview.pending && _chanReview.key === key) return;
+  _chanReview.pending = true; _chanReview.key = key;
+  var chunks = [], i = 0;
+  while (i < uniq.length) { chunks.push(uniq.slice(i, i + 55)); i += 55; }
+  var got = {}, doneN = 0, anyOk = false;
+  function finish() {
+    _chanReview.pending = false;
+    _chanReview.at = Date.now();
+    _chanReview.atText = new Date().toTimeString().slice(0, 5);
+    if (!anyOk) { _chanReview.failed = true; _chanReview.valid = false; _chanReview.drop = null; _chanReview.prices = null; renderChanBuyTabs(); return; }
+    var drop = {}, prices = {}, noQuote = 0, below = 0, far = 0;
+    all.forEach(function (x) {
+      if (!x.code || !x.price) return;
+      var q = got[x.code];
+      if (!q || !q.price) { noQuote++; return; } /* 无报价 → 保留原样，绝不拿伪结论冒充 */
+      prices[x.code] = q.price;
+      if (q.price < x.price) { drop[x.code] = 'below'; below++; }
+      else if (q.price > x.price * 1.15) { drop[x.code] = 'far'; far++; }
+    });
+    _chanReview.failed = false; _chanReview.valid = true;
+    _chanReview.drop = drop; _chanReview.prices = prices; _chanReview.noQuote = noQuote;
+    _chanReview.dropStat = { below: below, far: far };
+    renderChanBuyTabs();
+  }
+  chunks.forEach(function (ck) {
+    LiveFeed.batchQuotes(ck).then(function (m) {
+      var ks = Object.keys(m || {});
+      if (ks.length) anyOk = true;
+      ks.forEach(function (k) { if (m[k] && m[k].price) got[k] = m[k]; });
+      if (++doneN === chunks.length) finish();
+    }).catch(function () { if (++doneN === chunks.length) finish(); });
+  });
+  if (!chunks.length) { _chanReview.pending = false; _chanReview.failed = true; _chanReview.valid = false; }
+}
+function chanReviewBadge(M, R) {
+  if (R && R.drop) {
+    var ds = R.dropStat || {};
+    var s = '<br>⏱️ <b>时效复核</b>（信号日 ' + (M.asOf || '') + '，按 ' + R.atText + ' 实时价）：剔除失效 <b>' + ((ds.below || 0) + (ds.far || 0)) + '</b> 只（跌破买点低点 ' + (ds.below || 0) + ' · 远离买点>15% ' + (ds.far || 0) + '）';
+    if (R.noQuote) s += ' · 无报价待复核 ' + R.noQuote + ' 只（保留）';
+    return s + '。';
+  }
+  if (_chanReview.pending) return '<br>⏳ 正在按实时价复核买点时效…';
+  if (_chanReview.failed) return '<br>⚠️ 实时价复核失败，以下为 ' + (M.asOf || '') + ' 信号日快照<b>未经时效复核</b>，参考前请自行核对现价。';
+  return '<br>⏱️ 信号日 ' + (M.asOf || '') + '，时效复核待运行。';
+}
 function tabName(t) { return t === 3 ? '三买' : (t === 2 ? '二买' : '一买'); }
 function buyTag(x) {
   if (x.buyType === 1) return '一买·底背驰 @' + (x.price || '') + (x.divergence ? ' ✓' : '');
@@ -4692,9 +4749,16 @@ function renderChanBuyTabs() {
     el.innerHTML = '<div class="section-text">📋 本交易日缠论买点扫描未运行（数据管道当日未产出买点口径与名单；历史交易日数据完整可查）。收盘后补跑扫描将自动显示。</div>';
     return;
   }
+  /* 🛡️ chanfresh（2026-10-26）：渲染前时效复核——跌破买点低点/远离买点>15% 的票硬剔除 */
+  reviewChanBuyFreshness(M);
+  var R = _chanReview.valid ? _chanReview : null;
   var c = M.criteria || {};
   var all = M.list || [];
-  var byType = function (t) { return all.filter(function (x) { return x.buyType === t; }); };
+  var byType = function (t) {
+    var arr = all.filter(function (x) { return x.buyType === t; });
+    if (R && R.drop) arr = arr.filter(function (x) { return !R.drop[x.code]; });
+    return arr;
+  };
   var counts = { 1: byType(1).length, 2: byType(2).length, 3: byType(3).length };
   /* 口径说明（顶部固定） */
   var head = '<div style="font-size:11px;color:var(--text-secondary);line-height:1.8;margin-bottom:10px;padding:8px 10px;background:var(--input-bg);border-radius:6px;border:1px solid var(--card-border);">'
@@ -4703,6 +4767,7 @@ function renderChanBuyTabs() {
     + '② <b>二买</b>：' + (c.buy2 || '一买后回踩不破一买低（更高低）且回撤≤0.618') + '<br>'
     + '③ <b>三买</b>：' + (c.buy3 || '中枢突破后回踩不进中枢（低点≥中枢高企稳）')
     + '<br><span style="color:var(--text-light);">全市场扫描 ' + (M.scanned || 0) + ' 只，命中 ' + (M.hits || all.length) + ' 只（初筛缩圈，四要件须人工复核，非买卖建议）。'
+    + chanReviewBadge(M, R)
     + '<br>🖱️ <b>悬停 / 点击卡片</b>：弹出该股近 70 日 K线 + MACD + 缠论笔/中枢/一·二·三买标注。</span></div>';
   /* 仅渲染当前激活标签（懒渲染，性能友好） */
   var list = byType(chanBuyActiveTab);
@@ -4716,7 +4781,7 @@ function renderChanBuyTabs() {
     list.forEach(function (x) {
       html += '<div class="chanbuy-item" data-code="' + (x.code || '') + '" style="cursor:pointer;" title="悬停/点击查看 K线·MACD·缠论标注">'
         + '<div class="cb-code">' + (x.code || '') + ' <span class="cb-name">' + (x.name || '') + '</span></div>'
-        + '<div class="cb-meta">' + buyTag(x) + '</div>'
+        + '<div class="cb-meta">' + buyTag(x) + ((R && R.prices && R.prices[x.code]) ? ' · 现价 ' + R.prices[x.code] : '') + '</div>'
         + '</div>';
     });
     html += '</div>';
