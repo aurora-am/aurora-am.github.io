@@ -10598,7 +10598,11 @@ function loadDay(date, force) {
       fromBackend = !!payload;
       if (!payload) { try { payload = _dateGuard(await MiaoApi.fetchDay(date), '后端'); } catch (e) { payload = null; } }
       fromBackend = !!payload;
-      if (!payload) payload = _dateGuard(EMBEDDED_SNAPSHOT[date] || (_lk && EMBEDDED_SNAPSHOT[_lk]) || (cached && cached.res), '内嵌快照');
+      var _isTodayReq = (date === fmtDate(new Date()));
+      /* 🛡️ 2026-10-26：今天盘中本来就没有分片，「最新内嵌快照」必然不是今天 → 兜底必然被日期护栏拦下并弹窗，
+         而实时通道（autoLiveRefreshOnce + 自愈重试）已自动接通。故今天盘中跳过旧快照兜底，静默走实时；
+         历史日期查询仍保留旧快照兜底 + 防混日弹窗（那里张冠李戴才是真风险）。 */
+      if (!payload) payload = _dateGuard(EMBEDDED_SNAPSHOT[date] || (cached && cached.res) || (!_isTodayReq && _lk ? EMBEDDED_SNAPSHOT[_lk] : null), '内嵌快照');
       if (payload) {
         _dayCache[date] = { res: payload, ts: Date.now() };
         applyPayload(payload);
@@ -10633,8 +10637,14 @@ function loadDay(date, force) {
         ZS_MAP = {};
         THEME_QUOTE_MAP = {};
         renderAll();
-        if (_mismatch) {
+        if (_mismatch && !_isTodayReq) {
           showNoDataModal(date, '已拦截一次跨日串数据（' + _mismatch + '），为避免把别的交易日数据当本日展示，此处如实留空。请点「更新数据」重新采集，或改选有数据的日期。');
+        } else if (_isTodayReq) {
+          /* 🛡️ 2026-10-26：今天盘中无分片属常态（15:45 收盘链生成），实时通道会自动接通——
+             不弹模态打断看盘，用轻提示说明并主动拉一次实时；若实时也失败，自愈重试会在接通后自动填充。 */
+          showNotify('ℹ️ 今日分片未生成（收盘链 15:45 自动生成），已切换实时通道自动拉取，接通后数据自动出现。', 5000);
+          try { autoLiveRefreshOnce(true); } catch (e) {}
+          updateSourceBadge({ source: 'live' });
         } else {
           showNoDataModal(date, '该交易日后端与内嵌均无数据；请先在后端执行盘后预计算，或让智能体经【通达信MCP / 东方财富妙想MCP】重新拉取并内嵌后再查看');
         }
