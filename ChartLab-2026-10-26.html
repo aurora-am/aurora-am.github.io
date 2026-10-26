@@ -9480,6 +9480,15 @@ function mergeLivePayload(date, live) {
     });
     data.capitalIndexNotes = buildCapitalNotes(live);
   }
+  /* 🛡️ 2026-10-26 修：base（内嵌快照/会话缓存）缺失或无 themeRadar 时，live payload 不带 themeRadar
+     → applyPayload 会把当日实时题材雷达清空；而 30 秒全量刷新与 20 秒自愈反复重放该 payload
+     → 「清空→重建→再清空」死循环，后排补涨表现为一会儿有一会儿没有、最终完全没数据（10-26 实测）。
+     修复：同日（DATA.date === date）且当前已有题材态时注入 DATA.themeRadar，同日重放不再清空；
+     跨日切换仍由 applyPayload 头部日期护栏清空，不引入混日风险。 */
+  if (!data.themeRadar && DATA.date === date && DATA.themeRadar
+      && DATA.themeRadar.themes && DATA.themeRadar.themes.length) {
+    data.themeRadar = DATA.themeRadar;
+  }
   var now = new Date();
   var pad2 = function (n) { return n < 10 ? '0' + n : '' + n; };
   var hh = pad2(now.getHours()), mm = pad2(now.getMinutes()), ss = pad2(now.getSeconds());
@@ -9806,11 +9815,11 @@ function applyPayload(res) {
         t.backRows = (Array.isArray(t.back) ? t.back : []).filter(function (b) { return b && !b.excluded; });
       }
     });
-  } else if (CURRENT_SOURCE === 'live') {
-    // 🛡️ 2026-10-19 P0：实时刷新 payload 不带 themeRadar 时，必须清空旧日 themeRadar，
-    // 否则旧快照的题材卡片（含 10.16 涨停时间）会残留到今日页面。
-    DATA.themeRadar = { themes: [], note: '' };
   }
+  /* 🛡️ 2026-10-26 修：取消「live payload 无 themeRadar 即清空」。跨日残留已由两道护栏兜住：
+     ① applyPayload 头部 DATA.date !== newDate 时清空；② loadDay/_resetDailyData 换日清空。
+     此处再清空会把「同日重放的 live payload」（内嵌快照无当日 key 时 mergeLivePayload 拼出的
+     payload 天然无 themeRadar）变成每 30 秒一次的题材雷达清空器，后排补涨反复全灭（10-26 实测）。 */
   DATA.sectorFlow = (d.sectorFlow && d.sectorFlow.length) ? d.sectorFlow : [];
   if (d.capitalFlow) {
     DATA.capitalFlow = d.capitalFlow;
@@ -10672,6 +10681,8 @@ function forceRefresh() {
       commit(bridged);
       fetchZSForTheme();
       try { fetchThemeQuotes(); } catch (e) {}
+      /* 🛡️ 2026-10-26 修：themes 为空时先拉实时涨停池重建前排，再算后排（连接器路径同款） */
+      if (!(DATA.themeRadar && DATA.themeRadar.themes && DATA.themeRadar.themes.length)) { try { refreshLiveLimitUp(); } catch (e) {} }
       try { refreshThemeBackRows(); } catch (e) {}
       try { fetchCapitalFlow(); } catch (e) {}
       settle();
@@ -10687,6 +10698,8 @@ function forceRefresh() {
       commit(payload);
       fetchZSForTheme();
       try { fetchThemeQuotes(); } catch (e) {}
+      /* 🛡️ 2026-10-26 修：themes 为空时先拉实时涨停池重建前排，再算后排（东财实时路径同款） */
+      if (!(DATA.themeRadar && DATA.themeRadar.themes && DATA.themeRadar.themes.length)) { try { refreshLiveLimitUp(); } catch (e) {} }
       try { refreshThemeBackRows(); } catch (e) {}
       try { fetchCapitalFlow(); } catch (e) {}
       LAST_LIVE_AT = new Date();
@@ -10742,6 +10755,10 @@ function autoLiveRefreshOnce(silent) {
     applyPayload(payload); renderAll();
     fetchZSForTheme();
     try { fetchThemeQuotes(); } catch (e) {}
+    /* 🛡️ 2026-10-26 修：themes 为空（内嵌快照无当日 key → payload 无 themeRadar 且无历史态可续）
+       时 refreshThemeBackRows 是空转，必须立刻拉实时涨停池重建前排+触发后排重算，
+       否则题材雷达要等 60 秒一跳的轮询才复活（用户视角＝「完全没数据」）。 */
+    if (!(DATA.themeRadar && DATA.themeRadar.themes && DATA.themeRadar.themes.length)) { try { refreshLiveLimitUp(); } catch (e) {} }
     try { refreshThemeBackRows(); } catch (e) {}
     LAST_LIVE_AT = new Date();
     _autoLiveRetry = 0;
