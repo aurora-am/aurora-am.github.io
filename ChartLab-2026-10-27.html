@@ -7975,11 +7975,27 @@ function renderStrengthBoard(){
   STR.openSid = null;
   STR_SERIES_TURN = [];
   var info = document.getElementById('strengthMeta');
-  var lag = (d.lag_days!=null && d.lag_days>=3)
-    ? '<span style="color:'+strUp()+';font-weight:600">⚠️ 数据滞后 '+d.lag_days+' 天</span>'
-    : '<span style="color:var(--text-secondary)">数据新鲜</span>';
+  // 收盘后（≥15:05）仍落后于今日 → 才是真正的"未更新"；盘前/盘中当天的档尚未跑属正常
+  var _now = new Date();
+  var _nowMin = _now.getHours() * 60 + _now.getMinutes();
+  var _isAfterClose = _nowMin >= (15 * 60 + 5);
+  var _stale = (d.lag_days != null && d.lag_days >= 1 && _isAfterClose);
+  var lag = _stale
+    ? '<span style="color:'+strUp()+';font-weight:600">⚠️ 数据落后 '+d.lag_days+' 天（收盘后仍未更新，建议稍后刷新）</span>'
+    : (d.lag_days != null && d.lag_days < 0
+        ? '<span style="color:var(--text-secondary)">数据前瞻 '+Math.abs(d.lag_days)+' 天</span>'
+        : '<span style="color:var(--text-secondary)">数据新鲜</span>');
+  // 数据口径（2026-10-27 起，pipeline 输出 session 字段）
+  var _sess = d.session;
+  var _sessTxt = _sess === 'am_close' ? '上午收盘口径（半日）'
+    : _sess === 'close' ? '全天收盘口径'
+    : _sess === 'intraday' ? '盘中口径'
+    : '（旧版无口径标记）';
+  var _genAt = (d.generated_at || '').split(' ')[1] || '';
   var tagHtml = strSrcHtml(d);
   info.innerHTML = '<div>最新交易日 <b>'+strEsc(d.latest_date)+'</b> · 今天 '+strEsc(d.today)+' · '+lag
+    + ' · <span style="color:var(--primary)">口径：'+strEsc(_sessTxt)+'</span>'
+    + (_genAt ? ' · <span style="color:var(--text-secondary)">生成 '+strEsc(_genAt)+'</span>' : '')
     + ' · <span style="color:var(--text-secondary)">量能：'+(d.volume_proxy?'成交量代理(成交额未全量覆盖)':'成交额')+'</span>'
     + ' · <span style="color:var(--text-secondary)">图表默认近 '+STR_DEFAULT_DAYS+' 个交易日 · 红涨绿跌 · 仅供参考</span></div>' + tagHtml;
 
