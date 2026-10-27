@@ -4753,15 +4753,18 @@ function reviewChanBuyFreshness(M) {
   if (!chunks.length) { _chanReview.pending = false; _chanReview.failed = true; _chanReview.valid = false; }
 }
 function chanReviewBadge(M, R) {
+  var fg = M.freshGate ? '<br>🧪 <b>新鲜度门</b>（买点后连续不创新低 ≤3日 + 15分钟低点逐个抬高）：已剔除 <b>' + (M.freshGate.dropped || 0) + '</b> 只' +
+    (M.freshGate.unverified ? ' · 待验 ' + M.freshGate.unverified + ' 只' : '') +
+    '（原候选 ' + (M.freshGate.checked || 0) + ' 只 → 存 ' + (M.freshGate.passed || 0) + ' 只；详见 artifacts/缠论新鲜度门）' : '';
   if (R && R.drop) {
     var ds = R.dropStat || {};
     var s = '<br>⏱️ <b>时效复核</b>（信号日 ' + (M.asOf || '') + '，按 ' + R.atText + ' 实时价）：剔除失效 <b>' + ((ds.below || 0) + (ds.far || 0)) + '</b> 只（跌破买点低点 ' + (ds.below || 0) + ' · 远离买点>15% ' + (ds.far || 0) + '）';
     if (R.noQuote) s += ' · 无报价待复核 ' + R.noQuote + ' 只（保留）';
-    return s + '。';
+    return s + '。' + fg;
   }
-  if (_chanReview.pending) return '<br>⏳ 正在按实时价复核买点时效…';
-  if (_chanReview.failed) return '<br>⚠️ 实时价复核失败，以下为 ' + (M.asOf || '') + ' 信号日快照<b>未经时效复核</b>，参考前请自行核对现价。';
-  return '<br>⏱️ 信号日 ' + (M.asOf || '') + '，时效复核待运行。';
+  if (_chanReview.pending) return '<br>⏳ 正在按实时价复核买点时效…' + fg;
+  if (_chanReview.failed) return '<br>⚠️ 实时价复核失败，以下为 ' + (M.asOf || '') + ' 信号日快照<b>未经时效复核</b>，参考前请自行核对现价。' + fg;
+  return '<br>⏱️ 信号日 ' + (M.asOf || '') + '，时效复核待运行。' + fg;
 }
 function tabName(t) { return t === 3 ? '三买' : (t === 2 ? '二买' : '一买'); }
 function buyTag(x) {
@@ -4769,6 +4772,18 @@ function buyTag(x) {
   if (x.buyType === 2) return '二买·更高低 @' + (x.price || '') + (x.pullbackPct != null ? ' 回撤' + x.pullbackPct + '%' : '') + (x.higherLow ? ' ✓' : '');
   if (x.buyType === 3) return '三买·不回中枢 @' + (x.price || '') + ' 中枢[' + (x.zlo || '') + ',' + (x.zhi || '') + ']' + (x.notReenter ? ' ✓' : '');
   return '';
+}
+/* 🛡️ chanfresh2（2026-10-27）：新鲜度门徽标——买点后不创新低 + 15分低点抬高（数据由 _chanbuy_fresh_gate.cjs 回写） */
+function chanFreshTag(x) {
+  var f = x.fresh;
+  if (!f) return '';
+  var d = f.d3 === true ? '<span style="color:#1a7a4a">' + (f.d3days >= 3 ? '3日' : (f.d3days || '') + '日') + '不破底✓</span>'
+    : f.d3 === false ? '<span style="color:var(--green)">买点后创新低✗</span>'
+    : '<span style="color:var(--text-secondary)">日线待验</span>';
+  var v = f.lv === true ? '<span style="color:#1a7a4a">15分低点抬高✓</span>'
+    : f.lv === false ? '<span style="color:var(--green)">15分低点未抬高✗</span>'
+    : '<span style="color:var(--text-secondary)">小级别待验</span>';
+  return '<div class="cb-fresh" style="font-size:10.5px;margin-top:2px">' + d + ' · ' + v + '</div>';
 }
 function renderChanBuyTabs() {
   var el = document.getElementById('chanBuyList');
@@ -4811,7 +4826,7 @@ function renderChanBuyTabs() {
     list.forEach(function (x) {
       html += '<div class="chanbuy-item" data-code="' + (x.code || '') + '" style="cursor:pointer;" title="悬停/点击查看 K线·MACD·缠论标注">'
         + '<div class="cb-code">' + (x.code || '') + ' <span class="cb-name">' + (x.name || '') + '</span></div>'
-        + '<div class="cb-meta">' + buyTag(x) + ((R && R.prices && R.prices[x.code]) ? ' · 现价 ' + R.prices[x.code] : '') + '</div>'
+        + '<div class="cb-meta">' + buyTag(x) + ((R && R.prices && R.prices[x.code]) ? ' · 现价 ' + R.prices[x.code] : '') + '</div>' + chanFreshTag(x)
         + '</div>';
     });
     html += '</div>';
