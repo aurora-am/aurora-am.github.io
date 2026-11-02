@@ -7298,7 +7298,7 @@ function ldMetricsHtml(D) {
   var m = D.metrics || {};
   var s = D.strategy || {};
   var cards = [
-    { k: '涨停家数', v: m.limitUp, s: '仅主板非ST' },
+    { k: '涨停家数', v: m.limitUp, s: '全市场非ST' },
     { k: '连板家数', v: m.lianBan, s: '≥2 板' },
     { k: '最高连板', v: (m.maxStreak || 0) + ' 板', s: '空间高度' },
     { k: '跌停家数', v: m.limitDown == null ? WR_DASH : m.limitDown, s: '风险端' },

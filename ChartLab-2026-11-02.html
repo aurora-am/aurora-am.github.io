@@ -4664,7 +4664,7 @@ function renderMainFundPool() {
   var el = document.getElementById('mainFundPool');
   if (!el) return;
   var M = DATA.mainFundPool;
-  if (!M) { el.innerHTML = '<div class="section-text">当前交易日暂无中线机构资金流入数据（每日收盘后自动扫描全市场主板）。</div>'; return; }
+  if (!M) { el.innerHTML = '<div class="section-text">当前交易日暂无中线机构资金流入数据（每日收盘后自动扫描沪深全市场）。</div>'; return; }
   var c = M.criteria || {};
   var html = '';
   /* 诚实空态：当日扫描未运行（口径缺失且无名单）时说明，绝不打印 undefined（2026-10-16 事故） */
@@ -4673,12 +4673,12 @@ function renderMainFundPool() {
     return;
   }
   html += '<div style="font-size:11px; color:var(--text-secondary); line-height:1.8; margin-bottom:10px; padding:8px 10px; background:var(--input-bg); border-radius:6px; border:1px solid var(--card-border);">'
-    + '<b>方案A · 中线机构大资金流入筛选（全市场主板每日自动扫描）：</b><br>'
+    + '<b>方案A · 中线机构大资金流入筛选（沪深全市场每日自动扫描，含创业板/科创板）：</b><br>'
     + '① ' + c.low + '　② ' + c.ma20 + '　③ ' + c.volPersist + '　④ ' + c.noBig + '　⑤ ' + c.volStruct + '　⑥ ' + c.rise
-    + '<br><b>数据来源：</b>' + M.source + '，本次扫描 ' + M.scanned + ' 只主板票，命中 ' + (M.hits || 0) + ' 只（满足≥5项）。</div>';
+    + '<br><b>数据来源：</b>' + M.source + '，本次扫描 ' + M.scanned + ' 只个股，命中 ' + (M.hits || 0) + ' 只（满足≥5项）。</div>';
   var list = M.list || [];
   if (!list.length) {
-    html += poolNote('本交易日全市场主板无满足≥5项的标的，空仓等待也是一种策略。', 'info');
+    html += poolNote('本交易日沪深全市场无满足≥5项的标的，空仓等待也是一种策略。', 'info');
   } else {
     html += '<div class="table-wrap" style="max-height:440px;"><table class="data-table"><thead><tr>'
       + '<th>名称</th><th>板块</th><th>收盘</th><th>涨幅</th><th>主力净流</th><th>市值</th><th>满足项</th><th>关键数据点</th>'
@@ -10264,7 +10264,7 @@ function ldMetricsHtml(D) {
   var m = D.metrics || {};
   var s = D.strategy || {};
   var cards = [
-    { k: '涨停家数', v: m.limitUp, s: '仅主板非ST' },
+    { k: '涨停家数', v: m.limitUp, s: '全市场非ST' },
     { k: '连板家数', v: m.lianBan, s: '≥2 板' },
     { k: '最高连板', v: (m.maxStreak || 0) + ' 板', s: '空间高度' },
     { k: '跌停家数', v: m.limitDown == null ? WR_DASH : m.limitDown, s: '风险端' },
@@ -10692,7 +10692,7 @@ function renderPoolReflow() {
     '<tr><td><b style="color:#2563eb">次级 7–8 天</b></td><td><b>' + (g.sub != null ? g.sub : WR_DASH) + '</b> 只</td><td style="color:var(--text-secondary)">动能弱化，小幅套利、仓位减半</td></tr>' +
     '<tr><td><b style="color:#7c8595">谨慎 9–15 天</b></td><td><b>' + (g.care != null ? g.care : WR_DASH) + '</b> 只</td><td style="color:var(--text-secondary)">资金热度衰退，高风险观察档，<b>不参与达标判定</b></td></tr>' +
     '</tbody></table></div>' +
-    '<div class="pr-rule" style="margin-top:8px"><b>候选</b> = 通过硬条件（主板 / 非一字 / 未炸板 / 换手&lt;15% / 封板成功率≥50% / 流通市值≥10亿 / 已进入回调 2–15 天）；<b>★完全达标</b> 再满足缩量 + 堆量 + MACD + 不破实体下沿等软条件（四关全过）。' + (wr.care || '') + '</div>';
+    '<div class="pr-rule" style="margin-top:8px"><b>候选</b> = 通过硬条件（沪深全市场，含创业板/科创板 / 非一字 / 未炸板 / 换手&lt;15% / 封板成功率≥50% / 流通市值≥10亿 / 已进入回调 2–15 天）；<b>★完全达标</b> 再满足缩量 + 堆量 + MACD + 不破实体下沿等软条件（四关全过）。' + (wr.care || '') + '</div>';
 
   var byWin = function (w) { return (D.rows || []).filter(function (r) { var x = (r.a && r.a.window) || ''; return w === 'gold' ? x.indexOf('黄金') >= 0 : w === 'sub' ? x.indexOf('次级') >= 0 : w === 'care' ? x.indexOf('谨慎') >= 0 : x.indexOf('黄金') < 0 && x.indexOf('次级') < 0 && x.indexOf('谨慎') < 0; }); };
   el.prMain.innerHTML =
