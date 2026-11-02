@@ -5556,12 +5556,15 @@ function boardListCached() {
 }
 /* 全空时把失败原因写进题材雷达说明，避免「无声空白」让用户以为是数据本身没有 */
 function _themeBackDiag(d, emptyLeft) {
-  _THEME_BACK_DIAG = { at: new Date().toLocaleTimeString('zh-CN'), targets: d.targets, ok: d.ok, fail: d.fail, fallback: d.fallback, emptyLeft: emptyLeft };
+  _THEME_BACK_DIAG = { at: new Date().toLocaleTimeString('zh-CN'), mode: d.mode, targets: d.targets, ok: d.ok, fail: d.fail, fallback: d.fallback, emptyLeft: emptyLeft };
   var all = (DATA.themeRadar && DATA.themeRadar.themes) || [];
   var anyBack = all.some(function (t) { return (t.backRows || []).length; });
   if (all.length && !anyBack) {
-    DATA.themeRadar.note = '⚠️ 后排补涨本轮未取到（板块 ' + d.ok + '/' + d.targets + ' 成功、失败 ' + d.fail
-      + '、全市场兜底命中 ' + d.fallback + '）：' + (d.targets === 0 ? '题材名未解析到板块代码' : '板块成分接口不可达或过滤后无符合票') + '。';
+    var why = d.mode === 'static'
+      ? '成员池静态分片已加载，报价批次 ' + d.ok + ' 成功 / ' + d.fail + ' 失败'
+      : '板块 ' + d.ok + '/' + d.targets + ' 成功、失败 ' + d.fail + '、全市场兜底命中 ' + d.fallback;
+    var tip = d.targets === 0 ? '题材名未解析到行业板块' : '成员报价不可达或过滤后无符合票';
+    DATA.themeRadar.note = '⚠️ 后排补涨本轮未取到（' + why + '）：' + tip + '。';
   }
 }
 function getBoardMembersCached(code) {
@@ -5591,14 +5594,194 @@ function resolveBoardCode(name, boardMap) {
   }
   return null;
 }
-function refreshThemeBackRows() {
-  if (!isMarketOpen()) return; // 收盘后/午休不重算后排补涨
-  if (_themeBackRunning) return;
-  if (!DATA.themeRadar || !DATA.themeRadar.themes) return;
-  if (!CURRENT_IS_LATEST && CURRENT_SOURCE !== 'live') return;   // 🚨 防混日：最新交易日或 live 实时态才重算
-  _themeBackRunning = true;
-  var _diag = { targets: 0, ok: 0, fail: 0, fallback: 0 };
-  boardListCached()
+/* ===== 路径A（默认）：静态成员池 + ulist 批量报价 —— 2026-11-02 新增 =====
+   背景：东财 clist 对同一 IP 限流极狠（实测板块成分 5 请求仅 1 成功，成功率约 20%），
+   而后排补涨原先把「板块字典 17 页 + 每题材板块成分」全压在 clist 上：失败即整片空白，
+   三主机熔断后连兜底也被短路 → 页面表现为「后排补涨时有时无、又没了」。
+   而 ulist（批量报价）实测稳定。故：成员关系改读静态分片 wbdata/board_map.json（GitHub Pages 稳定，
+   每日随发布更新），盘中只用 ulist 刷新这些成员的实时涨幅，彻底绕开 clist 成分接口。 */
+var _bmStatic = { at: 0, v: null, p: null };
+function boardMapStatic() {
+  if (_bmStatic.v && Date.now() - _bmStatic.at < 1800000) return Promise.resolve(_bmStatic.v);
+  if (_bmStatic.p) return _bmStatic.p;
+  _bmStatic.p = fetch(STR_DATA_BASE + 'board_map.json', { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error('http-' + r.status); return r.json(); })
+    .then(function (d) {
+      if (!d || !d.byIndustry || !d.names) throw new Error('bad-shape');
+      _bmStatic = { at: Date.now(), v: d, p: null };
+      return d;
+    })
+    .catch(function (e) { _bmStatic.p = null; throw e; });
+  return _bmStatic.p;
+}
+/* 题材名 → 行业名：精确 → 行业名包含题材名（取最短，避免过窄）→ 题材名包含行业名（取最长，避免 2 字误命中） */
+function resolveIndustry(name, bm) {
+  if (!name || !bm || !bm.byIndustry) return null;
+  if (bm.byIndustry[name]) return name;
+  var keys = Object.keys(bm.byIndustry);
+  var pref = keys.filter(function (k) { return k.indexOf(name) >= 0; }).sort(function (a, b) { return a.length - b.length; });
+  if (pref.length) return pref[0];
+  var cont = keys.filter(function (k) { return k.length >= 2 && name.indexOf(k) >= 0; }).sort(function (a, b) { return b.length - a.length; });
+  if (cont.length) return cont[0];
+  return null;
+}
+/* 申万一级 → 二级行业关键词（f100 返回的是二级名，如「白酒Ⅱ」「半导体」「医疗服务」；
+   而题材聚类出来的是申万一级/简写名，如「食品饮料」「医药」「电子」。
+   只按字符串取最短匹配会严重收窄候选池（「医药」只命中「医药商业」），故按大类合并二级。 */
+var SW_GROUPS = [
+  { n: '农林牧渔', a: ['农业', '农牧饲渔'], kw: ['种植业', '渔业', '林业', '饲料', '农产品加工', '农业综合', '动物保健', '养殖业'] },
+  { n: '食品饮料', a: ['食品'], kw: ['白酒', '非白酒', '饮料乳品', '休闲食品', '调味发酵品', '食品加工'] },
+  { n: '医药生物', a: ['医药', '医药生物', '生物医药'], kw: ['化学制药', '中药', '生物制品', '医药商业', '医疗器械', '医疗服务'] },
+  { n: '电子', a: [], kw: ['半导体', '元件', '光学光电子', '消费电子', '电子化学品', '其他电子'] },
+  { n: '机械设备', a: ['机械'], kw: ['通用设备', '专用设备', '轨交设备', '工程机械', '自动化设备'] },
+  { n: '电力设备', a: ['电气设备', '新能源设备'], kw: ['电机', '电网设备', '风电设备', '光伏设备', '电池', '其他电源设备'] },
+  { n: '汽车', a: [], kw: ['乘用车', '商用车', '汽车零部件', '汽车服务', '摩托车'] },
+  { n: '基础化工', a: ['化工'], kw: ['化学原料', '化学制品', '化学纤维', '塑料', '橡胶', '农化制品', '非金属材料'] },
+  { n: '有色金属', a: ['有色'], kw: ['贵金属', '工业金属', '小金属', '能源金属', '金属新材料'] },
+  { n: '钢铁', a: [], kw: ['冶钢原料', '普钢', '特钢'] },
+  { n: '煤炭', a: [], kw: ['煤炭开采', '焦炭'] },
+  { n: '石油石化', a: ['石油'], kw: ['油气开采', '油服工程', '炼化及贸易'] },
+  { n: '公用事业', a: [], kw: ['电力', '燃气'] },
+  { n: '环保', a: ['环保'], kw: ['环境治理', '环保设备'] },
+  { n: '交通运输', a: ['交运'], kw: ['铁路公路', '航空机场', '航运港口', '物流'] },
+  { n: '房地产', a: ['地产'], kw: ['房地产开发', '房地产服务'] },
+  { n: '建筑材料', a: ['建材', '建筑建材', '建筑材料'], kw: ['水泥', '玻璃玻纤', '装修建材'] },
+  { n: '建筑装饰', a: ['建筑'], kw: ['房屋建设', '装修装饰', '基础建设', '专业工程', '工程咨询'] },
+  { n: '商贸零售', a: ['商业贸易', '商贸'], kw: ['一般零售', '专业连锁', '互联网电商', '贸易'] },
+  { n: '社会服务', a: ['休闲服务'], kw: ['教育', '酒店餐饮', '旅游及景区', '专业服务'] },
+  { n: '家用电器', a: ['家电'], kw: ['白色家电', '黑色家电', '小家电', '厨卫电器', '家电零部件', '照明设备', '其他家电'] },
+  { n: '纺织服饰', a: ['纺织服装', '纺服'], kw: ['纺织制造', '服装家纺', '饰品'] },
+  { n: '轻工制造', a: ['轻工'], kw: ['造纸', '包装印刷', '家居用品', '文娱用品'] },
+  { n: '美容护理', a: ['美容'], kw: ['个护用品', '化妆品', '医疗美容'] },
+  { n: '计算机', a: [], kw: ['计算机设备', 'IT服务', '软件开发'] },
+  { n: '通信', a: [], kw: ['通信服务', '通信设备'] },
+  { n: '传媒', a: [], kw: ['游戏', '广告营销', '影视院线', '数字媒体', '社交', '出版', '电视广播'] },
+  { n: '国防军工', a: ['军工'], kw: ['航天装备', '航空装备', '地面兵装', '航海装备', '军工电子'] },
+  { n: '银行', a: [], kw: ['国有大型银行', '股份制银行', '城商行', '农商行'] },
+  { n: '非银金融', a: ['非银'], kw: ['证券', '保险', '多元金融'] },
+  { n: '综合', a: [], kw: ['综合'] }
+];
+function _swGroupOf(name) {
+  if (!name) return null;
+  for (var i = 0; i < SW_GROUPS.length; i++) {
+    var g = SW_GROUPS[i], ns = (g.a || []).concat([g.n]);
+    for (var j = 0; j < ns.length; j++) {
+      if (!ns[j]) continue;
+      if (name === ns[j]) return g;
+      if (ns[j].length >= 2 && name.indexOf(ns[j]) >= 0) return g;
+    }
+  }
+  return null;
+}
+/* 题材名 → 成员代码：概念精确 > 行业精确 > 申万一级大类合并 > 模糊包含兜底 */
+function themeMemberCodes(name, bm) {
+  if (bm.byConcept && bm.byConcept[name]) return { codes: bm.byConcept[name], how: 'concept' };
+  if (bm.byIndustry && bm.byIndustry[name]) return { codes: bm.byIndustry[name], how: 'industry' };
+  var g = _swGroupOf(name);
+  if (g) {
+    var set = {}, out = [], inds = Object.keys(bm.byIndustry || {});
+    inds.forEach(function (ind) {
+      var hit = (g.kw || []).some(function (k) { return ind.indexOf(k) >= 0; });
+      if (!hit) return;
+      (bm.byIndustry[ind] || []).forEach(function (c) { if (c && !set[c]) { set[c] = 1; out.push(c); } });
+    });
+    if (out.length) return { codes: out, how: 'group:' + g.n };
+  }
+  var ind2 = resolveIndustry(name, bm);
+  if (ind2) return { codes: bm.byIndustry[ind2] || [], how: 'fuzzy:' + ind2 };
+  return { codes: [], how: 'none' };
+}
+function _backRowsFromStatic(bm, _diag) {
+  var themes = DATA.themeRadar.themes || [];
+  var jobs = [], seenName = {};
+  themes.forEach(function (t) {
+    if (seenName[t.name]) return;
+    var pick = themeMemberCodes(t.name, bm);
+    if (!pick.codes.length) { _diag.fail++; return; }
+    seenName[t.name] = 1;
+    jobs.push({ name: t.name, ind: pick.how, codes: pick.codes, force: !!t.forceShow });
+  });
+  (THEME_FORCE_BOARDS || []).forEach(function (fb) {
+    if (seenName[fb.alias]) return;
+    var words = (fb.keywords || []).concat([fb.alias]).filter(Boolean);
+    var picked = null;
+    for (var i = 0; i < words.length && !picked; i++) {
+      var p = themeMemberCodes(words[i], bm);
+      if (p.codes.length) picked = p;
+    }
+    if (!picked) return;
+    seenName[fb.alias] = 1;
+    jobs.push({ name: fb.alias, ind: picked.how, codes: picked.codes, force: true, aliasOf: (fb.keywords || []).join('/') });
+  });
+  _diag.targets = jobs.length;
+  if (!jobs.length) return Promise.resolve(null);
+  /* 成员代码全局去重后分批报价（每批 60 + 批间 120ms，避免连发又被限流） */
+  var uniq = {}, allCodes = [];
+  jobs.forEach(function (j) {
+    j.codes.forEach(function (c) { if (c && !uniq[c]) { uniq[c] = 1; allCodes.push(c); } });
+  });
+  var BATCH = 60;
+  var quotes = {};
+  var chain = Promise.resolve();
+  var bTotal = Math.ceil(allCodes.length / BATCH);
+  for (var bi = 0; bi < bTotal; bi++) {
+    (function (n) {
+      var slice = allCodes.slice(n * BATCH, (n + 1) * BATCH);
+      chain = chain.then(function () {
+        return LiveFeed.batchQuotes(slice).then(function (m) {
+          for (var k in m) { if (m.hasOwnProperty(k)) quotes[k] = m[k]; }
+          _diag.ok++;
+        }, function () { _diag.fail++; });
+      }).then(function () { return new Promise(function (res) { setTimeout(res, 120); }); });
+    })(bi);
+  }
+  return chain.then(function () {
+    if (!Object.keys(quotes).length) throw new Error('no-quotes');
+    jobs.forEach(function (j) {
+      var t = null;
+      themes.forEach(function (z) { if (z.name === j.name) t = z; });
+      if (!t) { t = { name: j.name, count: 0, lbcMax: 1, front: [], backRows: [], forceShow: !!j.force }; themes.push(t); }
+      var back = [];
+      j.codes.forEach(function (c) {
+        var q = quotes[c]; if (!q) return;
+        var nm = (bm.names && bm.names[c]) || '';
+        if (/ST|退|\*/.test(nm)) return;
+        var chg = q.chgPct;
+        if (!isFinite(chg) || chg < 0.5 || chg > THEME_BACK_CHG_MAX) return;
+        var vr = isFinite(q.volRatio) ? q.volRatio : 0;
+        var main = (q.mainNetFlowYi == null) ? 0 : q.mainNetFlowYi * 1e8;
+        var amount = (isFinite(q.amount) && q.amount > 0) ? q.amount : 1;
+        back.push({ code: c, name: nm || c, chgPct: chg, volRatio: vr, mainNetFlowYi: q.mainNetFlowYi,
+          marketCap: q.marketCap == null ? null : q.marketCap,
+          strength: +(chg * 0.4 + Math.min(vr, 3) * 2 + (main / amount) * 15).toFixed(2) });
+      });
+      back.sort(function (a, b) { return b.strength - a.strength; });
+      t.backRows = back.slice(0, THEME_BACK_MAX);
+      if (j.force) {   // 强制题材：用成员池真实涨幅 ≥9.5% 填充前排，使卡片完整
+        var front = [];
+        j.codes.forEach(function (c) {
+          var q = quotes[c]; if (!q) return;
+          if (isFinite(q.chgPct) && q.chgPct >= 9.5) {
+            front.push({ code: c, name: (bm.names && bm.names[c]) || c, streak: 1, time: '', sealAmount: null,
+              chgPct: q.chgPct, mainNetFlowYi: q.mainNetFlowYi, marketCap: q.marketCap,
+              reason: '', turnover: q.turnover == null ? null : q.turnover, volRatio: q.volRatio });
+          }
+        });
+        t.front = front;
+        t.count = front.length;
+        t.lbcMax = front.length ? Math.max.apply(null, front.map(function (s) { return s.streak || 1; })) : 1;
+        t.forceShow = true;
+      }
+      if (j.aliasOf) t.aliasOf = j.aliasOf;
+    });
+    _themeBackDiag(_diag, 0);
+    return null;
+  });
+}
+
+/* ===== 路径B（兜底）：原 clist 逐板块成分（静态分片不可用时才走） ===== */
+function _backRowsFromClist(_diag) {
+  return boardListCached()
     .then(function (blist) {
       var boardMap = {};
       (blist || []).forEach(function (x) { if (x && x.name && x.code) boardMap[x.name] = x.code; });
@@ -5702,6 +5885,23 @@ function refreshThemeBackRows() {
           _themeBackDiag(_diag, empties.length);
         }).catch(function () { _themeBackDiag(_diag, empties.length); });
       });
+    });
+}
+
+/* ===== 调度：静态成员池路径优先，失败自动降级到 clist 成分路径 ===== */
+function refreshThemeBackRows() {
+  if (!isMarketOpen()) return; // 收盘后/午休不重算后排补涨
+  if (_themeBackRunning) return;
+  if (!DATA.themeRadar || !DATA.themeRadar.themes) return;
+  if (!CURRENT_IS_LATEST && CURRENT_SOURCE !== 'live') return;   // 🚨 防混日：最新交易日或 live 实时态才重算
+  _themeBackRunning = true;
+  var _diag = { targets: 0, ok: 0, fail: 0, fallback: 0, mode: 'static' };
+  boardMapStatic()
+    .then(function (bm) { return _backRowsFromStatic(bm, _diag); })
+    .catch(function (e) {
+      _diag.mode = 'clist'; _diag.ok = 0; _diag.fail = 0; _diag.targets = 0;
+      try { console.warn('board_map 静态分片不可用，降级 clist 成分：' + (e && e.message)); } catch (x) {}
+      return _backRowsFromClist(_diag);
     })
     .then(function () { _themeBackRunning = false; renderThemeRadar(); })
     .catch(function () { _themeBackRunning = false; renderThemeRadar(); });
@@ -9350,7 +9550,7 @@ var LiveFeed = (function () {
       function () {
         var secids = codes.map(function (c) { return (/^(60|68|9)/.test(c) ? '1.' : '0.') + c; }).join(',');
         var u = 'https://push2delay.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&ut=' + UT_Q
-              + '&secids=' + secids + '&fields=f2,f3,f6,f8,f10,f12,f14,f62';
+              + '&secids=' + secids + '&fields=f2,f3,f6,f8,f10,f12,f14,f20,f62';
         return jsonp(u, 10000).then(function (j) {
           var arr = (j && j.data && j.data.diff) || [];
           if (!arr.length) throw new Error('empty');
@@ -9359,6 +9559,7 @@ var LiveFeed = (function () {
             if (!it || it.f12 == null) return;
             out[String(it.f12)] = {
               price: +it.f2, chgPct: +it.f3, amount: +it.f6, turnover: +it.f8, volRatio: +it.f10,
+              marketCap: (it.f20 == null || it.f20 === '-' || !isFinite(+it.f20)) ? null : Math.round(+it.f20 / 1e8 * 100) / 100,
               mainNetFlowYi: (it.f62 == null || it.f62 === '-') ? null : Math.round(it.f62 / 1e8 * 100) / 100
             };
           });
