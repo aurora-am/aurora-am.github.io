@@ -7451,8 +7451,14 @@ function renderEarlyBoard() {
       bEl.innerHTML = msg; mEl.innerHTML = ''; if (nEl) nEl.textContent = '';
       return;
     }
-    if (nEl) nEl.innerHTML = '数据时点：<b>' + (EMBEDDED_LEADER && EMBEDDED_LEADER.snapshotAt ? EMBEDDED_LEADER.snapshotAt : (DATA.date || '')) + '</b>'
-      + (EMBEDDED_LEADER && EMBEDDED_LEADER.provisional ? ' <b style="color:#c0392b;">（盘中·临时快照，封板时间为抓取时点）</b>' : '')
+    /* 🛡️ 2026-11-03 修：历史日视图此前误显全局内嵌时点（如 10-22 数据配「2026-11-02 15:51:33」），
+       观感像串日。改为优先取当日 payload 的 snapshotAt/provisional（loadDay 记录在 WB_META），
+       仅无当日元数据时回落全局 EMBEDDED_LEADER。 */
+    var _snapMeta = (typeof WB_META !== 'undefined' && WB_META && WB_META[DATA.date]) || {};
+    var _snapAt = _snapMeta.snapshotAt || (DATA && DATA.snapshotAt) || (EMBEDDED_LEADER && EMBEDDED_LEADER.snapshotAt) || (DATA.date || '');
+    var _snapProv = !!(_snapMeta.provisional || (DATA && DATA.provisional));
+    if (nEl) nEl.innerHTML = '数据时点：<b>' + _snapAt + '</b>'
+      + (_snapProv ? ' <b style="color:#c0392b;">（盘中·临时快照，封板时间为抓取时点）</b>' : '')
       + ' · 涨停总数 <b>' + list.length + '</b> 只';
 
   // 封板时间分桶
@@ -11202,7 +11208,9 @@ function loadDay(date, force) {
         /* 收盘/非开盘时段静默：数据已定稿，「已载入」提示无信息增量（2026-10-16 用户反馈） */
         if (isMarketOpen()) showNotify('✅ ' + date + '（' + weekdayCN(date) + '）已载入：涨停 ' + (lu.count || 0)
           + ' 只 / 跌停 ' + (lu.limitDown || 0) + ' 只 / 最高 ' + (lu.maxStreak || 0) + ' 板'
-          + (fromBackend ? '（后端预计算）' : '（内嵌快照·' + (payload.source === 'em' ? '东方财富' : payload.source === 'mixed' ? '通达信+东财' : '通达信') + '）'), 5000);
+          + (fromBackend ? '（后端预计算）' : '（内嵌快照·' + (payload.source === 'em' ? '东方财富' : payload.source === 'mixed' ? '通达信+东财' : '通达信') + '）')
+          /* 🛡️ 2026-11-03：历史日视图加醒目提示，避免被误读为「数据没更新」 */
+          + (LATEST_TRADE_DAY && date < LATEST_TRADE_DAY ? '<br/>📌 历史定稿日视图，稍后自动回到今日实时（也可点右上「今日」）' : ''), 5000);
         if (payload && payload.isPreOpen && isMarketOpen()) showNotify('⏰ 盘前快照：涨停池为隔夜涨停（开盘或撤单），板块资金/龙虎榜/选股沿用上一交易日，收盘后点「更新数据」补全', 7000);
         refreshAutoState();
         wbSyncNavState();
@@ -11360,7 +11368,16 @@ function forceRefresh() {
 var _autoLiveRetry = 0;
 function autoLiveRefreshOnce(silent) {
   if (!isMarketOpen()) return; // 非交易时段不自动刷新
-  if (_isFetching) return;
+  if (_isFetching) {
+    /* 🛡️ 2026-11-03 修：原为静默 return——?d=历史日打开时首载未完成，此后 CURRENT_IS_LATEST=false
+       使 5 秒通道空转，页面永久停留在历史日（如 10-22），用户误以为数据没更新。
+       改为推迟重试（最多 5 次），首载完成后自动把历史日拉回今日实时。 */
+    autoLiveRefreshOnce._postpone = (autoLiveRefreshOnce._postpone || 0) + 1;
+    if (autoLiveRefreshOnce._postpone <= 5) {
+      setTimeout(function () { autoLiveRefreshOnce(true); }, 3000);
+    }
+    return;
+  }
   var date = DATA.date || LATEST_TRADE_DAY;
   // 🚨 防混日：若页面停留在历史日期（如缓存旧 HTML），自动切换到今天的真实日期
   var today = fmtDate(new Date());
@@ -11386,6 +11403,7 @@ function autoLiveRefreshOnce(silent) {
     LAST_LIVE_AT = new Date();
     _autoLiveRetry = 0;
     updateLastUpdateLabel();
+    autoLiveRefreshOnce._postpone = 0;
     var lu = DATA.limitUp || {};
     showNotify('✅ 交易日自动刷新完成（' + (kind === 'connector' ? '智能体连接器' : '东方财富实时')
       + ' · ' + LAST_LIVE_AT.toLocaleTimeString('zh-CN') + '）<br/>涨停 ' + (lu.count || 0)
