@@ -5692,9 +5692,25 @@ function themeMemberCodes(name, bm) {
   if (ind2) return { codes: bm.byIndustry[ind2] || [], how: 'fuzzy:' + ind2 };
   return { codes: [], how: 'none' };
 }
+/* 当日「已涨停/炸板前排」代码集合（后排补涨须剔除，避免同票双列）。前端两条后排通道共用。 */
+var _themeFrontCache = { key: '', set: {} };
+function _themeFrontSet() {
+  var arr = (DATA.themeRadar && DATA.themeRadar.themes) || [];
+  var n = arr.length, m = 0;
+  arr.forEach(function (t) { m += (t.front || []).length; });
+  var key = n + '#' + m;
+  if (_themeFrontCache.key === key) return _themeFrontCache.set;
+  var s = {};
+  arr.forEach(function (t) { (t.front || []).forEach(function (f) { if (f && f.code) s[String(f.code)] = 1; }); });
+  _themeFrontCache = { key: key, set: s };
+  return s;
+}
 function _backRowsFromStatic(bm, _diag) {
   var themes = DATA.themeRadar.themes || [];
   var jobs = [], seenName = {};
+  /* 🚨 2026-11-04 修：后排未剔除「当日已涨停」→ 炸板票会同时出现在前排梯队与后排补涨（实测当日 3 只）。
+     服务端 _build_backrows.cjs 用的是「全市场前排代码集合」剔除，这里与之对齐，保证同一天两套口径一致。 */
+  var frontAll = _themeFrontSet();
   themes.forEach(function (t) {
     if (seenName[t.name]) return;
     var pick = themeMemberCodes(t.name, bm);
@@ -5745,6 +5761,7 @@ function _backRowsFromStatic(bm, _diag) {
       var back = [];
       j.codes.forEach(function (c) {
         var q = quotes[c]; if (!q) return;
+        if (frontAll[String(c)]) return;                 // 已涨停/炸板前排，不做「补涨」重复展示
         var nm = (bm.names && bm.names[c]) || '';
         if (/ST|退|\*/.test(nm)) return;
         var chg = q.chgPct;
@@ -5816,6 +5833,7 @@ function _backRowsFromClist(_diag) {
               });
               var back = clean
                 .filter(function (x) { return +x.f3 >= 0.5 && +x.f3 <= THEME_BACK_CHG_MAX; })   // 后排：全板块·涨幅 0.5%~9.5%（含创业板/科创板）
+                .filter(function (x) { return !_themeFrontSet()[String(x.f12)]; })               // 剔除当日已涨停（与静态路径同口径）
                 .map(function (x) {
                   var code = String(x.f12);
                   var chg = +x.f3, vr = +x.f10 || 0, main = +x.f62 || 0, amount = +x.f6 || 1;
@@ -5890,8 +5908,19 @@ function _backRowsFromClist(_diag) {
 }
 
 /* ===== 调度：静态成员池路径优先，失败自动降级到 clist 成分路径 ===== */
+var _themeBackEmptyTried = '';   // 非交易时段「空态补算」的日期标记（见 refreshThemeBackRows）
 function refreshThemeBackRows() {
-  if (!isMarketOpen()) return; // 收盘后/午休不重算后排补涨
+  // 🚨 2026-11-04 修（「午休/收盘后后排整片空白」根因）：
+  //   原逻辑「非交易时段直接 return」。而服务端 _build_backrows 依赖 datacenter 的 T+0 收盘报告，
+  //   盘中/午休运行时该报告尚不存在 → 必然拉空 → 分片 backRows=0。此时前端又跳过重算，
+  //   页面就永久空态（11-04 午休打开即「后排补涨又没了」的真因）。
+  //   故：仅当分片「自带后排」（已定稿日）时才在非交易时段跳过；分片为空则允许用静态池补算一次。
+  var _inline = ((DATA.themeRadar && DATA.themeRadar.themes) || []).some(function (t) { return (t.backRows || []).length; });
+  if (!isMarketOpen()) {
+    if (_inline) return;
+    if (_themeBackEmptyTried === (DATA.date || '')) return;   // 同一交易日只补算一次，避免每次渲染都发 56 批请求
+    _themeBackEmptyTried = DATA.date || '';
+  }
   if (_themeBackRunning) return;
   if (!DATA.themeRadar || !DATA.themeRadar.themes) return;
   if (!CURRENT_IS_LATEST && CURRENT_SOURCE !== 'live') return;   // 🚨 防混日：最新交易日或 live 实时态才重算
