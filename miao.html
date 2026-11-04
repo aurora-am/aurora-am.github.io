@@ -5713,7 +5713,12 @@ function _backRowsFromStatic(bm, _diag) {
   var frontAll = _themeFrontSet();
   themes.forEach(function (t) {
     if (seenName[t.name]) return;
-    var pick = themeMemberCodes(t.name, bm);
+    /* 🚨 2026-11-04：优先用分片内置的「板块真实成分」（t.members，由 BK 代码精确匹配的异动板块成分股），
+       不再按题材名去申万大类里捞 —— 那会把「机械 522 只 / 电子 486 只」整片当成员池。
+       历史分片没有 members 时才退回旧的名称解析。 */
+    var pick;
+    if (t.members && t.members.length) pick = { codes: t.members, how: 'board:' + (t.boardCode || t.name) };
+    else pick = themeMemberCodes(t.name, bm);
     if (!pick.codes.length) { _diag.fail++; return; }
     seenName[t.name] = 1;
     jobs.push({ name: t.name, ind: pick.how, codes: pick.codes, force: !!t.forceShow });
@@ -5765,16 +5770,20 @@ function _backRowsFromStatic(bm, _diag) {
         var nm = (bm.names && bm.names[c]) || '';
         if (/ST|退|\*/.test(nm)) return;
         var chg = q.chgPct;
-        if (!isFinite(chg) || chg < 0.5 || chg > THEME_BACK_CHG_MAX) return;
+        /* 硬过滤（任一不满足直接排除，不打分）：涨幅 1.5%~9.5% · 成交额 ≥5000 万 · 市值 ≤200 亿 */
+        if (!isFinite(chg) || chg < THEME_BACK_CHG_MIN || chg > THEME_BACK_CHG_MAX) return;
+        var amtWan = (isFinite(q.amount) && q.amount > 0) ? q.amount / 1e4 : 0;
+        if (amtWan < THEME_BACK_AMT_MIN_WAN) return;
+        if (q.marketCap == null || !isFinite(q.marketCap) || q.marketCap <= 0 || q.marketCap > THEME_BACK_CAP_MAX_YI) return;
         var vr = isFinite(q.volRatio) ? q.volRatio : 0;
-        var main = (q.mainNetFlowYi == null) ? 0 : q.mainNetFlowYi * 1e8;
-        var amount = (isFinite(q.amount) && q.amount > 0) ? q.amount : 1;
         back.push({ code: c, name: nm || c, chgPct: chg, volRatio: vr, mainNetFlowYi: q.mainNetFlowYi,
+          amountWan: Math.round(amtWan),
           marketCap: q.marketCap == null ? null : q.marketCap,
-          strength: +(chg * 0.4 + Math.min(vr, 3) * 2 + (main / amount) * 15).toFixed(2) });
+          strength: themeBackStrength(chg, vr, q.mainNetFlowYi, q.amount) });
       });
       back.sort(function (a, b) { return b.strength - a.strength; });
-      t.backRows = back.slice(0, THEME_BACK_MAX);
+      j._backFull = back;              // 先全量留存，等跨卡去重后再截断
+      t.backRows = [];
       if (j.force) {   // 强制题材：用成员池真实涨幅 ≥9.5% 填充前排，使卡片完整
         var front = [];
         j.codes.forEach(function (c) {
@@ -5791,6 +5800,24 @@ function _backRowsFromStatic(bm, _diag) {
         t.forceShow = true;
       }
       if (j.aliasOf) t.aliasOf = j.aliasOf;
+    });
+    /* 跨卡去重：同一只票只在「排序更靠前」的那张卡里当后排补涨（板块高度重叠时否则一张票出现 3 次）。
+       先让每张卡各自排好序，再按卡顺序认领，保证强卡拿到最强票。 */
+    var usedBack = {};
+    for (var k in frontAll) if (frontAll.hasOwnProperty(k)) usedBack[k] = 1;
+    jobs.forEach(function (j) {
+      var t = null;
+      themes.forEach(function (z) { if (z.name === j.name) t = z; });
+      if (!t) return;
+      var keep = [];
+      (j._backFull || []).forEach(function (b) {
+        if (keep.length >= THEME_BACK_MAX) return;
+        var key = String(b.code);
+        if (usedBack[key]) return;
+        usedBack[key] = 1;
+        keep.push(b);
+      });
+      t.backRows = keep;
     });
     _themeBackDiag(_diag, 0);
     return null;
@@ -5832,14 +5859,17 @@ function _backRowsFromClist(_diag) {
                 return isFinite(+x.f3);
               });
               var back = clean
-                .filter(function (x) { return +x.f3 >= 0.5 && +x.f3 <= THEME_BACK_CHG_MAX; })   // 后排：全板块·涨幅 0.5%~9.5%（含创业板/科创板）
+                .filter(function (x) { return +x.f3 >= THEME_BACK_CHG_MIN && +x.f3 <= THEME_BACK_CHG_MAX; })  // 涨幅 1.5%~9.5%
                 .filter(function (x) { return !_themeFrontSet()[String(x.f12)]; })               // 剔除当日已涨停（与静态路径同口径）
+                .filter(function (x) { return (+x.f6 || 0) / 1e4 >= THEME_BACK_AMT_MIN_WAN; })   // 成交额 ≥5000 万
+                .filter(function (x) { var mc = +x.f20 / 1e8; return isFinite(mc) && mc > 0 && mc <= THEME_BACK_CAP_MAX_YI; })  // 市值 ≤200 亿
                 .map(function (x) {
                   var code = String(x.f12);
-                  var chg = +x.f3, vr = +x.f10 || 0, main = +x.f62 || 0, amount = +x.f6 || 1;
-                  var strength = +(chg * 0.4 + Math.min(vr, 3) * 2 + (main / amount) * 15).toFixed(2);
-                  return { code: code, name: x.f14, chgPct: chg, volRatio: vr, mainNetFlowYi: Math.round(main / 1e8 * 100) / 100,
-                    marketCap: x.f20 ? +(x.f20 / 1e8).toFixed(2) : null, strength: strength };
+                  var chg = +x.f3, vr = +x.f10 || 0, mainYi = Math.round((+x.f62 || 0) / 1e8 * 100) / 100, amount = +x.f6 || 0;
+                  return { code: code, name: x.f14, chgPct: chg, volRatio: vr, mainNetFlowYi: mainYi,
+                    amountWan: Math.round(amount / 1e4),
+                    marketCap: x.f20 ? +(x.f20 / 1e8).toFixed(2) : null,
+                    strength: themeBackStrength(chg, vr, mainYi, amount) };
                 })
                 .sort(function (a, b) { return b.strength - a.strength; })
                 .slice(0, THEME_BACK_MAX);
@@ -5915,15 +5945,22 @@ function refreshThemeBackRows() {
   //   盘中/午休运行时该报告尚不存在 → 必然拉空 → 分片 backRows=0。此时前端又跳过重算，
   //   页面就永久空态（11-04 午休打开即「后排补涨又没了」的真因）。
   //   故：仅当分片「自带后排」（已定稿日）时才在非交易时段跳过；分片为空则允许用静态池补算一次。
+  var _nowD = new Date();
+  var _hm = _nowD.getHours() * 100 + _nowD.getMinutes();
+  /* ⑤ 排序时点统一：14:55 之后冻结，不再用盘中价重排（避免「盘中排序 + 收盘价」两种时点混用）；
+     收盘后展示的 asOf 由数据本身携带，页面照实标注。 */
+  var _frozen = (!isMarketOpen()) || (_hm > 1455 && _hm < 1500);
   var _inline = ((DATA.themeRadar && DATA.themeRadar.themes) || []).some(function (t) { return (t.backRows || []).length; });
-  if (!isMarketOpen()) {
+  var _calcOnceFrozen = false;
+  if (_frozen) {
     if (_inline) return;
     if (_themeBackEmptyTried === (DATA.date || '')) return;   // 同一交易日只补算一次，避免每次渲染都发 56 批请求
-    _themeBackEmptyTried = DATA.date || '';
+    _calcOnceFrozen = true;
   }
   if (_themeBackRunning) return;
   if (!DATA.themeRadar || !DATA.themeRadar.themes) return;
   if (!CURRENT_IS_LATEST && CURRENT_SOURCE !== 'live') return;   // 🚨 防混日：最新交易日或 live 实时态才重算
+  if (_calcOnceFrozen) _themeBackEmptyTried = DATA.date || '';
   _themeBackRunning = true;
   var _diag = { targets: 0, ok: 0, fail: 0, fallback: 0, mode: 'static' };
   boardMapStatic()
@@ -5933,8 +5970,17 @@ function refreshThemeBackRows() {
       try { console.warn('board_map 静态分片不可用，降级 clist 成分：' + (e && e.message)); } catch (x) {}
       return _backRowsFromClist(_diag);
     })
-    .then(function () { _themeBackRunning = false; renderThemeRadar(); })
+    .then(function () { _themeBackRunning = false; _stampThemeAsOf(); renderThemeRadar(); })
     .catch(function () { _themeBackRunning = false; renderThemeRadar(); });
+}
+/* ⑤ 时点标注：本轮所有后排候选都出自这一批报价，记录实际时点，页面照实展示「数据截至 HH:MM」 */
+function _stampThemeAsOf() {
+  try {
+    var d = new Date(), p = function (n) { return ('0' + n).slice(-2); };
+    if (!DATA.themeRadar) return;
+    DATA.themeRadar.asOf = fmtDate(d) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    DATA.themeRadar.asOfLabel = p(d.getHours()) + ':' + p(d.getMinutes());
+  } catch (e) {}
 }
 
 var THEME_MIN_FRONT = 2;
@@ -5942,6 +5988,26 @@ var THEME_MIN_BACK = 2;
 var THEME_MAX_CARDS = 16;
 var THEME_BACK_MAX = 8;          // 后排补涨候选取前 N
 var THEME_BACK_CHG_MAX = 9.5;    // 后排涨幅上限（含接近涨停的强势补涨）
+/* 🚨 2026-11-04 新增硬过滤（用户口径）：任一不满足直接排除，不参与打分
+   —— 日成交额 ≥ 5000 万 · 总市值 ≤ 200 亿 · 当日涨幅 ≥ 1.5% */
+var THEME_BACK_CHG_MIN = 1.5;
+var THEME_BACK_AMT_MIN_WAN = 5000;   // 万元
+var THEME_BACK_CAP_MAX_YI = 200;     // 亿元
+/* 后排补涨强度（0~100）：涨幅 40 + 量比分段 40 + 主力净流入占比 20
+   量比：>5 满分；3~5 记 80%~100%；1~3 线性；<1 记 0（不再封顶 3 一刀切） */
+function themeBackStrength(chg, vr, mainYi, amount) {
+  var c = Math.max(0, Math.min(1, (chg - THEME_BACK_CHG_MIN) / (THEME_BACK_CHG_MAX - THEME_BACK_CHG_MIN))) * 40;
+  var v = 0;
+  if (!isFinite(vr) || vr <= 1) v = 0;
+  else if (vr > 5) v = 40;
+  else if (vr > 3) v = 32 + (vr - 3) / 2 * 8;
+  else v = (vr - 1) / 2 * 32;
+  var m = 0;
+  if (isFinite(amount) && amount > 0 && mainYi != null && isFinite(mainYi)) {
+    m = Math.max(0, Math.min(0.3, (mainYi * 1e8) / amount)) / 0.3 * 20;
+  }
+  return Math.round((c + v + m) * 100) / 100;
+}
 // 强制展示题材：即使当日无该板块涨停，也按真实板块成员拉取后排补涨（如冰雪→旅游及景区）
 var THEME_FORCE_BOARDS = [
   { alias: '冰雪', keywords: ['旅游', '景区', '冰雪', '酒店'] }
@@ -6051,12 +6117,47 @@ function renderThemeRadar() {
   var tr = DATA.themeRadar || { themes: [], note: '' };
   if (noteEl) noteEl.textContent = tr.note || '';
   var timingEl = document.getElementById('themeTimingNote');
-  if (timingEl) timingEl.innerHTML = '⏱️ 题材雷达为盘中实时题材聚类：点击「刷新数据」会按各板块代码实时重算前排涨停梯队与后排补涨候选（按当前涨幅 0.5%~9.5% 真实筛选），与全站 10:06 快照基准相互独立；下方龙头/主线/涨停池等模块均以快照为准，二者不混用。';
+  if (timingEl) {
+    var _lbl = tr.asOfLabel || (tr.asOf ? String(tr.asOf).slice(11, 16) : '');
+    if (tr.mode === 'board') {
+      /* ⑤ 板块驱动口径：前排与后排取自同一次板块扫描，统一时点 */
+      timingEl.innerHTML = '⏱️ <b>数据截至 ' + (_lbl || '—') + '</b> · 题材卡＝东财<b>板块（BK 代码精确匹配）</b>，'
+        + '入选条件：当日有涨停 或 板块涨幅 ≥1.5%。<br/>后排补涨＝同板块成分股中同时满足 '
+        + '<b>成交额 ≥5000 万 · 总市值 ≤200 亿 · 涨幅 1.5%~9.5%</b> 的个股（任一不满足直接排除），'
+        + '按「涨幅 40 + 量比分段 40（&gt;5 满分 / 3~5 记 80%~100% / 1~3 线性）+ 主力净流入占比 20」排序。'
+        + '前排与后排同批扫描、时点一致；14:55 后不再重排。';
+    } else {
+      timingEl.innerHTML = '⏱️ 题材雷达为盘中实时题材聚类：点击「刷新数据」会按各板块代码实时重算前排涨停梯队与后排补涨候选'
+        + '（涨幅 ' + THEME_BACK_CHG_MIN + '%~' + THEME_BACK_CHG_MAX + '% · 成交额 ≥' + (THEME_BACK_AMT_MIN_WAN / 1e4) + ' 亿 · 市值 ≤' + THEME_BACK_CAP_MAX_YI + ' 亿），'
+        + '与全站快照基准相互独立；下方龙头/主线/涨停池等模块均以快照为准，二者不混用。'
+        + (_lbl ? ' 数据截至 <b>' + _lbl + '</b>。' : '');
+    }
+  }
   var themes = tr.themes || [];
   // 仅在「刷新数据」拉到实时涨停池时重算前排（LIVE_LIMITUP）；初始快照加载沿用快照配套 front+back，避免 top16 成员错位导致后排补涨候选丢失
   var liveList = (LIVE_LIMITUP && DATA.limitUp && DATA.limitUp.list && DATA.limitUp.list.length) ? DATA.limitUp.list : null;
   var liveMode = !!liveList;
-  if (liveList) {
+  if (liveList && tr.mode === 'board') {
+    /* 🚨 2026-11-04：板块驱动模式下**不能**再按 hybk 重新聚类（那会把 BK 卡换成旧的行业卡，
+       名字对不上 → 后排全丢）。只把实时涨停池映射回各卡自己的 members，刷新前排。 */
+    var _zt = {};
+    liveList.forEach(function (s) { if (s && s.code) _zt[String(s.code)] = s; });
+    (tr.themes || []).forEach(function (t) {
+      var mem = t.members || [];
+      if (!mem.length) return;
+      var fr = [];
+      mem.forEach(function (c) {
+        var s = _zt[String(c)]; if (!s) return;
+        fr.push({ code: s.code, name: s.name, streak: s.streak || 1, time: s.time || '', sealAmount: s.sealAmount,
+          chgPct: s.chgPct, mainNetFlowYi: s.mainNetFlowYi, marketCap: s.marketCap, reason: t.name,
+          turnover: s.turnover, volRatio: s.volRatio });
+      });
+      if (!fr.length) return;
+      t.front = fr.sort(function (a, b) { return (b.streak - a.streak) || (a.time < b.time ? -1 : 1); });
+      t.count = fr.length;
+      t.lbcMax = Math.max.apply(null, fr.map(function (x) { return x.streak || 1; }));
+    });
+  } else if (liveList) {
     // 实时聚类：以「行业板块 hybk」为主键（与每日快照口径一致），保证军工/传媒/旅游等按行业维度成卡；
     // 再以「概念板块 conceptTags」补充跨行业题材卡（信创/AI 等），避免按首个概念标签聚类时被切碎到杂乱组而整卡消失。
     var _genRe = /(融资融券|融券|转融券|沪股通|深股通|陆股通|北上资金|MSCI|标普|富时|基金重仓|机构重仓|QFII|社保重仓|证金|汇金|国企改革|央企|央国企|地方国资|转债标的|可转债|质押|沪伦通|深成\d*|中证\d*|沪深\d*|上证\d*|央视\d*|科创板|创业板|主板|ST|预盈|预增|预减|扭亏|核准制|注册制|破净|低市盈率|高股息)/;
@@ -6130,7 +6231,13 @@ function renderThemeRadar() {
       if (f.length >= THEME_MIN_FRONT) strong.push(t);
       else weakCount++;
     } else {
-      if (f.length >= THEME_MIN_FRONT && b.length >= THEME_MIN_BACK) strong.push(t);
+      /* 🚨 2026-11-04：板块驱动模式（tr.mode==='board'）下，卡片已由服务端筛过「有涨停 或 板块涨幅≥1.5%」，
+         这里不再用「前排≥2 且 后排≥2」二次加码 —— 否则 1 只涨停但后排扎实的题材卡（如 短剧互动游戏、
+         转基因）会被整卡吞掉。新口径：前排≥1 且（后排≥1 或 前排≥2）。历史旧口径分片维持原逻辑。 */
+      var _okStrong = (tr.mode === 'board')
+        ? (f.length >= 1 && (b.length >= 1 || f.length >= 2))
+        : (f.length >= THEME_MIN_FRONT && b.length >= THEME_MIN_BACK);
+      if (_okStrong) strong.push(t);
       else weakCount++;
     }
   });
