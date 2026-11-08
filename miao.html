@@ -1253,6 +1253,12 @@ body.wb-readonly .wb-datenav{opacity:1}
           vertical-align:middle;
         }
         .sp-tbl textarea.sp-in.sp-edit{border-color:var(--primary);background:var(--card-bg,#fff)}
+        /* 日期列多行文本框：窄列专用，居中、紧凑 */
+        .sp-tbl textarea.sp-in.sp-day{
+          width:92px;min-width:92px;max-width:120px;
+          min-height:42px;text-align:center;
+          white-space:pre-wrap;word-break:break-word;
+        }
         .sp-op button{margin:1px 0}
         .sp-del{color:#c0392b;border-color:#e2a0a0}
         .sp-empty{padding:24px;text-align:center;color:var(--text-secondary)}
@@ -21687,10 +21693,10 @@ function spRenderTable() {
         '<td>' + (r.price === '' || r.price == null ? '-' : (+r.price).toFixed(2)) + '</td>' +
         '<td class="' + chgCls + '">' + chgTxt + '</td>' +
         '<td class="sp-ma" title="' + spMaTitle(r) + '">' + maTxt + '</td>' +
-        '<td><textarea class="sp-in" data-f="signal" rows="3" readonly placeholder="点「编辑」填写介入理由…" oninput="spAutoGrow(this)">' + spEscText(r.signal) + '</textarea></td>' +
+        '<td><textarea class="sp-in" data-f="signal" rows="3" readonly oninput="spAutoGrow(this)">' + spEscText(r.signal) + '</textarea></td>' +
         cols.map(function (c, i) {
           var v = (r.dayMap && r.dayMap[c] != null) ? r.dayMap[c] : '';
-          return '<td><input class="sp-in" data-f="d' + i + '" value="' + spEscAttr(v) + '" readonly></td>';
+          return '<td><textarea class="sp-in sp-day" data-f="d' + i + '" rows="2" readonly oninput="spAutoGrow(this)">' + spEscText(v) + '</textarea></td>';
         }).join('') +
         '<td class="sp-td-right sp-op">' +
           '<button class="btn btn-sm btn-outline" onclick="spEditRow(\'' + r.id + '\')">编辑</button> ' +
