@@ -21626,16 +21626,24 @@ function spRefreshCandidates() {
 }
 
 /* ---------- 均线异步计算（含并发限制 + 缓存） ---------- */
+function spSecid(code) {
+  if (/^6/.test(code)) return '1.' + code;      // 沪市
+  if (/^[03]/.test(code)) return '0.' + code;    // 深市 / 创业板
+  if (/^[48]/.test(code)) return '0.' + code;    // 北交所(4/8开头)
+  return '0.' + code;
+}
 function spComputeMA(code, cb) {
   var ckey = 'spMA_' + code;
   try { var c = localStorage.getItem(ckey); if (c) { var o = JSON.parse(c); if (o.t && (Date.now() - o.t) < 86400000) { cb(o); return; } } } catch (e) {}
-  var mk = chanMktPrefix(code);
-  if (!mk) { cb({ maCount: 0, maList: [], above: [], close: null, maDone: true }); return; }
-  chanJsonp('https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=' + mk + code + ',day,,,170,qfq').then(function (res) {
-    var d = res && res.data && res.data[mk + code];
-    var arr = d && (d.qfqday || d.day);
-    if (!arr || arr.length < 10) throw new Error('no kline');
-    var closes = arr.map(function (b) { return +b[2]; });
+  var secid = spSecid(code);
+  var hosts = ['https://push2his.eastmoney.com', 'https://push2delay.eastmoney.com', 'https://82.push2delay.eastmoney.com'];
+  var urls = hosts.map(function (h) {
+    return h + '/api/qt/stock/kline/get?secid=' + secid + '&fields1=f1,f2,f3&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=1&lmt=200&end=20500101';
+  });
+  function parse(res) {
+    var klines = res && res.data && res.data.klines;
+    if (!klines || klines.length < 5) throw new Error('no kline');
+    var closes = klines.map(function (s) { return +(String(s).split(',')[2]); });
     var last = closes[closes.length - 1];
     var above = [], list = [];
     SP_MA_PERIODS.forEach(function (p) {
@@ -21644,10 +21652,16 @@ function spComputeMA(code, cb) {
         var ma = s / p; var up = last >= ma; above.push(up); if (up) list.push(p);
       } else { above.push(false); }
     });
-    var out = { maCount: list.length, maList: list, above: above, close: last, maDone: true, t: Date.now() };
-    try { localStorage.setItem(ckey, JSON.stringify(out)); } catch (e) {}
-    cb(out);
-  }).catch(function () { cb({ maCount: 0, maList: [], above: [], close: null, maDone: true, err: 'K线不可达' }); });
+    return { maCount: list.length, maList: list, above: above, close: last, maDone: true, t: Date.now() };
+  }
+  function fail() { cb({ maCount: 0, maList: [], above: [], close: null, maDone: true, err: 'K线不可达' }); }
+  function done(out) { try { localStorage.setItem(ckey, JSON.stringify(out)); } catch (e) {} cb(out); }
+  var lf = (typeof LiveFeed !== 'undefined' && LiveFeed.jsonpAny) ? LiveFeed.jsonpAny : null;
+  if (lf) {
+    lf(urls, 12000).then(function (j) { try { done(parse(j)); } catch (e) { fail(); } }).catch(function () { fail(); });
+  } else {
+    chanJsonp(urls[0]).then(function (j) { try { done(parse(j)); } catch (e) { fail(); } }).catch(function () { fail(); });
+  }
 }
 function spLazyMA() {
   spStore.rows.forEach(function (r) {
