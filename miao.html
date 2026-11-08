@@ -1160,6 +1160,14 @@ body.wb-readonly .wb-datenav{opacity:1}
 
 <!-- ==================== PAGE 8: 复盘笔记 ==================== -->
 <div class="page" id="page-notes">
+  <style>
+    /* 复盘笔记页布局：股票池跟踪(原5日内涨停跟踪)置顶，复盘笔记置底 */
+    #page-notes { display:flex; flex-direction:column; }
+    #page-notes:not(.active){ display:none !important; }
+    #page-notes.active { display:flex !important; }
+    #page-notes > .card:nth-of-type(1){ order:2; }   /* 复盘笔记 → 下方 */
+    #page-notes > .card:nth-of-type(2){ order:1; }   /* 股票池跟踪 → 上方 */
+  </style>
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📝 复盘笔记</span><span class="card-toggle">▼</span></div>
     <div class="card-body">
@@ -1197,7 +1205,7 @@ body.wb-readonly .wb-datenav{opacity:1}
   </div>
 </div>
   <div class="card" id="spTrackCard">
-    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📈 5日内涨停跟踪</span><span class="card-toggle">▼</span></div>
+    <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📈 股票池跟踪</span><span class="card-toggle">▼</span></div>
     <div class="card-body" id="spTrackBody">
       <style>
         .sp-toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -7363,17 +7371,26 @@ function openStockKline(code, name) {
     modal.onclick = function (e) { if (e.target === modal) closeKlineModal(); };
     document.body.appendChild(modal);
   }
-  document.getElementById('klineModalTitle').textContent = (name || code) + '（' + code + '）近45交易日 K线 + MACD';
+  document.getElementById('klineModalTitle').textContent = (name || code) + '（' + code + '）近60交易日 K线 + MACD';
   modal.style.display = 'flex';
   var cv = document.getElementById('klineModalCanvas');
   var msg = document.getElementById('klineModalMsg');
   if (st && st.k && st.k.length >= 30) {
     msg.textContent = '';
-    drawKline(cv, st.k.slice(-45), 'full');
-  } else {
-    cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
-    msg.textContent = '该个股本次未抓取日K（腾讯源未覆盖或北交所标的），暂无45日K线/MACD。';
+    drawKline(cv, st.k.slice(-60), 'full');
+    return;
   }
+  /* 实时回源：腾讯源已不可用，改用与均线/悬浮K线同源的东财 push2his（多主机互备） */
+  msg.textContent = '正在获取 ' + (name || code) + ' 日K…';
+  spFetchKlineEM(code, function (bars) {
+    if (bars && bars.length >= 10) {
+      msg.textContent = '';
+      drawKline(cv, bars.slice(-60), 'full');
+    } else {
+      cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
+      msg.textContent = '暂无法获取该个股日K（标的类型不支持或行情源不可达），暂无60日K线/MACD。';
+    }
+  });
 }
 function closeKlineModal() { var m = document.getElementById('klineModal'); if (m) m.style.display = 'none'; }
 
@@ -21331,7 +21348,7 @@ function wbJumpToLatest() {
 <!-- ===== 股票池跟踪模块 (5日内涨停跟踪) ===== -->
 <script>
 /* =====================================================================
-   股票池跟踪模块 · 5日内涨停跟踪
+   股票池跟踪模块（原「5日内涨停跟踪」）
    数据源：在线 wbdata/YYYY-MM-DD.json 分片（聚合 limitUp.list）
    存储：浏览器 localStorage（页面为静态站，无法直连服务端 DB；schema 按可直接入库设计）
    复用：openStockKline（点击K线弹窗）、chanJsonp + drawKline（悬浮K线）、openModal（弹窗）
@@ -21670,6 +21687,29 @@ function spSecid(code) {
   if (/^[48]/.test(code)) return '0.' + code;    // 北交所(4/8开头)
   return '0.' + code;
 }
+/* 东财日K（与 spComputeMA / 悬浮K线同源，多主机互备；腾讯源已不可用） */
+function spFetchKlineEM(code, cb) {
+  var secid = spSecid(code);
+  var hosts = ['https://push2his.eastmoney.com', 'https://push2delay.eastmoney.com', 'https://82.push2delay.eastmoney.com'];
+  var urls = hosts.map(function (h) {
+    return h + '/api/qt/stock/kline/get?secid=' + secid + '&fields1=f1,f2,f3&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=1&lmt=170&end=20500101';
+  });
+  function parse(res) {
+    var klines = res && res.data && res.data.klines;
+    if (!klines || klines.length < 10) throw new Error('no kline');
+    return klines.map(function (s) {
+      var a = String(s).split(',');
+      return [a[0], +(a[1]), +(a[2]), +(a[3]), +(a[4]), +(a[5]) || 0];
+    });
+  }
+  function done(bars) { try { cb(bars); } catch (e) {} }
+  var lf = (typeof LiveFeed !== 'undefined' && LiveFeed.jsonpAny) ? LiveFeed.jsonpAny : null;
+  if (lf) {
+    lf(urls, 12000).then(function (j) { try { done(parse(j)); } catch (e) { done(null); } }).catch(function () { done(null); });
+  } else {
+    chanJsonp(urls[0]).then(function (j) { try { done(parse(j)); } catch (e) { done(null); } }).catch(function () { done(null); });
+  }
+}
 function spComputeMA(code, cb, anchor) {
   var ckey = 'spMA_' + code;
   try { var c = localStorage.getItem(ckey); if (c) { var o = JSON.parse(c); if (o.t && (Date.now() - o.t) < 86400000 && o.maDone) { cb(o); return; } } } catch (e) {}
@@ -21766,16 +21806,11 @@ function spHoverKline(ev, id) {
   pop.classList.add('show');
   var draw = function (bars) { spDrawKlinePop(document.getElementById('spKlinePopCv'), bars); };
   if (spKlineCache[r.code]) { draw(spKlineCache[r.code]); return; }
-  var mk = chanMktPrefix(r.code);
-  if (!mk) { return; }
-  chanJsonp('https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=' + mk + r.code + ',day,,,170,qfq').then(function (res) {
-    var d = res && res.data && res.data[mk + r.code];
-    var arr = d && (d.qfqday || d.day);
-    if (!arr || arr.length < 10) return;
-    var bars = arr.slice(-60).map(function (b) { return [b[0], +b[1], +b[2], +b[3], +b[4], +b[5] || 0]; });
+  spFetchKlineEM(r.code, function (bars) {
+    if (!bars || bars.length < 10) return;
     spKlineCache[r.code] = bars;
     if (pop.classList.contains('show')) draw(bars);
-  }).catch(function () {});
+  });
 }
 function spHideKline() { var pop = document.getElementById('spKlinePop'); if (pop) pop.classList.remove('show'); }
 
