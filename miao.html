@@ -1213,7 +1213,9 @@ body.wb-readonly .wb-datenav{opacity:1}
         .sp-stat{background:var(--gray-light,#f3f4f6);border-radius:8px;padding:6px 12px;text-align:center;min-width:96px}
         .sp-stat-v{font-size:18px;font-weight:700;color:var(--primary,#2f6fed)}
         .sp-stat-l{font-size:11px;color:var(--text-secondary,#5a6a7e);margin-top:2px}
-        .sp-actions{display:flex;gap:6px;flex-wrap:wrap}
+        .sp-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+        .sp-win{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
+        .sp-win-sel{padding:5px 8px;border:1px solid var(--card-border,#e2e8f0);border-radius:6px;font:inherit;background:var(--card-bg,#fff);color:var(--text);cursor:pointer}
         .sp-info{font-size:12px;color:var(--text-secondary);background:var(--gray-light,#f3f4f6);padding:6px 10px;border-radius:6px;margin-bottom:8px;line-height:1.6}
         .sp-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
         .sp-tbl{border-collapse:collapse;width:100%;font-size:12px;min-width:1000px}
@@ -1296,9 +1298,16 @@ body.wb-readonly .wb-datenav{opacity:1}
       <div class="sp-toolbar">
         <div class="sp-stats" id="spStats"></div>
         <div class="sp-actions">
+          <label class="sp-win">窗口
+            <select id="spWinSel" class="sp-win-sel" onchange="spSetWinSize(this.value)">
+              <option value="5">5日</option>
+              <option value="8">8日</option>
+              <option value="10">10日</option>
+            </select>
+          </label>
           <button class="btn btn-sm" onclick="spOpenAddModal()">＋新增个股</button>
           <button class="btn btn-sm" onclick="spOpenPoolModal()">20日内涨停池</button>
-          <button class="btn btn-sm btn-outline" onclick="spRefreshCandidates()">↻ 拉取5日候选</button>
+          <button class="btn btn-sm btn-outline" onclick="spRefreshCandidates()">↻ 拉取候选</button>
         </div>
       </div>
       <div id="spInfo" class="sp-info" style="display:none"></div>
@@ -21354,11 +21363,13 @@ function wbJumpToLatest() {
    复用：openStockKline（点击K线弹窗）、chanJsonp + drawKline（悬浮K线）、openModal（弹窗）
    ===================================================================== */
 var SP_MA_PERIODS = [5, 8, 13, 21, 34, 55, 89, 144];
+var SP_WIN_OPTIONS = [5, 8, 10];
+var SP_HISTORY_BUFFER = 12;   // 保留的最近交易日数量上限（≥最大窗口10，窗口扩大时可回看历史）
 var SP_STORE_KEY = 'spTrack_v1';
 var SP_POOL_KEY = 'spPool20_v1';
 var SP_POOL_TTL = 6 * 3600 * 1000;
 var SP_EARLY_CUT = '09:45:00';
-var spStore = { rows: [], dateCols: [], updatedAt: 0 };
+var spStore = { rows: [], allDates: [], winSize: 5, updatedAt: 0 };
 var spPool20 = null;            // 聚合后的20日涨停池（数组）
 var spKlineCache = {};          // code -> bars(腾讯原始)
 var spMAQueue = [];             // MA 异步计算队列
@@ -21378,7 +21389,7 @@ function spLoadStore() {
     var raw = localStorage.getItem(SP_STORE_KEY);
     if (raw) { var o = JSON.parse(raw); if (o && o.rows) { spStore = o; return true; } }
   } catch (e) {}
-  spStore = { rows: [], dateCols: [], updatedAt: 0 };
+  spStore = { rows: [], allDates: [], winSize: 5, updatedAt: 0 };
   return false;
 }
 function spSaveStore() {
@@ -21406,6 +21417,67 @@ function spGuessTradeDays(base, n) {
     d.setDate(d.getDate() - 1);
   }
   return out; // 最新在前
+}
+
+/* ---------- 窗口 / 日期滚动（新日期在左、旧在右；超出窗口仅隐藏不删除） ---------- */
+function spComputeAllDates() {
+  // 候选：以当前数据日 DATA.date 为终点，向前取 SP_HISTORY_BUFFER 个交易日（仅跳过周末，与历史口径一致）
+  var base = (DATA && DATA.date) ? DATA.date : spFmtDate(new Date());
+  var cand = spGuessTradeDays(base, SP_HISTORY_BUFFER); // 最新在前
+  var set = {}, merged = [];
+  cand.forEach(function (d) { if (!set[d]) { set[d] = 1; merged.push(d); } });
+  // 保留比候选更旧的历史日期（其 dayMap 已存于各自行，仅隐藏），避免重复/乱序
+  var oldestCand = cand[cand.length - 1];
+  (spStore.allDates || []).forEach(function (d) {
+    if (set[d]) return;
+    if (oldestCand && d > oldestCand) return;
+    set[d] = 1; merged.push(d);
+  });
+  merged.sort(function (a, b) { return a > b ? -1 : 1; }); // 始终最新在前
+  spStore.allDates = merged;
+}
+function spVisibleDates() {
+  var w = spStore.winSize || 5;
+  return (spStore.allDates || []).slice(0, w); // 最新在前 → 新日期在左、旧在右
+}
+function spPoolNeed() { return Math.max(spStore.winSize || 5, 10); }
+function spInWindow(d) {
+  var cols = spVisibleDates(); if (!cols.length) return false;
+  return d >= cols[cols.length - 1] && d <= cols[0];
+}
+function spMigrateStore() {
+  if (!spStore) spStore = { rows: [], allDates: [], winSize: 5, updatedAt: 0 };
+  if (!spStore.allDates) spStore.allDates = [];
+  if (SP_WIN_OPTIONS.indexOf(spStore.winSize) < 0) spStore.winSize = 5;
+  if (!spStore.rows) spStore.rows = [];
+  // 旧模型：行用 dayVals 数组 + 全局 dateCols（下标对齐，窗口一变就错位/丢历史）
+  // 迁移为「按日期 key 的 dayMap」，窗口滚动时历史值只隐藏不丢失
+  if (spStore.dateCols && spStore.dateCols.length) {
+    if (!spStore.allDates.length) spStore.allDates = spStore.dateCols.slice();
+    spStore.rows.forEach(function (r) {
+      if (r.dayVals && !r.dayMap) {
+        r.dayMap = {};
+        for (var i = 0; i < spStore.dateCols.length; i++) r.dayMap[spStore.dateCols[i]] = (r.dayVals[i] != null ? r.dayVals[i] : '');
+      }
+      delete r.dayVals;
+    });
+    delete spStore.dateCols;
+  } else if (spStore.rows.length) {
+    spStore.rows.forEach(function (r) { if (r.dayVals) { r.dayMap = r.dayMap || {}; delete r.dayVals; } });
+  }
+}
+function spSetWinSize(v) {
+  var n = parseInt(v, 10);
+  if (SP_WIN_OPTIONS.indexOf(n) < 0) n = 5;
+  spStore.winSize = n;
+  spComputeAllDates();   // 确保窗口扩大时可回看的历史日期已就绪
+  spSaveStore();
+  spSyncWinSel();
+  spRenderTable();
+}
+function spSyncWinSel() {
+  var sel = document.getElementById('spWinSel');
+  if (sel && sel.value !== String(spStore.winSize || 5)) sel.value = String(spStore.winSize || 5);
 }
 
 /* ---------- 在线分片读取 ---------- */
@@ -21505,13 +21577,12 @@ function spAddStock(rec, silent) {
     if (!silent) showNotify('⚠ ' + (rec.name || rec.code) + ' 已在列表中', 2500);
     return false;
   }
-  var cols = spStore.dateCols.length ? spStore.dateCols : spGuessTradeDays(DATA.date, 5);
   var row = {
     id: spGenId(), code: rec.code, name: rec.name || rec.code, sector: rec.sector || '',
     price: (rec.price != null ? rec.price : ''), chgPct: (rec.chgPct != null ? rec.chgPct : ''),
     earlyBoard: !!(rec.minSeal && rec.minSeal <= SP_EARLY_CUT),
     streak: rec.streak || 1, maCount: 0, maList: [], maDone: false,
-    signal: '', dayVals: cols.map(function () { return ''; }),
+    signal: '', dayMap: {},
     createdAt: Date.now(), updatedAt: Date.now()
   };
   spStore.rows.push(row);
@@ -21534,7 +21605,13 @@ function spSaveRow(id) {
   tr.querySelectorAll('.sp-in').forEach(function (inp) {
     var f = inp.getAttribute('data-f');
     if (f === 'signal') r.signal = inp.value;
-    else if (f && f.indexOf('d') === 0) { var idx = parseInt(f.slice(1), 10); if (!isNaN(idx)) r.dayVals[idx] = inp.value; }
+    else if (f && f.indexOf('d') === 0) {
+      var idx = parseInt(f.slice(1), 10);
+      if (!isNaN(idx)) {
+        var dcols = spVisibleDates();
+        if (dcols[idx]) { if (!r.dayMap) r.dayMap = {}; r.dayMap[dcols[idx]] = inp.value; }
+      }
+    }
     inp.readOnly = true; inp.classList.remove('sp-edit');
   });
   tr.classList.remove('sp-row-edit');
@@ -21544,10 +21621,10 @@ function spSaveRow(id) {
 }
 
 /* ---------- 统计 ---------- */
-function spInLast5(d) {
-  var cols = spStore.dateCols; if (!cols.length) return false;
-  var newest = cols[0], oldest = cols[cols.length - 1];
-  return d >= oldest && d <= newest;
+function spInLast5(d) {           // 固定「最近5个交易日」口径（用于20日涨停池弹窗筛选，不受表格窗口配置影响）
+  var cols = spGuessTradeDays((DATA && DATA.date) || spFmtDate(new Date()), 5);
+  if (!cols.length) return false;
+  return d >= cols[cols.length - 1] && d <= cols[0];
 }
 function spRenderStats() {
   var rows = spStore.rows;
@@ -21580,7 +21657,8 @@ function spMaTitle(r) {
 function spRenderTable() {
   var wrap = document.getElementById('spTableWrap');
   if (!wrap) return;
-  var cols = spStore.dateCols.length ? spStore.dateCols : (spStore.dateCols = spGuessTradeDays(DATA.date, 5));
+  if (!spStore.allDates || !spStore.allDates.length) spComputeAllDates();
+  var cols = spVisibleDates();
   var rows = spStore.rows;
   var head = '<tr>' +
     '<th class="sp-th-left">股票</th>' +
@@ -21593,7 +21671,7 @@ function spRenderTable() {
     '</tr>';
   var body = '';
   if (!rows.length) {
-    body = '<tr><td colspan="' + (5 + cols.length) + '" class="sp-empty">暂无跟踪标的。点「＋新增个股」或「20日内涨停池」加入，或首访将自动拉取近5日涨停候选。</td></tr>';
+    body = '<tr><td colspan="' + (6 + cols.length) + '" class="sp-empty">暂无跟踪标的。点「＋新增个股」或「20日内涨停池」加入，或首访将自动拉取近' + (spStore.winSize || 5) + '日涨停候选。</td></tr>';
   } else {
     rows.forEach(function (r) {
       var chgCls = (r.chgPct === '' || r.chgPct == null) ? '' : ((+r.chgPct) >= 0 ? 'sp-red' : 'sp-green');
@@ -21611,7 +21689,8 @@ function spRenderTable() {
         '<td class="sp-ma" title="' + spMaTitle(r) + '">' + maTxt + '</td>' +
         '<td><textarea class="sp-in" data-f="signal" rows="3" readonly placeholder="点「编辑」填写介入理由…" oninput="spAutoGrow(this)">' + spEscText(r.signal) + '</textarea></td>' +
         cols.map(function (c, i) {
-          return '<td><input class="sp-in" data-f="d' + i + '" value="' + spEscAttr(r.dayVals[i] || '') + '" readonly></td>';
+          var v = (r.dayMap && r.dayMap[c] != null) ? r.dayMap[c] : '';
+          return '<td><input class="sp-in" data-f="d' + i + '" value="' + spEscAttr(v) + '" readonly></td>';
         }).join('') +
         '<td class="sp-td-right sp-op">' +
           '<button class="btn btn-sm btn-outline" onclick="spEditRow(\'' + r.id + '\')">编辑</button> ' +
@@ -21637,26 +21716,25 @@ function spSetInfo(t) {
 function spTrackInit() {
   if (!document.getElementById('spTrackBody')) return;
   spEnsureStore();
-  if (!spStore.dateCols || !spStore.dateCols.length) {
-    spStore.dateCols = spGuessTradeDays((DATA && DATA.date) || spFmtDate(new Date()), 5);
-    spSaveStore();
-  }
+  spMigrateStore();
+  spComputeAllDates();
+  spSyncWinSel();
   spRenderStats();
   spRenderTable();
   if (!spStore.rows.length) {
-    spSetInfo('正在拉取近 5 日涨停数据…');
-    spEnsurePool(5, function (pool) {
+    spSetInfo('正在拉取近 ' + (spStore.winSize || 5) + ' 日涨停数据…');
+    spEnsurePool(spPoolNeed(), function (pool) {
       if (pool && pool.length) {
-        var recent = pool.filter(function (r) { return r.dates.some(function (d) { return spInLast5(d); }); });
+        var recent = pool.filter(function (r) { return r.dates.some(function (d) { return spInWindow(d); }); });
         var added = 0;
         recent.forEach(function (r) { if (spAddStock(r, true)) added++; });
-        spSaveStore(); spRenderStats(); spRenderTable(); spSetInfo('已自动导入近5日涨停候选 ' + added + ' 只（可编辑/删除/补充）');
+        spSaveStore(); spRenderStats(); spRenderTable(); spSetInfo('已自动导入近' + (spStore.winSize || 5) + '日涨停候选 ' + added + ' 只（可编辑/删除/补充）');
         spLazyMA();
       } else {
         var lu = (DATA && DATA.limitUp && DATA.limitUp.list) || [];
         lu.forEach(function (it) { spAddStock({ code: it.code, name: it.name, sector: (it.industry || it.board || ''), streak: it.streak || 1, minSeal: it.time || '15:00', price: it.price, chgPct: it.chgPct }, true); });
         spSaveStore(); spRenderStats(); spRenderTable();
-        spSetInfo('⚠ 历史分片未能加载（本地打开文件或网络受限），已退回当日涨停池；联网访问 mimihub.cloud 可加载完整 5/20 日历史');
+        spSetInfo('⚠ 历史分片未能加载（本地打开文件或网络受限），已退回当日涨停池；联网访问 mimihub.cloud 可加载完整历史');
         spLazyMA();
       }
     });
@@ -21668,10 +21746,10 @@ function spTrackInit() {
 
 /* ---------- 刷新5日候选（合并，不覆盖已有） ---------- */
 function spRefreshCandidates() {
-  spSetInfo('正在拉取近5日涨停候选…');
-  spEnsurePool(5, function (pool) {
+  spSetInfo('正在拉取近 ' + (spStore.winSize || 5) + ' 日涨停候选…');
+  spEnsurePool(spPoolNeed(), function (pool) {
     if (!pool) { spSetInfo('⚠ 历史分片未能加载，无法刷新候选'); return; }
-    var recent = pool.filter(function (r) { return r.dates.some(function (d) { return spInLast5(d); }); });
+    var recent = pool.filter(function (r) { return r.dates.some(function (d) { return spInWindow(d); }); });
     var added = 0;
     recent.forEach(function (r) { if (spAddStock(r, true)) added++; });
     spSaveStore(); spRenderStats(); spRenderTable();
