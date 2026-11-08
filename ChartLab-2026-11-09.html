@@ -1165,8 +1165,9 @@ body.wb-readonly .wb-datenav{opacity:1}
     #page-notes { display:flex; flex-direction:column; }
     #page-notes:not(.active){ display:none !important; }
     #page-notes.active { display:flex !important; }
-    #page-notes > .card:nth-of-type(1){ order:2; }   /* 复盘笔记 → 下方 */
-    #page-notes > .card:nth-of-type(2){ order:1; }   /* 股票池跟踪 → 上方 */
+    /* 股票池跟踪置顶：按 ID 定位，不依赖兄弟元素计数，刷新即生效、更稳健 */
+    #spTrackCard { order:-1; }
+    #page-notes > .card:not(#spTrackCard){ order:0; }   /* 复盘笔记（其余卡片）默认靠后 */
   </style>
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📝 复盘笔记</span><span class="card-toggle">▼</span></div>
