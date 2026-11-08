@@ -1220,6 +1220,24 @@ body.wb-readonly .wb-datenav{opacity:1}
         .sp-ma{font-weight:600;cursor:help}
         .sp-in{width:100%;min-width:66px;box-sizing:border-box;border:1px solid transparent;background:transparent;font:inherit;text-align:center;color:inherit;padding:3px 4px;border-radius:4px}
         .sp-in.sp-edit{border-color:var(--primary);background:var(--card-bg,#fff)}
+        /* 介入信号：多行文本框（默认3行，自动撑高、左对齐、自动换行） */
+        .sp-tbl textarea.sp-in{
+          text-align:left;
+          white-space:pre-wrap;
+          word-break:break-word;
+          overflow-y:auto;
+          resize:none;
+          width:210px;
+          min-width:210px;
+          max-width:260px;
+          min-height:58px;          /* ≈3行 */
+          line-height:1.45;
+          padding:5px 7px;
+          border:1px solid var(--card-border,#e2e8f0);
+          background:rgba(120,130,150,0.04);
+          vertical-align:middle;
+        }
+        .sp-tbl textarea.sp-in.sp-edit{border-color:var(--primary);background:var(--card-bg,#fff)}
         .sp-op button{margin:1px 0}
         .sp-del{color:#c0392b;border-color:#e2a0a0}
         .sp-empty{padding:24px;text-align:center;color:var(--text-secondary)}
@@ -21557,7 +21575,7 @@ function spRenderTable() {
         '<td>' + (r.price === '' || r.price == null ? '-' : (+r.price).toFixed(2)) + '</td>' +
         '<td class="' + chgCls + '">' + chgTxt + '</td>' +
         '<td class="sp-ma" title="' + spMaTitle(r) + '">' + maTxt + '</td>' +
-        '<td><input class="sp-in" data-f="signal" value="' + spEscAttr(r.signal) + '" readonly></td>' +
+        '<td><textarea class="sp-in" data-f="signal" rows="3" readonly placeholder="点「编辑」填写介入理由…" oninput="spAutoGrow(this)">' + spEscText(r.signal) + '</textarea></td>' +
         cols.map(function (c, i) {
           return '<td><input class="sp-in" data-f="d' + i + '" value="' + spEscAttr(r.dayVals[i] || '') + '" readonly></td>';
         }).join('') +
@@ -21570,8 +21588,11 @@ function spRenderTable() {
     });
   }
   wrap.innerHTML = '<table class="sp-tbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>';
+  wrap.querySelectorAll('textarea.sp-in').forEach(function (ta) { spAutoGrow(ta); });
 }
 function spEscAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function spEscText(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function spAutoGrow(ta) { try { ta.style.height = 'auto'; var max = 58 + 5 * 1.45 * parseInt(getComputedStyle(ta).fontSize || '12', 10); ta.style.height = Math.min(ta.scrollHeight, 58 + 5 * 1.45 * 12 + 40) + 'px'; } catch (e) {} }
 
 function spSetInfo(t) {
   var el = document.getElementById('spInfo');
