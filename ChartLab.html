@@ -554,15 +554,20 @@ body {
   display:flex; align-items:center; justify-content:center; padding:16px;
 }
 .miao-modal {
-  background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius);
-  width:100%; max-width:560px; max-height:86vh; overflow:auto; box-shadow:0 12px 40px rgba(0,0,0,0.25);
+  background:var(--card-bg); border:1px solid var(--card-border); border-radius:14px;
+  width:100%; max-width:720px; max-height:88vh; overflow:auto;
+  box-shadow:0 18px 60px rgba(15,23,42,0.28); border-top:3px solid var(--primary);
+  animation:miaoModalIn .18s ease-out;
 }
+@keyframes miaoModalIn { from { opacity:0; transform:translateY(8px) scale(.985); } to { opacity:1; transform:none; } }
 .miao-modal-head {
-  padding:14px 16px; border-bottom:1px solid var(--card-border);
+  padding:15px 18px; border-bottom:2px solid var(--primary-light,#e8f0fe);
   font-size:15px; font-weight:700; color:var(--text); display:flex; justify-content:space-between; align-items:center;
 }
-.miao-modal-body { padding:14px 16px; font-size:13px; color:var(--text); line-height:1.7; }
-.miao-modal-foot { padding:12px 16px; border-top:1px solid var(--card-border); display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+.miao-modal-head > span:last-child { transition:color .15s; border-radius:6px; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; }
+.miao-modal-head > span:last-child:hover { color:var(--primary); background:var(--primary-light,#eef4ff); }
+.miao-modal-body { padding:16px 18px; font-size:13px; color:var(--text); line-height:1.7; }
+.miao-modal-foot { padding:13px 18px; border-top:1px solid var(--card-border); background:var(--gray-light,#f7f8fa); border-radius:0 0 14px 14px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
 .miao-btn { padding:7px 14px; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; border:1px solid var(--card-border); background:var(--input-bg); color:var(--text); }
 .miao-btn.primary { background:var(--primary); border-color:var(--primary); color:#fff; font-weight:600; }
 .miao-field { display:flex; flex-direction:column; gap:3px; margin-bottom:10px; }
@@ -1252,8 +1257,17 @@ body.wb-readonly .wb-datenav{opacity:1}
         .sp-sug-item small{color:var(--text-secondary)}
         .sp-sug-in{color:#c0392b;font-size:10px}
         .sp-sug-empty{padding:8px;color:var(--text-secondary);font-size:12px}
-        .sp-addinfo{font-size:12px}
-        .sp-info-card{background:var(--gray-light,#f3f4f6);padding:8px 10px;border-radius:6px;line-height:1.7}
+        .sp-addinfo{font-size:12px;margin-top:4px}
+        .sp-info-card{background:linear-gradient(180deg,var(--primary-light,#eef4ff),var(--card-bg,#fff));border:1px solid var(--primary-light,#dbeafe);padding:10px 12px;border-radius:10px;line-height:1.5}
+        .sp-info-name{font-size:14px;margin-bottom:7px;color:var(--text)}
+        .sp-info-name small{color:var(--text-secondary);font-weight:400;margin-left:4px}
+        .sp-info-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0;border-bottom:1px dashed var(--card-border,#eef0f3)}
+        .sp-info-row:last-child{border-bottom:none}
+        .sp-info-k{color:var(--text-secondary)}
+        .sp-info-row span:last-child{color:var(--text);font-weight:600}
+        .sp-info-hl{background:#fdecec;border-radius:7px;padding:6px 8px;margin:5px 0;border-bottom:none!important}
+        .sp-info-hl .sp-info-k{color:#e34d59}
+        .sp-info-hl span:last-child{color:#e34d59;font-weight:700;font-size:13px}
         .sp-manual{display:flex;gap:6px;flex-wrap:wrap}
         .sp-pool-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
         .sp-pool-bar .sp-pf.on{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -21430,7 +21444,7 @@ function spAggregate(results) {
       if (!map[code]) {
         map[code] = {
           code: code, name: it.name, sector: (it.industry || it.board || it.reason || ''),
-          dates: [], streak: it.streak || 1, lastDate: r.date,
+          dates: [], streak: it.streak || 1, lastDate: r.date, lastSeal: it.time || '15:00',
           minSeal: it.time || '15:00', price: it.price, chgPct: it.chgPct, marketCap: it.marketCap
         };
         order.push(code);
@@ -21439,7 +21453,10 @@ function spAggregate(results) {
       rec.dates.push(r.date);
       if ((it.streak || 1) > rec.streak) rec.streak = it.streak;
       if ((it.time || '15:00') < rec.minSeal) rec.minSeal = it.time;
-      rec.lastDate = r.date; rec.price = it.price; rec.chgPct = it.chgPct;
+      if (r.date >= rec.lastDate) {
+        rec.lastDate = r.date; rec.lastSeal = it.time || '15:00';
+        rec.price = it.price; rec.chgPct = it.chgPct;
+      }
       rec.sector = (it.industry || it.board || it.reason || rec.sector);
     });
   });
@@ -21653,9 +21670,9 @@ function spSecid(code) {
   if (/^[48]/.test(code)) return '0.' + code;    // 北交所(4/8开头)
   return '0.' + code;
 }
-function spComputeMA(code, cb) {
+function spComputeMA(code, cb, anchor) {
   var ckey = 'spMA_' + code;
-  try { var c = localStorage.getItem(ckey); if (c) { var o = JSON.parse(c); if (o.t && (Date.now() - o.t) < 86400000) { cb(o); return; } } } catch (e) {}
+  try { var c = localStorage.getItem(ckey); if (c) { var o = JSON.parse(c); if (o.t && (Date.now() - o.t) < 86400000 && o.maDone) { cb(o); return; } } } catch (e) {}
   var secid = spSecid(code);
   var hosts = ['https://push2his.eastmoney.com', 'https://push2delay.eastmoney.com', 'https://82.push2delay.eastmoney.com'];
   var urls = hosts.map(function (h) {
@@ -21664,8 +21681,17 @@ function spComputeMA(code, cb) {
   function parse(res) {
     var klines = res && res.data && res.data.klines;
     if (!klines || klines.length < 5) throw new Error('no kline');
-    var closes = klines.map(function (s) { return +(String(s).split(',')[2]); });
+    // 取最新一根 K 线作为比较锚点（接口返回可能升序或降序，统一按日期排序，避免取到最旧收盘导致“连板股误判未站上”）
+    var bars = [];
+    for (var bi = 0; bi < klines.length; bi++) {
+      var a = String(klines[bi]).split(',');
+      bars.push({ d: a[0], c: +(a[2]) });
+    }
+    bars.sort(function (x, y) { return x.d < y.d ? -1 : (x.d > y.d ? 1 : 0); });
+    var closes = bars.map(function (b) { return b.c; });
     var last = closes[closes.length - 1];
+    // 已知最新价（如涨停池里的涨停价）作为兜底锚点：连板股即使 K 线尚未含当日，也能正确判定站上均线
+    if (typeof anchor === 'number' && anchor > 0 && anchor >= last) last = anchor;
     var above = [], list = [];
     SP_MA_PERIODS.forEach(function (p) {
       if (closes.length >= p) {
@@ -21675,7 +21701,10 @@ function spComputeMA(code, cb) {
     });
     return { maCount: list.length, maList: list, above: above, close: last, maDone: true, t: Date.now() };
   }
-  function fail() { cb({ maCount: 0, maList: [], above: [], close: null, maDone: true, err: 'K线不可达' }); }
+  function fail() {
+    // 瞬时失败：不永久标记完成，交由调用方冷却后重试，避免“连板股永久显示 0/8”
+    cb({ maCount: 0, maList: [], above: [], close: null, maDone: false, err: 'K线不可达' });
+  }
   function done(out) { try { localStorage.setItem(ckey, JSON.stringify(out)); } catch (e) {} cb(out); }
   var lf = (typeof LiveFeed !== 'undefined' && LiveFeed.jsonpAny) ? LiveFeed.jsonpAny : null;
   if (lf) {
@@ -21687,6 +21716,7 @@ function spComputeMA(code, cb) {
 function spLazyMA() {
   spStore.rows.forEach(function (r) {
     if (r.maDone) return;
+    if (r.maErrAt && (Date.now() - r.maErrAt) < 60000) return; // 失败冷却，避免刷屏重试
     spMAQueue.push(r.code);
   });
   spPumpMA();
@@ -21699,17 +21729,20 @@ function spPumpMA() {
     if (!r) continue;
     spMARunning++;
     (function (row) {
+      var ap = parseFloat(row.price);
+      if (isNaN(ap)) ap = 0;
       spComputeMA(code, function (out) {
-        row.maCount = out.maCount; row.maList = out.maList || []; row.maDone = true;
+        row.maCount = out.maCount; row.maList = out.maList || []; row.maDone = out.maDone;
+        if (!out.maDone) row.maErrAt = Date.now();
         var tr = document.querySelector('tr[data-id="' + row.id + '"]');
         if (tr) {
           var td = tr.querySelector('.sp-ma');
-          if (td) { td.textContent = row.maCount + '/8'; td.title = spMaTitle(row); }
+          if (td) { td.textContent = out.maDone ? (row.maCount + '/8') : '计算中'; td.title = spMaTitle(row); }
         }
         spRenderStats();
         spMARunning--;
         spPumpMA();
-      });
+      }, ap);
     })(r);
   }
 }
@@ -21802,7 +21835,7 @@ function spDrawLine(ctx, arr, padL, cw, midY, scale, color) {
 function spOpenAddModal() {
   var body =
     '<div class="sp-modal-sec">输入名称或代码片段，下方联想全称：</div>' +
-    '<input id="spAddSearch" class="sp-search" placeholder="如：宁德 / 300750 / 工业" autocomplete="off">' +
+    '<input id="spAddSearch" class="sp-search" placeholder="输入名称或代码片段(如：宁德时代/300750)" autocomplete="off">' +
     '<div id="spAddSuggest" class="sp-suggest"></div>' +
     '<div id="spAddInfo" class="sp-addinfo"></div>' +
     '<div class="sp-modal-sec" style="margin-top:10px;">未匹配到？可手动录入：</div>' +
@@ -21828,15 +21861,20 @@ function spOpenAddModal() {
     box.querySelectorAll('.sp-sug-item').forEach(function (el) {
       el.onclick = function () {
         sel.code = el.getAttribute('data-c'); sel.name = el.getAttribute('data-n'); sel.sector = el.getAttribute('data-s'); sel.fromPool = true;
-        document.getElementById('spAddSearch').value = sel.name + ' (' + sel.code + ')';
+        var sbox = document.getElementById('spAddSearch');
+        if (sbox) { sbox.value = ''; sbox.blur(); }   // 清空框选高亮内容，显示提示占位符
         box.innerHTML = '';
         var info = document.getElementById('spAddInfo');
         var rec = uni.filter(function (x) { return x.code === sel.code; })[0];
         if (info) {
-          info.innerHTML = '<div class="sp-info-card"><b>' + sel.name + '</b> <small>' + sel.code + '</small><br>' +
-            '板块：' + (sel.sector || '-') + '<br>' +
-            '近20日涨停：' + (rec ? rec.dates.length : '?') + ' 次 ｜ 最高连板：' + (rec ? rec.streak : '?') + ' 板<br>' +
-            '最近涨停：' + (rec ? rec.lastDate : '-') + ' ｜ 早盘封板：' + (rec && rec.minSeal <= SP_EARLY_CUT ? '是' : '否') + '</div>';
+          var early = rec && rec.lastSeal && rec.lastSeal <= SP_EARLY_CUT;
+          info.innerHTML = '<div class="sp-info-card">' +
+            '<div class="sp-info-name"><b>' + sel.name + '</b><small>' + sel.code + '</small></div>' +
+            '<div class="sp-info-row"><span class="sp-info-k">板块</span><span>' + (sel.sector || '-') + '</span></div>' +
+            '<div class="sp-info-row"><span class="sp-info-k">近20日涨停</span><span>' + (rec ? rec.dates.length : '?') + ' 次　最高连板 ' + (rec ? rec.streak : '?') + ' 板</span></div>' +
+            '<div class="sp-info-row sp-info-hl"><span class="sp-info-k">最新涨停</span><span>' + (rec ? rec.lastDate : '-') + ' ' + (rec ? rec.lastSeal : '') + '</span></div>' +
+            '<div class="sp-info-row"><span class="sp-info-k">早盘封板</span><span>' + (early ? ('是（' + (rec ? rec.lastSeal : '') + '）') : '否') + '</span></div>' +
+            '</div>';
         }
       };
     });
@@ -21862,7 +21900,7 @@ function spOpenPoolModal() {
   spEnsurePool(20, function (pool) {
     spSetInfo('');
     var list = pool || ((DATA && DATA.limitUp && DATA.limitUp.list) || []).map(function (it) {
-      return { code: it.code, name: it.name, sector: (it.industry || it.board || ''), dates: [DATA.date], streak: it.streak || 1, lastDate: DATA.date, minSeal: it.time || '15:00', price: it.price, chgPct: it.chgPct };
+      return { code: it.code, name: it.name, sector: (it.industry || it.board || ''), dates: [DATA.date], streak: it.streak || 1, lastDate: DATA.date, lastSeal: it.time || '15:00', minSeal: it.time || '15:00', price: it.price, chgPct: it.chgPct };
     });
     var state = { q: '', filter: 'all' };
     function viewData() {
