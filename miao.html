@@ -5518,6 +5518,13 @@ function wbIsMarketOpenNow() {
   if (typeof isTradeDay === 'function') { try { if (!isTradeDay(fmtDate(now))) return false; } catch (e) {} }
   return (hm >= 915 && hm <= 1500);
 }
+// 盘前判定：交易日且未到 9:15 集合竞价（开盘前）。用于「未到开盘默认展示上一交易日」规则。
+function wbIsPreOpenNow() {
+  var now = new Date(), day = now.getDay(), hm = now.getHours() * 100 + now.getMinutes();
+  if (day === 0 || day === 6) return false;
+  if (typeof isTradeDay === 'function') { try { if (!isTradeDay(fmtDate(now))) return false; } catch (e) {} }
+  return hm < 915;
+}
 // 下次开盘提示（只改文案，不改数据）
 function wbNextOpenHint() {
   try {
@@ -10218,6 +10225,13 @@ function snapTradeDay(date, dir) {
   for (i = TRADE_DAYS.length - 1; i >= 0; i--) if (TRADE_DAYS[i] <= date) return TRADE_DAYS[i];
   return TRADE_DAYS[0];
 }
+// 严格早于 s 的最近交易日（用于盘前回落上一交易日）
+function prevTradeDay(s) {
+  if (!TRADE_DAYS.length) return s;
+  var d = parseDate(s);
+  d.setDate(d.getDate() - 1);
+  return snapTradeDay(fmtDate(d), -1);
+}
 function tradeDayIndex(date) {
   var snapped = snapTradeDay(date, 0);
   for (var i = 0; i < TRADE_DAYS.length; i++) if (TRADE_DAYS[i] === snapped) return i;
@@ -12156,7 +12170,8 @@ function init() {
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState !== 'visible') return;
     var today = fmtDate(new Date());
-    if (DATA.date !== today && today > DATA.date && isTradeDay(today)) {
+    // WB_PATCH: 盘前（未到开盘）不自动跳到今天空态，保持上一交易日数据
+    if (DATA.date !== today && today > DATA.date && isTradeDay(today) && !wbIsPreOpenNow()) {
       DATA.date = today;
       syncPicker(today);
       CURRENT_IS_LATEST = true;
@@ -12197,6 +12212,8 @@ function init() {
     // 背景：STATIC_TRADE_DAYS 只有已内嵌的日期（如 ["2026-10-16"]），若异步索引补全失败，
     // TRADE_DAY_SET[today] 为 false，target 会回退到 LATEST_TRADE_DAY → 10.19 早盘仍展示 10.16 数据。
     // 修正：非周末且非未来日期时直接选 today；只有周末/未来日才回退到最近已内嵌交易日。
+    // 例外（2026-11-09 补充）：「盘前（交易日且未到 9:15 开盘）」今天尚无数据，回落上一交易日真实数据，
+    // 见下方 _preOpen 分支；盘中/盘后仍走 today（保留 2026-10-19 的诚实空态意图）。
     function _isProbablyTradeDay(s) {
       if (!s) return false;
       if (s > today) return false;                 // 未来日：无数据
@@ -12205,12 +12222,15 @@ function init() {
       return true;
     }
     var target;
+    // 盘前（交易日且未到 9:15 开盘）：默认展示上一交易日真实数据，而非今天的空态（用户规则：未到开盘展示上一交易日）
+    var _todayTrade = (days && days.length && TRADE_DAY_SET[today]) || _isProbablyTradeDay(today);
+    var _preOpen = _todayTrade && wbIsPreOpenNow();
     if (_want) {
       target = _want <= today ? _want : (days && days.length ? LATEST_TRADE_DAY : today);
-    } else if (days && days.length && TRADE_DAY_SET[today]) {
-      target = today;
-    } else if (_isProbablyTradeDay(today)) {
-      target = today;                              // 今天很可能是交易日，优先打开 today（诚实空态）
+    } else if (_todayTrade && !_preOpen) {
+      target = today;                              // 已开盘/盘后：展示今天（真实数据或诚实空态）
+    } else if (_todayTrade && _preOpen) {
+      target = prevTradeDay(today) || (days && days.length ? LATEST_TRADE_DAY : today);  // 盘前：上一交易日
     } else {
       target = (days && days.length ? LATEST_TRADE_DAY : today);
     }
