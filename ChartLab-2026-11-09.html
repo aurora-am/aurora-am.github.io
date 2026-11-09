@@ -1316,6 +1316,9 @@ body.wb-readonly .wb-datenav{opacity:1}
           <button class="btn btn-sm" onclick="spOpenPoolModal()">20日内涨停池</button>
           <button class="btn btn-sm btn-outline" onclick="spRefreshCandidates()">↻ 拉取候选</button>
           <button class="btn btn-sm btn-primary" onclick="spCloudSyncNow(true)">🔄 同步</button>
+          <button class="btn btn-sm btn-outline" onclick="spExportJSON()">⤓ 导出</button>
+          <button class="btn btn-sm btn-outline" onclick="document.getElementById('spImportFile').click()">⤒ 导入</button>
+          <input id="spImportFile" type="file" accept="application/json,.json" style="display:none" onchange="spImportJSON(this)">
           <span id="spSaveState" class="sp-savestate"></span>
         </div>
       </div>
@@ -12486,6 +12489,41 @@ function spCloudAutoSync() {
       if (st) { st.textContent = '已同步云端 ✓（自动更新）'; st.style.color = '#16a34a'; }
     }
   });
+}
+/* ---------- 导出 / 导入 JSON 本地备份（独立于云端，防意外丢数据） ---------- */
+function spExportJSON() {
+  try {
+    var day = new Date().toISOString().slice(0, 10);
+    var data = { _type: 'spTrack-backup', version: 1, exportedAt: new Date().toISOString(), store: spStore };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = '股票池跟踪备份_' + day + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    showNotify('✅ 已导出备份（' + (spStore && spStore.rows ? spStore.rows.length : 0) + ' 条）', 2200);
+  } catch (e) { showNotify('导出失败：' + (e && e.message), 2600); }
+}
+function spImportJSON(input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var data = JSON.parse(reader.result);
+      var store = (data && data.store) ? data.store : data;
+      if (!store || !Array.isArray(store.rows)) throw new Error('文件格式不对（缺少 rows 数组）');
+      if (spStore && spStore.rows && spStore.rows.length && !confirm('导入将覆盖当前 ' + spStore.rows.length + ' 条本地数据，确定继续？')) { input.value = ''; return; }
+      spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: Date.now() }, store);
+      spMigrateStore(); spComputeAllDates(); spSyncWinSel();
+      spSaveStore();
+      spRenderStats(); spRenderTable();
+      showNotify('✅ 已导入 ' + spStore.rows.length + ' 条并同步云端', 2400);
+    } catch (e) { showNotify('导入失败：' + (e && e.message), 3000); }
+    finally { input.value = ''; }
+  };
+  reader.onerror = function () { showNotify('读取文件失败', 2600); input.value = ''; };
+  reader.readAsText(f);
 }
 function spGuessTradeDays(base, n) {
   var out = [], d = new Date(base + 'T00:00:00');
