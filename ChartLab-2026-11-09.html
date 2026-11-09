@@ -1315,6 +1315,7 @@ body.wb-readonly .wb-datenav{opacity:1}
           <button class="btn btn-sm" onclick="spOpenAddModal()">＋新增个股</button>
           <button class="btn btn-sm" onclick="spOpenPoolModal()">20日内涨停池</button>
           <button class="btn btn-sm btn-outline" onclick="spRefreshCandidates()">↻ 拉取候选</button>
+          <button class="btn btn-sm btn-primary" onclick="spCloudSyncNow(true)">🔄 同步</button>
           <span id="spSaveState" class="sp-savestate"></span>
         </div>
       </div>
@@ -1322,7 +1323,7 @@ body.wb-readonly .wb-datenav{opacity:1}
       <div class="sp-table-scroll">
         <div id="spTableWrap" class="table-wrap"></div>
       </div>
-      <div class="sp-foot-note">数据：近5日/20日涨停取自在线 <code>wbdata</code> 分片（limitUp.list 真实字段：连板 / 首封时间 / 板块）；均线为 5/8/13/21/34/55/89/144 日，现价站上即计；本地打开文件且网络受限时退回当日涨停池。跟踪数据存于本机浏览器（可直接导出入库）。</div>
+      <div class="sp-foot-note">数据：近5日/20日涨停取自在线 <code>wbdata</code> 分片（limitUp.list 真实字段：连板 / 首封时间 / 板块）；均线为 5/8/13/21/34/55/89/144 日，现价站上即计；本地打开文件且网络受限时退回当日涨停池。跟踪数据存于本机浏览器，并同步至云端（登录同一账号 + 点「🔄 同步」或每 60 秒自动互通）。</div>
     </div>
   </div>
 </div>
@@ -12420,6 +12421,7 @@ function spEnsureStore() {
   if (spCloudTried) return;
   spCloudTried = true;
   spCloudLoadWithRetry(0);
+  if (!window.__spAutoSyncStarted) { window.__spAutoSyncStarted = true; setInterval(spCloudAutoSync, 60000); }
 }
 /* 云端拉取：首次若因登录态未就绪而返回空，自动重试两次（1.5s / 3s 后），扛过页面加载竞态 */
 function spCloudLoadWithRetry(attempt) {
@@ -12441,8 +12443,50 @@ function spCloudLoadWithRetry(attempt) {
     else if (attempt === 2) { console.info('[spTrack] 云端未取到数据（可能未登录/表未建/跨域），已回落本地'); }
   }).catch(function (e) { if (attempt < 2) setTimeout(function () { spCloudLoadWithRetry(attempt + 1); }, 1500 * (attempt + 1)); });
 }
-
-/* ---------- 交易日推算（按当前数据日向前推 N 个工作日，跳过周末） ---------- */
+/* ---------- 多设备实时同步：手动「同步」按钮 + 轻量自动轮询 ---------- */
+/* 设计：整份 payload 以 updatedAt 做 last-writer-wins；自动轮询仅在未聚焦输入框时拉取，避免打断正在输入。
+   解决"甲电脑新增、乙电脑开着不刷新看不到"的问题。 */
+async function spCloudSyncNow(manual) {
+  var c = await spCloudToken();
+  if (!c) { if (manual) showNotify('未登录，无法同步（请先登录同一账号）', 2600); return 'nologin'; }
+  var cloud = await spCloudLoad();
+  if (!cloud) {
+    if (spStore && spStore.rows && spStore.rows.length) {
+      var ok0 = await spCloudSave();
+      if (manual) showNotify(ok0 ? '已上传本地到云端' : '本地上传云端失败', 2200);
+      return ok0 ? 'pushed' : 'pushfail';
+    }
+    if (manual) showNotify('云端暂无数据', 1800);
+    return 'empty';
+  }
+  var localU = (spStore && spStore.updatedAt) || 0;
+  var cloudU = cloud.updatedAt || 0;
+  if (cloudU > localU) {
+    spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
+    spMigrateStore(); spComputeAllDates(); spSyncWinSel();
+    spSaveStore();
+    spRenderStats(); spRenderTable();
+    if (manual) showNotify('✅ 已从云端更新（' + spStore.rows.length + ' 条）', 2200);
+    return 'pulled';
+  } else if (localU > cloudU) {
+    var ok1 = await spCloudSave();
+    if (manual) showNotify(ok1 ? '已上传本地到云端' : '上传失败', 2200);
+    return ok1 ? 'pushed' : 'pushfail';
+  }
+  if (manual) showNotify('已是最新 ✓', 1600);
+  return 'same';
+}
+function spCloudAutoSync() {
+  var ae = document.activeElement;
+  if (ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT') && ae.closest && ae.closest('#spTrackCard')) return;
+  if (!window.MiaoSB || !MiaoSB.state || !MiaoSB.state.user) return;
+  spCloudSyncNow(false).then(function (r) {
+    if (r === 'pulled') {
+      var st = document.getElementById('spSaveState');
+      if (st) { st.textContent = '已同步云端 ✓（自动更新）'; st.style.color = '#16a34a'; }
+    }
+  });
+}
 function spGuessTradeDays(base, n) {
   var out = [], d = new Date(base + 'T00:00:00');
   var guard = 0;
