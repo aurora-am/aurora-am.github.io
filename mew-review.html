@@ -12340,10 +12340,60 @@ function spSaveStore() {
     if (!ok) err = '回读不一致（存储已满或被禁）';
   } catch (e) { err = (e && e.message) || '存储不可用'; }
   var st = document.getElementById('spSaveState');
-  if (st) { if (ok) { st.textContent = '已保存 ✓'; st.style.color = ''; } else { st.textContent = '⚠ 保存失败：' + err; st.style.color = '#dc2626'; } }
+  if (st) { if (ok) { st.textContent = '已保存本地 ✓ 同步中…'; st.style.color = ''; } else { st.textContent = '⚠ 保存失败：' + err; st.style.color = '#dc2626'; } }
+  // 云端同步（异步；需登录且表已建才生效，失败不影响本地）
+  spCloudSave().then(function (done) {
+    if (!st) return;
+    if (done) { st.textContent = '已同步云端 ✓'; st.style.color = '#16a34a'; }
+    else if (ok) { st.textContent = '已存本地（云端未同步·可能未登录或表未建）'; st.style.color = '#d97706'; }
+  });
   return ok;
 }
-function spEnsureStore() { if (!spStore || !spStore.rows) spLoadStore(); }
+/* ---------- 云端（Supabase，按登录账号隔离，多设备同步） ---------- */
+var spCloudTried = false;
+function spCloudSession() {
+  return new Promise(function (resolve, reject) {
+    var t = setTimeout(function () { reject(new Error('auth-timeout')); }, 4000);
+    try {
+      if (!window.MiaoSB || !MiaoSB.client || !MiaoSB.client.auth) return reject(new Error('no-client'));
+      MiaoSB.client.auth.getSession().then(function (s) { clearTimeout(t); resolve(s); }, function (e) { clearTimeout(t); reject(e); });
+    } catch (e) { clearTimeout(t); reject(e); }
+  });
+}
+async function spCloudLoad() {
+  try {
+    if (!window.MiaoSB || !MiaoSB.client) return null;
+    var s = await spCloudSession();
+    var sess = s && s.data && s.data.session;
+    if (!sess || !sess.user) return null;
+    var r = await MiaoSB.client.from('sp_track').select('payload').eq('user_id', sess.user.id).single();
+    if (r.error) return null;            // 无记录或表未建 → 回落本地
+    return r.data ? r.data.payload : null;
+  } catch (e) { return null; }
+}
+async function spCloudSave() {
+  try {
+    if (!window.MiaoSB || !MiaoSB.client) return false;
+    var s = await spCloudSession();
+    var sess = s && s.data && s.data.session;
+    if (!sess || !sess.user) return false;
+    var payload = { rows: spStore.rows || [], allDates: spStore.allDates || [], winSize: spStore.winSize || 5, updatedAt: Date.now() };
+    var r = await MiaoSB.client.from('sp_track').upsert({ user_id: sess.user.id, payload: payload }).select();
+    return !r.error;
+  } catch (e) { return false; }
+}
+function spEnsureStore() {
+  if (!spStore || !spStore.rows) spLoadStore();   // 本地兜底（同步，页面立即可用）
+  if (spCloudTried) return;
+  spCloudTried = true;
+  spCloudLoad().then(function (cloud) {
+    if (cloud && cloud.rows) {
+      spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
+      spMigrateStore(); spComputeAllDates(); spSyncWinSel();
+      spRenderStats(); spRenderTable();
+    }
+  });
+}
 
 /* ---------- 交易日推算（按当前数据日向前推 N 个工作日，跳过周末） ---------- */
 function spGuessTradeDays(base, n) {
