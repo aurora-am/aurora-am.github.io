@@ -12587,10 +12587,16 @@ function spEditRow(id) {
   tr.querySelectorAll('.sp-in').forEach(function (inp) { inp.readOnly = false; inp.classList.add('sp-edit'); });
   tr.classList.add('sp-row-edit');
 }
-function spSaveRow(id) {
-  var r = spFind(id); if (!r) return;
-  var tr = document.querySelector('tr[data-id="' + id + '"]'); if (!tr) return;
+function spUnlockField(inp) {
+  var tr = inp.closest ? inp.closest('tr') : null; if (!tr) return;
+  tr.querySelectorAll('.sp-in').forEach(function (x) { x.readOnly = false; x.classList.add('sp-edit'); });
+  tr.classList.add('sp-row-edit');
+}
+function spCommitRow(id) {
+  var r = spFind(id); if (!r) return null;
+  var tr = document.querySelector('tr[data-id="' + id + '"]'); if (!tr) return null;
   tr.querySelectorAll('.sp-in').forEach(function (inp) {
+    if (inp.readOnly) return;
     var f = inp.getAttribute('data-f');
     if (f === 'signal') r.signal = inp.value;
     else if (f && f.indexOf('d') === 0) {
@@ -12600,12 +12606,23 @@ function spSaveRow(id) {
         if (dcols[idx]) { if (!r.dayMap) r.dayMap = {}; r.dayMap[dcols[idx]] = inp.value; }
       }
     }
-    inp.readOnly = true; inp.classList.remove('sp-edit');
   });
-  tr.classList.remove('sp-row-edit');
   r.updatedAt = Date.now();
   spSaveStore();
+  return r;
+}
+function spSaveRow(id) {
+  var r = spCommitRow(id); if (!r) return;
+  var tr = document.querySelector('tr[data-id="' + id + '"]'); if (tr) {
+    tr.querySelectorAll('.sp-in').forEach(function (inp) { inp.readOnly = true; inp.classList.remove('sp-edit'); });
+    tr.classList.remove('sp-row-edit');
+  }
   showNotify('✓ 已保存 ' + r.name, 1800);
+}
+function spAutoSaveRow(inp, id) {
+  if (!inp || inp.readOnly) return;   // 仅编辑态下鼠标离开（失焦）才自动保存
+  var r = spCommitRow(id); if (!r) return;
+  showNotify('✓ 已自动保存 ' + r.name, 1200);
 }
 
 /* ---------- 统计 ---------- */
@@ -12675,10 +12692,10 @@ function spRenderTable() {
         '<td>' + (r.price === '' || r.price == null ? '-' : (+r.price).toFixed(2)) + '</td>' +
         '<td class="' + chgCls + '">' + chgTxt + '</td>' +
         '<td class="sp-ma" title="' + spMaTitle(r) + '">' + maTxt + '</td>' +
-        '<td><textarea class="sp-in" data-f="signal" rows="3" readonly oninput="spAutoGrow(this)">' + spEscText(r.signal) + '</textarea></td>' +
+        '<td><textarea class="sp-in" data-f="signal" rows="3" readonly oninput="spAutoGrow(this)" onfocus="spUnlockField(this)" onblur="spAutoSaveRow(this,\'' + r.id + '\')">' + spEscText(r.signal) + '</textarea></td>' +
         cols.map(function (c, i) {
           var v = (r.dayMap && r.dayMap[c] != null) ? r.dayMap[c] : '';
-          return '<td><textarea class="sp-in sp-day" data-f="d' + i + '" rows="2" readonly oninput="spAutoGrow(this)">' + spEscText(v) + '</textarea></td>';
+          return '<td><textarea class="sp-in sp-day" data-f="d' + i + '" rows="2" readonly oninput="spAutoGrow(this)" onfocus="spUnlockField(this)" onblur="spAutoSaveRow(this,\'' + r.id + '\')">' + spEscText(v) + '</textarea></td>';
         }).join('') +
         '<td class="sp-td-right sp-op">' +
           '<button class="btn btn-sm btn-outline" onclick="spEditRow(\'' + r.id + '\')">编辑</button> ' +
