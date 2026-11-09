@@ -12386,13 +12386,20 @@ function spEnsureStore() {
   if (!spStore || !spStore.rows) spLoadStore();   // 本地兜底（同步，页面立即可用）
   if (spCloudTried) return;
   spCloudTried = true;
+  spCloudLoadWithRetry(0);
+}
+/* 云端拉取：首次若因登录态未就绪而返回空，自动重试两次（1.5s / 3s 后），扛过页面加载竞态 */
+function spCloudLoadWithRetry(attempt) {
   spCloudLoad().then(function (cloud) {
     if (cloud && cloud.rows) {
       spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
       spMigrateStore(); spComputeAllDates(); spSyncWinSel();
       spRenderStats(); spRenderTable();
+      return;
     }
-  });
+    if (attempt < 2) { setTimeout(function () { spCloudLoadWithRetry(attempt + 1); }, 1500 * (attempt + 1)); }
+    else if (attempt === 2) { console.info('[spTrack] 云端未取到数据（可能未登录/表未建/跨域），已回落本地'); }
+  }).catch(function (e) { if (attempt < 2) setTimeout(function () { spCloudLoadWithRetry(attempt + 1); }, 1500 * (attempt + 1)); });
 }
 
 /* ---------- 交易日推算（按当前数据日向前推 N 个工作日，跳过周末） ---------- */
