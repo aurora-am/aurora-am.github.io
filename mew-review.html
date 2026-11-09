@@ -12368,15 +12368,29 @@ function spCloudBase() {
   var anon = (window.MiaoSB && MiaoSB.client && MiaoSB.client.supabaseKey) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6ImJhY2tlbmQtc3R1ZGlvLXN1cGFiYXNlLWRldiIsImlhdCI6MTY0NjY2NjYzMCwiZXhwIjoyMDYyMjQyNjMwfQ.dc_X5iR_VP_qT0zszU4JSI1XkL0YyqXg0lUJZ-pTRhE';
   return { base: base, anon: anon };
 }
-function spCloudToken() {
-  if (!window.MiaoSB || !MiaoSB.state || !MiaoSB.state.user) return null;
-  var tk = MiaoSB.state.session && MiaoSB.state.session.access_token;
-  if (!tk) return null;
-  return { uid: MiaoSB.state.user.id, token: tk };
+async function spCloudToken() {
+  // 优先：MiaoSB 已恢复的会话（含 access_token）
+  if (window.MiaoSB && MiaoSB.state && MiaoSB.state.user && MiaoSB.state.session && MiaoSB.state.session.access_token) {
+    return { uid: MiaoSB.state.user.id, token: MiaoSB.state.session.access_token };
+  }
+  // 兜底：官方 getSession（带 4s 超时，防挂起）拿最新会话，解决刷新后 state.session 偶发为空
+  try {
+    if (window.MiaoSB && MiaoSB.client && MiaoSB.client.auth && MiaoSB.client.auth.getSession) {
+      var sess = await Promise.race([
+        MiaoSB.client.auth.getSession().then(function (s) { return (s && s.data) ? s.data.session : null; }),
+        new Promise(function (_, rej) { setTimeout(function () { rej(new Error('getSession timeout')); }, 4000); })
+      ]);
+      if (sess && sess.access_token && sess.user) {
+        if (window.MiaoSB.state) { MiaoSB.state.session = sess; MiaoSB.state.user = sess.user || MiaoSB.state.user; }
+        return { uid: sess.user.id, token: sess.access_token };
+      }
+    }
+  } catch (e) {}
+  return null;
 }
 async function spCloudLoad() {
   try {
-    var c = spCloudToken(); if (!c) return null;
+    var c = await spCloudToken(); if (!c) return null;
     var b = spCloudBase();
     var r = await fetch(b.base + '/rest/v1/sp_track?select=payload&user_id=eq.' + encodeURIComponent(c.uid) + '&limit=1', {
       headers: { 'apikey': b.anon, 'Authorization': 'Bearer ' + c.token, 'Content-Type': 'application/json' }
@@ -12389,7 +12403,7 @@ async function spCloudLoad() {
 }
 async function spCloudSave() {
   try {
-    var c = spCloudToken(); if (!c) return false;
+    var c = await spCloudToken(); if (!c) return false;
     var b = spCloudBase();
     var payload = { rows: spStore.rows || [], allDates: spStore.allDates || [], winSize: spStore.winSize || 5, updatedAt: Date.now() };
     var r = await fetch(b.base + '/rest/v1/sp_track', {
