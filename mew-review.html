@@ -12345,42 +12345,60 @@ function spSaveStore() {
   spCloudSave().then(function (done) {
     if (!st) return;
     if (done) { st.textContent = '已同步云端 ✓'; st.style.color = '#16a34a'; }
-    else if (ok) { st.textContent = '已存本地（云端未同步·可能未登录或表未建）'; st.style.color = '#d97706'; }
+    else if (ok) {
+      if (window.MiaoSB && MiaoSB.state && MiaoSB.state.user) {
+        st.textContent = '已存本地（云端同步失败·请查 Console 的 403/权限，确认 sp_track 表已建且策略无误）';
+        st.style.color = '#dc2626';
+      } else {
+        st.textContent = '已存本地（云端未同步·请先登录同一账号）';
+        st.style.color = '#d97706';
+      }
+    }
   });
   return ok;
 }
 /* ---------- 云端（Supabase，按登录账号隔离，多设备同步） ---------- */
+/* 关键：MiaoSB 登录态在 state.session（含 access_token，role=authenticated），
+   但其 supabase-js 客户端内部 auth 在刷新后常为空（getSession 会挂起），
+   故直接带 token 走 REST，确保 RLS 见到 auth.uid()=本人，避免 403。 */
 var spCloudTried = false;
-function spCloudSession() {
-  return new Promise(function (resolve, reject) {
-    var t = setTimeout(function () { reject(new Error('auth-timeout')); }, 4000);
-    try {
-      if (!window.MiaoSB || !MiaoSB.client || !MiaoSB.client.auth) return reject(new Error('no-client'));
-      MiaoSB.client.auth.getSession().then(function (s) { clearTimeout(t); resolve(s); }, function (e) { clearTimeout(t); reject(e); });
-    } catch (e) { clearTimeout(t); reject(e); }
-  });
+function spCloudBase() {
+  var base = (window.MiaoSB && MiaoSB.client && MiaoSB.client.supabaseUrl) || 'https://kbajwhtglnmhtyhavpmk.supabase.co';
+  var anon = (window.MiaoSB && MiaoSB.client && MiaoSB.client.supabaseKey) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6ImJhY2tlbmQtc3R1ZGlvLXN1cGFiYXNlLWRldiIsImlhdCI6MTY0NjY2NjYzMCwiZXhwIjoyMDYyMjQyNjMwfQ.dc_X5iR_VP_qT0zszU4JSI1XkL0YyqXg0lUJZ-pTRhE';
+  return { base: base, anon: anon };
+}
+function spCloudToken() {
+  if (!window.MiaoSB || !MiaoSB.state || !MiaoSB.state.user) return null;
+  var tk = MiaoSB.state.session && MiaoSB.state.session.access_token;
+  if (!tk) return null;
+  return { uid: MiaoSB.state.user.id, token: tk };
 }
 async function spCloudLoad() {
   try {
-    if (!window.MiaoSB || !MiaoSB.client) return null;
-    var s = await spCloudSession();
-    var sess = s && s.data && s.data.session;
-    if (!sess || !sess.user) return null;
-    var r = await MiaoSB.client.from('sp_track').select('payload').eq('user_id', sess.user.id).single();
-    if (r.error) return null;            // 无记录或表未建 → 回落本地
-    return r.data ? r.data.payload : null;
-  } catch (e) { return null; }
+    var c = spCloudToken(); if (!c) return null;
+    var b = spCloudBase();
+    var r = await fetch(b.base + '/rest/v1/sp_track?select=payload&user_id=eq.' + encodeURIComponent(c.uid) + '&limit=1', {
+      headers: { 'apikey': b.anon, 'Authorization': 'Bearer ' + c.token, 'Content-Type': 'application/json' }
+    });
+    if (!r.ok) { var t1 = await r.text().catch(function () { return ''; }); console.warn('[spTrack] 云端读取失败', r.status, t1); return null; }
+    var arr = await r.json();
+    if (!arr || !arr.length) return null;
+    return (arr[0] && arr[0].payload) || null;
+  } catch (e) { console.warn('[spTrack] cloud load error', e); return null; }
 }
 async function spCloudSave() {
   try {
-    if (!window.MiaoSB || !MiaoSB.client) return false;
-    var s = await spCloudSession();
-    var sess = s && s.data && s.data.session;
-    if (!sess || !sess.user) return false;
+    var c = spCloudToken(); if (!c) return false;
+    var b = spCloudBase();
     var payload = { rows: spStore.rows || [], allDates: spStore.allDates || [], winSize: spStore.winSize || 5, updatedAt: Date.now() };
-    var r = await MiaoSB.client.from('sp_track').upsert({ user_id: sess.user.id, payload: payload }).select();
-    return !r.error;
-  } catch (e) { return false; }
+    var r = await fetch(b.base + '/rest/v1/sp_track', {
+      method: 'POST',
+      headers: { 'apikey': b.anon, 'Authorization': 'Bearer ' + c.token, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify([{ user_id: c.uid, payload: payload }])
+    });
+    if (!r.ok) { var t2 = await r.text().catch(function () { return ''; }); console.warn('[spTrack] 云端保存失败', r.status, t2); return false; }
+    return true;
+  } catch (e) { console.warn('[spTrack] cloud save error', e); return false; }
 }
 function spEnsureStore() {
   if (!spStore || !spStore.rows) spLoadStore();   // 本地兜底（同步，页面立即可用）
