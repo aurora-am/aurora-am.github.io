@@ -1315,10 +1315,7 @@ body.wb-readonly .wb-datenav{opacity:1}
           <button class="btn btn-sm" onclick="spOpenAddModal()">＋新增个股</button>
           <button class="btn btn-sm" onclick="spOpenPoolModal()">20日内涨停池</button>
           <button class="btn btn-sm btn-outline" onclick="spRefreshCandidates()">↻ 拉取候选</button>
-          <button class="btn btn-sm btn-primary" onclick="spCloudSyncNow(true)">🔄 同步</button>
-          <button class="btn btn-sm btn-outline" onclick="spExportJSON()">⤓ 导出</button>
-          <button class="btn btn-sm btn-outline" onclick="document.getElementById('spImportFile').click()">⤒ 导入</button>
-          <input id="spImportFile" type="file" accept="application/json,.json" style="display:none" onchange="spImportJSON(this)">
+          <button id="spSyncBtn" class="btn btn-sm btn-primary" onclick="spCloudSyncNow(true)">🔄 同步</button>
           <span id="spSaveState" class="sp-savestate"></span>
         </div>
       </div>
@@ -12372,6 +12369,13 @@ function spCloudBase() {
   var anon = (window.MiaoSB && MiaoSB.client && MiaoSB.client.supabaseKey) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6ImJhY2tlbmQtc3R1ZGlvLXN1cGFiYXNlLWRldiIsImlhdCI6MTY0NjY2NjYzMCwiZXhwIjoyMDYyMjQyNjMwfQ.dc_X5iR_VP_qT0zszU4JSI1XkL0YyqXg0lUJZ-pTRhE';
   return { base: base, anon: anon };
 }
+function spCloudFetch(url, opts) {
+  var ctrl = new AbortController();
+  var t = setTimeout(function () { ctrl.abort(); }, 10000);
+  opts = opts || {};
+  opts.signal = ctrl.signal;
+  return fetch(url, opts).finally(function () { clearTimeout(t); });
+}
 async function spCloudToken() {
   // 优先：MiaoSB 已恢复的会话（含 access_token）
   if (window.MiaoSB && MiaoSB.state && MiaoSB.state.user && MiaoSB.state.session && MiaoSB.state.session.access_token) {
@@ -12396,7 +12400,7 @@ async function spCloudLoad() {
   try {
     var c = await spCloudToken(); if (!c) return null;
     var b = spCloudBase();
-    var r = await fetch(b.base + '/rest/v1/sp_track?select=payload&user_id=eq.' + encodeURIComponent(c.uid) + '&limit=1', {
+    var r = await spCloudFetch(b.base + '/rest/v1/sp_track?select=payload&user_id=eq.' + encodeURIComponent(c.uid) + '&limit=1', {
       headers: { 'apikey': b.anon, 'Authorization': 'Bearer ' + c.token, 'Content-Type': 'application/json' }
     });
     if (!r.ok) { var t1 = await r.text().catch(function () { return ''; }); console.warn('[spTrack] 云端读取失败', r.status, t1); return null; }
@@ -12410,7 +12414,7 @@ async function spCloudSave() {
     var c = await spCloudToken(); if (!c) return false;
     var b = spCloudBase();
     var payload = { rows: spStore.rows || [], allDates: spStore.allDates || [], winSize: spStore.winSize || 5, updatedAt: Date.now() };
-    var r = await fetch(b.base + '/rest/v1/sp_track', {
+    var r = await spCloudFetch(b.base + '/rest/v1/sp_track', {
       method: 'POST',
       headers: { 'apikey': b.anon, 'Authorization': 'Bearer ' + c.token, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=representation' },
       body: JSON.stringify([{ user_id: c.uid, payload: payload }])
@@ -12450,34 +12454,56 @@ function spCloudLoadWithRetry(attempt) {
 /* 设计：整份 payload 以 updatedAt 做 last-writer-wins；自动轮询仅在未聚焦输入框时拉取，避免打断正在输入。
    解决"甲电脑新增、乙电脑开着不刷新看不到"的问题。 */
 async function spCloudSyncNow(manual) {
-  var c = await spCloudToken();
-  if (!c) { if (manual) showNotify('未登录，无法同步（请先登录同一账号）', 2600); return 'nologin'; }
-  var cloud = await spCloudLoad();
-  if (!cloud) {
-    if (spStore && spStore.rows && spStore.rows.length) {
-      var ok0 = await spCloudSave();
-      if (manual) showNotify(ok0 ? '已上传本地到云端' : '本地上传云端失败', 2200);
-      return ok0 ? 'pushed' : 'pushfail';
+  var btn = document.getElementById('spSyncBtn');
+  var st = document.getElementById('spSaveState');
+  // 即时反馈：点击立即显示"同步中"，杜绝"点击没反应"错觉
+  if (st) { st.textContent = '同步中…'; st.style.color = '#d97706'; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 同步中'; }
+  try {
+    var c = await spCloudToken();
+    if (!c) {
+      if (st) { st.textContent = '未登录，无法同步'; st.style.color = '#dc2626'; }
+      if (manual) showNotify('未登录，无法同步（请先登录同一账号）', 2600);
+      return 'nologin';
     }
-    if (manual) showNotify('云端暂无数据', 1800);
-    return 'empty';
+    var cloud = await spCloudLoad();
+    if (!cloud) {
+      if (spStore && spStore.rows && spStore.rows.length) {
+        var ok0 = await spCloudSave();
+        if (st) { st.textContent = ok0 ? '已上传本地到云端 ✓' : '上传失败'; st.style.color = ok0 ? '#16a34a' : '#dc2626'; }
+        if (manual) showNotify(ok0 ? '已上传本地到云端' : '本地上传云端失败', 2200);
+        return ok0 ? 'pushed' : 'pushfail';
+      }
+      if (st) { st.textContent = '云端暂无数据'; st.style.color = '#6b7280'; }
+      if (manual) showNotify('云端暂无数据', 1800);
+      return 'empty';
+    }
+    var localU = (spStore && spStore.updatedAt) || 0;
+    var cloudU = cloud.updatedAt || 0;
+    if (cloudU > localU) {
+      spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
+      spMigrateStore(); spComputeAllDates(); spSyncWinSel();
+      spSaveStore();
+      spRenderStats(); spRenderTable();
+      if (st) { st.textContent = '已从云端更新（' + spStore.rows.length + ' 条）✓'; st.style.color = '#16a34a'; }
+      if (manual) showNotify('✅ 已从云端更新（' + spStore.rows.length + ' 条）', 2200);
+      return 'pulled';
+    } else if (localU > cloudU) {
+      var ok1 = await spCloudSave();
+      if (st) { st.textContent = ok1 ? '已上传本地到云端 ✓' : '上传失败'; st.style.color = ok1 ? '#16a34a' : '#dc2626'; }
+      if (manual) showNotify(ok1 ? '已上传本地到云端' : '上传失败', 2200);
+      return ok1 ? 'pushed' : 'pushfail';
+    }
+    if (st) { st.textContent = '已是最新 ✓'; st.style.color = '#16a34a'; }
+    if (manual) showNotify('已是最新 ✓', 1600);
+    return 'same';
+  } catch (e) {
+    if (st) { st.textContent = '同步出错：' + (e && e.message); st.style.color = '#dc2626'; }
+    if (manual) showNotify('同步出错：' + (e && e.message), 3000);
+    return 'error';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 同步'; }
   }
-  var localU = (spStore && spStore.updatedAt) || 0;
-  var cloudU = cloud.updatedAt || 0;
-  if (cloudU > localU) {
-    spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
-    spMigrateStore(); spComputeAllDates(); spSyncWinSel();
-    spSaveStore();
-    spRenderStats(); spRenderTable();
-    if (manual) showNotify('✅ 已从云端更新（' + spStore.rows.length + ' 条）', 2200);
-    return 'pulled';
-  } else if (localU > cloudU) {
-    var ok1 = await spCloudSave();
-    if (manual) showNotify(ok1 ? '已上传本地到云端' : '上传失败', 2200);
-    return ok1 ? 'pushed' : 'pushfail';
-  }
-  if (manual) showNotify('已是最新 ✓', 1600);
-  return 'same';
 }
 function spCloudAutoSync() {
   var ae = document.activeElement;
@@ -12490,41 +12516,7 @@ function spCloudAutoSync() {
     }
   });
 }
-/* ---------- 导出 / 导入 JSON 本地备份（独立于云端，防意外丢数据） ---------- */
-function spExportJSON() {
-  try {
-    var day = new Date().toISOString().slice(0, 10);
-    var data = { _type: 'spTrack-backup', version: 1, exportedAt: new Date().toISOString(), store: spStore };
-    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url; a.download = '股票池跟踪备份_' + day + '.json';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-    showNotify('✅ 已导出备份（' + (spStore && spStore.rows ? spStore.rows.length : 0) + ' 条）', 2200);
-  } catch (e) { showNotify('导出失败：' + (e && e.message), 2600); }
-}
-function spImportJSON(input) {
-  var f = input.files && input.files[0];
-  if (!f) return;
-  var reader = new FileReader();
-  reader.onload = function () {
-    try {
-      var data = JSON.parse(reader.result);
-      var store = (data && data.store) ? data.store : data;
-      if (!store || !Array.isArray(store.rows)) throw new Error('文件格式不对（缺少 rows 数组）');
-      if (spStore && spStore.rows && spStore.rows.length && !confirm('导入将覆盖当前 ' + spStore.rows.length + ' 条本地数据，确定继续？')) { input.value = ''; return; }
-      spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: Date.now() }, store);
-      spMigrateStore(); spComputeAllDates(); spSyncWinSel();
-      spSaveStore();
-      spRenderStats(); spRenderTable();
-      showNotify('✅ 已导入 ' + spStore.rows.length + ' 条并同步云端', 2400);
-    } catch (e) { showNotify('导入失败：' + (e && e.message), 3000); }
-    finally { input.value = ''; }
-  };
-  reader.onerror = function () { showNotify('读取文件失败', 2600); input.value = ''; };
-  reader.readAsText(f);
-}
+/* （导出/导入按钮已按需求移除） */
 function spGuessTradeDays(base, n) {
   var out = [], d = new Date(base + 'T00:00:00');
   var guard = 0;
