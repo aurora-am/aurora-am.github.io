@@ -12402,7 +12402,7 @@ async function spCloudSave() {
   } catch (e) { console.warn('[spTrack] cloud save error', e); return false; }
 }
 function spEnsureStore() {
-  if (!spStore || !spStore.rows) spLoadStore();   // 本地兜底（同步，页面立即可用）
+  spLoadStore();   // 始终先读本地 localStorage（本机真源）；原守卫 !spStore.rows 因 [] 为真值而永远不执行，导致刷新后数据不显示
   if (spCloudTried) return;
   spCloudTried = true;
   spCloudLoadWithRetry(0);
@@ -12410,12 +12410,19 @@ function spEnsureStore() {
 /* 云端拉取：首次若因登录态未就绪而返回空，自动重试两次（1.5s / 3s 后），扛过页面加载竞态 */
 function spCloudLoadWithRetry(attempt) {
   spCloudLoad().then(function (cloud) {
-    if (cloud && cloud.rows) {
-      spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
-      spMigrateStore(); spComputeAllDates(); spSyncWinSel();
-      spRenderStats(); spRenderTable();
+    var localRows = (spStore && spStore.rows) ? spStore.rows.length : 0;
+    if (cloud && cloud.rows && cloud.rows.length) {
+      // 仅当云端数据比本地更新或本地为空时才覆盖，避免空/陈旧云端误清空本机已存数据
+      var cloudNewer = (cloud.updatedAt || 0) >= ((spStore && spStore.updatedAt) || 0);
+      if (localRows === 0 || cloudNewer) {
+        spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
+        spMigrateStore(); spComputeAllDates(); spSyncWinSel();
+        spRenderStats(); spRenderTable();
+      }
       return;
     }
+    // 本地有数据但云端空 → 静默上传本地到云端（防换设备丢失），绝不覆盖本地
+    if (localRows > 0) spCloudSave();
     if (attempt < 2) { setTimeout(function () { spCloudLoadWithRetry(attempt + 1); }, 1500 * (attempt + 1)); }
     else if (attempt === 2) { console.info('[spTrack] 云端未取到数据（可能未登录/表未建/跨域），已回落本地'); }
   }).catch(function (e) { if (attempt < 2) setTimeout(function () { spCloudLoadWithRetry(attempt + 1); }, 1500 * (attempt + 1)); });
