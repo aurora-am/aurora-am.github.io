@@ -12423,6 +12423,68 @@ async function spCloudSave() {
     return true;
   } catch (e) { console.warn('[spTrack] cloud save error', e); return false; }
 }
+/* ---------- 跨设备「按行合并」 ----------
+   ⚠️ 旧逻辑整份 payload last-writer-wins（云端 updatedAt 较新就整份覆盖本地）：
+      任一台设备「拉候选 / 自动轮询 / 5秒刷新」都会用它本地那份（可能缺手填内容）
+      的 271 行覆盖云端，把另一台刚填的介入信号/日期备注抹掉 → 表现为「同一账号同步不过去 / 数据没了」。
+   新逻辑：以股票代码 code 为行 key 逐行合并（spGenId 是随机 id，各设备不同，绝不能用 id）。
+     · 行集合取并集（任一端有就保留，本地顺序不变）
+     · signal / dayMap 等「用户手填内容」：本地空则用云端补齐；两边都有则取行 updatedAt 较新者
+     · 机器字段（行情/均线）取较新一端，不影响手填内容
+   合并幂等，合并后统一回写一次云端，两端自然收敛，永不互相抹掉。 */
+function spEditValCount(r) {
+  if (!r) return 0;
+  var n = String(r.signal || '').trim() ? 1 : 0;
+  var dm = r.dayMap || {};
+  for (var d in dm) if (Object.prototype.hasOwnProperty.call(dm, d) && String(dm[d] || '').trim()) n++;
+  return n;
+}
+function spMergeStore(cloud) {
+  var res = { added: 0, restored: 0, cloudEdits: 0, localEdits: 0, changed: false };
+  if (!cloud || !cloud.rows) return res;
+  var byCode = {}, localRows = spStore.rows || [];
+  localRows.forEach(function (r) { if (r && r.code) byCode[r.code] = r; res.localEdits += spEditValCount(r); });
+  var newRows = [];
+  (cloud.rows || []).forEach(function (cr) {
+    if (!cr || !cr.code) return;
+    res.cloudEdits += spEditValCount(cr);
+    var lr = byCode[cr.code];
+    if (!lr) { newRows.push(cr); res.added++; return; }
+    var lu = lr.updatedAt || lr.createdAt || 0, cu = cr.updatedAt || cr.createdAt || 0;
+    var ls = String(lr.signal || '').trim(), cs = String(cr.signal || '').trim();
+    if (!ls && cs) { lr.signal = cr.signal; res.restored++; }
+    else if (ls && cs && cu > lu) { lr.signal = cr.signal; }
+    var cdm = cr.dayMap || {}; lr.dayMap = lr.dayMap || {};
+    for (var d in cdm) {
+      if (!Object.prototype.hasOwnProperty.call(cdm, d)) continue;
+      var cv = String(cdm[d] || '').trim(), lv = String(lr.dayMap[d] || '').trim();
+      if (!lv && cv) { lr.dayMap[d] = cdm[d]; res.restored++; }
+      else if (lv && cv && cu > lu) { lr.dayMap[d] = cdm[d]; }
+    }
+    if (cu > lu) {
+      ['price', 'chgPct', 'streak', 'maCount', 'maList', 'maDone', 'sector', 'name'].forEach(function (kk) {
+        if (cr[kk] !== undefined && cr[kk] !== null && cr[kk] !== '') lr[kk] = cr[kk];
+      });
+    }
+    lr.updatedAt = Math.max(lu, cu);
+  });
+  if (newRows.length) spStore.rows = localRows.concat(newRows);
+  var dset = {};
+  (spStore.allDates || []).forEach(function (d) { dset[d] = 1; });
+  (cloud.allDates || []).forEach(function (d) { dset[d] = 1; });
+  spStore.allDates = Object.keys(dset).sort(function (a, b) { return a > b ? -1 : 1; });
+  if (!spStore.winSize && cloud.winSize && SP_WIN_OPTIONS.indexOf(cloud.winSize) >= 0) spStore.winSize = cloud.winSize;
+  spStore.updatedAt = Math.max(spStore.updatedAt || 0, cloud.updatedAt || 0);
+  res.changed = !!(res.added || res.restored || res.localEdits !== res.cloudEdits);
+  return res;
+}
+function spWriteLocalOnly() {
+  try { localStorage.setItem(SP_STORE_KEY, JSON.stringify(spStore)); } catch (e) {}
+}
+function spSyncStateText(m) {
+  var n = 0; (spStore.rows || []).forEach(function (r) { n += spEditValCount(r); });
+  return '已同步云端 ✓ · 手填 ' + n + ' 条' + (m && m.restored ? '（补回 ' + m.restored + ' 条）' : '');
+}
 function spEnsureStore() {
   spLoadStore();   // 始终先读本地 localStorage（本机真源）；原守卫 !spStore.rows 因 [] 为真值而永远不执行，导致刷新后数据不显示
   if (spCloudTried) return;
@@ -12435,17 +12497,23 @@ function spCloudLoadWithRetry(attempt) {
   spCloudLoad().then(function (cloud) {
     var localRows = (spStore && spStore.rows) ? spStore.rows.length : 0;
     if (cloud && cloud.rows && cloud.rows.length) {
-      // 仅当云端数据比本地更新或本地为空时才覆盖，避免空/陈旧云端误清空本机已存数据
-      var cloudNewer = (cloud.updatedAt || 0) >= ((spStore && spStore.updatedAt) || 0);
-      if (localRows === 0 || cloudNewer) {
-        spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
-        spMigrateStore(); spComputeAllDates(); spSyncWinSel();
-        spRenderStats(); spRenderTable();
-      }
+      // 按行合并，绝不整份覆盖：本地已填的介入信号/日期备注永远保留，云端的补回来
+      var m = spMergeStore(cloud);
+      spMigrateStore(); spComputeAllDates(); spSyncWinSel();
+      spWriteLocalOnly(); spRenderStats(); spRenderTable();
+      // 本地有云端没有的手填内容 / 本地独有行 → 立即回传，把另一台刚填的内容救上云
+      if (m.changed || m.restored || m.added) spCloudSave();
+      var st0 = document.getElementById('spSaveState');
+      if (st0) { st0.textContent = spSyncStateText(m); st0.style.color = '#16a34a'; }
       return;
     }
     // 本地有数据但云端空 → 静默上传本地到云端（防换设备丢失），绝不覆盖本地
-    if (localRows > 0) spCloudSave();
+    if (localRows > 0) {
+      spCloudSave().then(function (ok) {
+        var st0 = document.getElementById('spSaveState');
+        if (st0 && ok) { st0.textContent = spSyncStateText(null); st0.style.color = '#16a34a'; }
+      });
+    }
     if (attempt < 2) { setTimeout(function () { spCloudLoadWithRetry(attempt + 1); }, 1500 * (attempt + 1)); }
     else if (attempt === 2) { console.info('[spTrack] 云端未取到数据（可能未登录/表未建/跨域），已回落本地'); }
   }).catch(function (e) { if (attempt < 2) setTimeout(function () { spCloudLoadWithRetry(attempt + 1); }, 1500 * (attempt + 1)); });
@@ -12467,36 +12535,19 @@ async function spCloudSyncNow(manual) {
       return 'nologin';
     }
     var cloud = await spCloudLoad();
-    if (!cloud) {
-      if (spStore && spStore.rows && spStore.rows.length) {
-        var ok0 = await spCloudSave();
-        if (st) { st.textContent = ok0 ? '已上传本地到云端 ✓' : '上传失败'; st.style.color = ok0 ? '#16a34a' : '#dc2626'; }
-        if (manual) showNotify(ok0 ? '已上传本地到云端' : '本地上传云端失败', 2200);
-        return ok0 ? 'pushed' : 'pushfail';
-      }
-      if (st) { st.textContent = '云端暂无数据'; st.style.color = '#6b7280'; }
-      if (manual) showNotify('云端暂无数据', 1800);
-      return 'empty';
+    // 按行合并（云端空则只合并本地内容）：彻底废掉 last-writer-wins 整份覆盖
+    var m = spMergeStore(cloud);
+    spMigrateStore(); spComputeAllDates(); spSyncWinSel();
+    spWriteLocalOnly(); spRenderStats(); spRenderTable();
+    var ok = await spCloudSave();
+    var txt = ok ? spSyncStateText(m) : '上传失败（检查登录态 / Console 403）';
+    if (st) { st.textContent = txt; st.style.color = ok ? '#16a34a' : '#dc2626'; }
+    if (manual) {
+      showNotify(ok
+        ? ('✅ 同步完成 · ' + (spStore.rows || []).length + ' 只 · 手填 ' + ((spStore.rows || []).reduce(function (a, r) { return a + spEditValCount(r); }, 0)) + ' 条' + (m.restored ? '（补回 ' + m.restored + ' 条）' : ''))
+        : '同步失败：' + txt, ok ? 2400 : 3200);
     }
-    var localU = (spStore && spStore.updatedAt) || 0;
-    var cloudU = cloud.updatedAt || 0;
-    if (cloudU > localU) {
-      spStore = Object.assign({ rows: [], allDates: [], winSize: 5, updatedAt: 0 }, cloud);
-      spMigrateStore(); spComputeAllDates(); spSyncWinSel();
-      spSaveStore();
-      spRenderStats(); spRenderTable();
-      if (st) { st.textContent = '已从云端更新（' + spStore.rows.length + ' 条）✓'; st.style.color = '#16a34a'; }
-      if (manual) showNotify('✅ 已从云端更新（' + spStore.rows.length + ' 条）', 2200);
-      return 'pulled';
-    } else if (localU > cloudU) {
-      var ok1 = await spCloudSave();
-      if (st) { st.textContent = ok1 ? '已上传本地到云端 ✓' : '上传失败'; st.style.color = ok1 ? '#16a34a' : '#dc2626'; }
-      if (manual) showNotify(ok1 ? '已上传本地到云端' : '上传失败', 2200);
-      return ok1 ? 'pushed' : 'pushfail';
-    }
-    if (st) { st.textContent = '已是最新 ✓'; st.style.color = '#16a34a'; }
-    if (manual) showNotify('已是最新 ✓', 1600);
-    return 'same';
+    return ok ? (m.restored || m.added ? 'pulled' : 'same') : 'pushfail';
   } catch (e) {
     if (st) { st.textContent = '同步出错：' + (e && e.message); st.style.color = '#dc2626'; }
     if (manual) showNotify('同步出错：' + (e && e.message), 3000);
@@ -12515,6 +12566,28 @@ function spCloudAutoSync() {
       if (st) { st.textContent = '已同步云端 ✓（自动更新）'; st.style.color = '#16a34a'; }
     }
   });
+}
+/* ---------- 同步自检：Console 里跑 spDiag()，两台电脑分别跑对比 uid 是否同一个账号 ---------- */
+async function spDiag() {
+  var c = await spCloudToken();
+  var lr = spStore.rows || [];
+  var le = lr.reduce(function (a, r) { return a + spEditValCount(r); }, 0);
+  console.log('【本机】uid:', c ? c.uid : '未登录', '| 行数:', lr.length, '| 手填条数:', le,
+    '| 本地 updatedAt:', spStore.updatedAt ? new Date(spStore.updatedAt).toLocaleString('zh-CN') : '无');
+  if (!c) { console.log('❌ 未登录 / 无 token → 数据只存本机，无法跨设备。请登录同一账号'); return; }
+  var b = spCloudBase();
+  try {
+    var r = await spCloudFetch(b.base + '/rest/v1/sp_track?select=payload,updated_at&user_id=eq.' + encodeURIComponent(c.uid), {
+      headers: { apikey: b.anon, Authorization: 'Bearer ' + c.token }
+    });
+    var a = await r.json();
+    var p = (a && a[0] && a[0].payload) || null;
+    var ce = (p && p.rows) ? p.rows.reduce(function (x, y) { return x + spEditValCount(y); }, 0) : 0;
+    console.log('【云端】HTTP:', r.status, '| 行数:', p && p.rows ? p.rows.length : '无', '| 手填条数:', ce,
+      '| 最后写入:', a && a[0] ? a[0].updated_at : '无');
+    console.log(le > ce ? '⚠ 本机手填比云端多 → 点「🔄 同步」回传'
+      : (le < ce ? '⚠ 云端手填比本机多 → 点「🔄 同步」拉回' : '✅ 两端手填内容一致'));
+  } catch (e) { console.log('云端读取异常:', e && e.message); }
 }
 /* （导出/导入按钮已按需求移除） */
 function spGuessTradeDays(base, n) {
