@@ -12427,14 +12427,15 @@ async function spCloudSave(opt) {
     if (cloud === null) { console.warn('[spTrack] 云端读取失败，已拒绝上传（防覆盖另一台设备的手填内容）'); return false; }
     if (cloud && cloud.rows) {
       var mg = spMergeStore(cloud);
-      if (mg.added || mg.restored) {
+      if (mg.added || mg.restored || mg.winSizeChanged) {
         spWriteLocalOnly();
+        spSyncWinSel();   // 窗口被另一台改过时，下拉框与列数一起对齐
         var ae0 = document.activeElement;
         var ed0 = ae0 && (ae0.tagName === 'TEXTAREA' || ae0.tagName === 'INPUT') && ae0.closest && ae0.closest('#spTrackCard');
         if (!ed0) { spRenderStats(); spRenderTable(); }
       }
     }
-    var payload = { rows: spStore.rows || [], allDates: spStore.allDates || [], winSize: spStore.winSize || 5, updatedAt: Date.now() };
+    var payload = { rows: spStore.rows || [], allDates: spStore.allDates || [], winSize: spStore.winSize || 5, winSizeAt: spStore.winSizeAt || 0, updatedAt: Date.now() };
     var r = await spCloudFetch(b.base + '/rest/v1/sp_track', {
       method: 'POST',
       headers: { 'apikey': b.anon, 'Authorization': 'Bearer ' + c.token, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=representation' },
@@ -12461,7 +12462,7 @@ function spEditValCount(r) {
   return n;
 }
 function spMergeStore(cloud) {
-  var res = { added: 0, restored: 0, cloudEdits: 0, localEdits: 0, changed: false };
+  var res = { added: 0, restored: 0, cloudEdits: 0, localEdits: 0, winSizeChanged: false, changed: false };
   if (!cloud || !cloud.rows) return res;
   var byCode = {}, localRows = spStore.rows || [];
   localRows.forEach(function (r) { if (r && r.code) byCode[r.code] = r; res.localEdits += spEditValCount(r); });
@@ -12496,9 +12497,23 @@ function spMergeStore(cloud) {
   (spStore.allDates || []).forEach(function (d) { dset[d] = 1; });
   (cloud.allDates || []).forEach(function (d) { dset[d] = 1; });
   spStore.allDates = Object.keys(dset).sort(function (a, b) { return a > b ? -1 : 1; });
-  if (!spStore.winSize && cloud.winSize && SP_WIN_OPTIONS.indexOf(cloud.winSize) >= 0) spStore.winSize = cloud.winSize;
+  /* 🛡️ 窗口设置（决定日期列数）也要跨设备一致（2026-11-11）：
+     旧写法 !spStore.winSize 永不成立（本地默认 5 是合法值）→ 云端 winSize 永远同步不过来，
+     于是 A 选 10 日、B 仍 5 日，两台列数不同；B 每次轮询又把 5 写回云端，来回横跳。
+     改用 winSizeAt（用户最后一次主动改窗口的时间）判谁更新；旧数据无此字段视为 0，平滑升级。 */
+  var lwAt = spStore.winSizeAt || 0, cwAt = cloud.winSizeAt || 0;
+  if (cwAt > lwAt && cloud.winSize && SP_WIN_OPTIONS.indexOf(cloud.winSize) >= 0) {
+    spStore.winSize = cloud.winSize;
+    spStore.winSizeAt = cwAt;
+    res.winSizeChanged = true;
+  } else if (cwAt === 0 && lwAt === 0 && cloud.winSize && SP_WIN_OPTIONS.indexOf(cloud.winSize) >= 0 && cloud.winSize !== spStore.winSize) {
+    // 旧数据（两端都没记录「改窗口时间」）：先统一到云端当前值，消除「两台列数不同」；
+    // 此后用户在任一台改窗口都会写下 winSizeAt，成为新的权威值并同步到另一台。
+    spStore.winSize = cloud.winSize;
+    res.winSizeChanged = true;
+  }
   spStore.updatedAt = Math.max(spStore.updatedAt || 0, cloud.updatedAt || 0);
-  res.changed = !!(res.added || res.restored || res.localEdits !== res.cloudEdits);
+  res.changed = !!(res.added || res.restored || res.winSizeChanged || res.localEdits !== res.cloudEdits);
   return res;
 }
 function spWriteLocalOnly() {
@@ -12658,6 +12673,9 @@ async function spDiag() {
   var le = lr.reduce(function (a, r) { return a + spEditValCount(r); }, 0);
   console.log('【本机】uid:', c ? c.uid : '未登录', '| 行数:', lr.length, '| 手填条数:', le,
     '| 本地 updatedAt:', spStore.updatedAt ? new Date(spStore.updatedAt).toLocaleString('zh-CN') : '无');
+  var vcols = (typeof spVisibleDates === 'function') ? spVisibleDates() : [];
+  console.log('【列数】窗口:', spStore.winSize, '日 | winSizeAt:', spStore.winSizeAt ? new Date(spStore.winSizeAt).toLocaleString('zh-CN') : '无(旧数据)',
+    '| 页面数据日:', (window.DATA && DATA.date) || '无', '| 实际日期列(', vcols.length, '列):', JSON.stringify(vcols));
   if (!c) { console.log('❌ 未登录 / 无 token → 数据只存本机，无法跨设备。请登录同一账号'); return; }
   var b = spCloudBase();
   try {
@@ -12668,6 +12686,7 @@ async function spDiag() {
     var p = (a && a[0] && a[0].payload) || null;
     var ce = (p && p.rows) ? p.rows.reduce(function (x, y) { return x + spEditValCount(y); }, 0) : 0;
     console.log('【云端】HTTP:', r.status, '| 行数:', p && p.rows ? p.rows.length : '无', '| 手填条数:', ce,
+      '| 窗口:', p ? p.winSize : '无', '日 | winSizeAt:', p && p.winSizeAt ? new Date(p.winSizeAt).toLocaleString('zh-CN') : '无',
       '| 最后写入:', a && a[0] ? a[0].updated_at : '无');
     console.log(le > ce ? '⚠ 本机手填比云端多 → 点「🔄 同步」回传'
       : (le < ce ? '⚠ 云端手填比本机多 → 点「🔄 同步」拉回' : '✅ 两端手填内容一致'));
@@ -12689,6 +12708,10 @@ function spGuessTradeDays(base, n) {
 function spComputeAllDates() {
   // 候选：以当前数据日 DATA.date 为终点，向前取 SP_HISTORY_BUFFER 个交易日（仅跳过周末，与历史口径一致）
   var base = (DATA && DATA.date) ? DATA.date : spFmtDate(new Date());
+  // 若某台设备还停在旧缓存的数据日，而已同步的日期列里有更新的交易日，以较新者为基准，
+  // 避免两台第 0 个日期列指向不同日期（同一 d0 索引会把备注写进不同日期列）。
+  var syncedTop = (spStore.allDates && spStore.allDates[0]) || '';
+  if (syncedTop > base) base = syncedTop;
   var cand = spGuessTradeDays(base, SP_HISTORY_BUFFER); // 最新在前
   var set = {}, merged = [];
   cand.forEach(function (d) { if (!set[d]) { set[d] = 1; merged.push(d); } });
@@ -12736,6 +12759,7 @@ function spSetWinSize(v) {
   var n = parseInt(v, 10);
   if (SP_WIN_OPTIONS.indexOf(n) < 0) n = 5;
   spStore.winSize = n;
+  spStore.winSizeAt = Date.now();   // 记录「用户主动改窗口」，供跨设备判定哪台设置更新
   spComputeAllDates();   // 确保窗口扩大时可回看的历史日期已就绪
   spSaveStore();
   spSyncWinSel();
