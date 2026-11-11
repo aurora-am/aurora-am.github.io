@@ -769,14 +769,13 @@ body {
 .mlt-row span { color:var(--text-secondary,#5a6a7e); width:42px; flex:none; }
 .mlt-row b { font-weight:600; }
 
-/* ===== K线/MACD 弹窗 ===== */
-.kline-modal-mask { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1600; display:none; align-items:center; justify-content:center; }
-.kline-modal { width:760px; max-width:94vw; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 12px 50px rgba(0,0,0,.3); }
-.dark .kline-modal { background:#161c28; }
-.kline-modal-h { display:flex; align-items:center; justify-content:space-between; padding:11px 16px; border-bottom:1px solid var(--card-border,#e5ebf3); font-weight:700; font-size:14px; }
-.kline-close { border:none; background:var(--input-bg,#f0f4fa); border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:14px; color:var(--text,#1a1a2e); }
-.kline-modal-body { padding:14px 16px; }
-#klineModalCanvas { width:728px; max-width:88vw; height:420px; display:block; background:var(--input-bg,#f6f9fc); border-radius:8px; }
+/* ===== K线/MACD 弹窗（规格对齐「板块强弱」模块 .strength-modal：92vw / max 1080px / 480px 图高） ===== */
+.kline-modal-mask { position:fixed; inset:0; background:rgba(0,0,0,.42); z-index:1700; display:none; align-items:center; justify-content:center; }
+.kline-modal { width:92vw; max-width:1080px; background:var(--card-bg,#fff); border-radius:var(--radius,12px); overflow:hidden; box-shadow:var(--shadow-hover,0 12px 50px rgba(0,0,0,.3)); }
+.kline-modal-h { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--card-border,#e5ebf3); font-weight:600; font-size:14px; color:var(--text,#1a1a2e); }
+.kline-close { border:none; background:var(--input-bg,#f0f4fa); border-radius:6px; width:28px; height:28px; cursor:pointer; font-size:14px; color:var(--text-secondary,#5a6a7e); }
+.kline-modal-body { padding:8px 10px; }
+#klineModalCanvas { width:100%; max-width:1040px; height:480px; display:block; background:var(--input-bg,#f6f9fc); border-radius:8px; }
 .kline-msg { margin-top:10px; font-size:12.5px; color:var(--text-secondary,#5a6a7e); text-align:center; }
 
 /* ===== 复盘笔记日历 ===== */
@@ -1297,10 +1296,12 @@ body.wb-readonly .wb-datenav{opacity:1}
         .sp-pool-in{opacity:.55;cursor:not-allowed}
         .sp-pool-tag{color:#c0392b;font-size:10px}
         .sp-pool-empty{padding:20px;text-align:center;color:var(--text-secondary)}
-        .sp-kline-pop{position:fixed;z-index:9999;background:var(--card-bg,#fff);border:1px solid var(--card-border,#e2e8f0);border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.18);padding:6px;display:none}
-        .sp-kline-pop.show{display:block}
-        .sp-kline-pop-h{font-size:12px;color:var(--text);margin-bottom:3px}
-        .sp-kline-pop-h span{color:var(--text-secondary);font-weight:400}
+        /* 悬浮 K 线浮窗：与「板块强弱」模块 .str-kline-pop 完全同规格（790px 宽 / 360px 图高 / ECharts） */
+        .sp-kline-pop{position:fixed;z-index:1600;width:790px;max-width:94vw;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);box-shadow:var(--shadow-hover);padding:8px 10px 4px;display:none}
+        .sp-kline-pop.show{display:block;animation:strPop .18s ease}
+        .sp-kline-pop-hd{font-size:12.5px;font-weight:600;color:var(--text);margin:0 0 4px;display:flex;justify-content:space-between;gap:10px}
+        .sp-kline-pop-hd span{font-weight:400;color:var(--text-secondary)}
+        @media(max-width:768px){ .sp-kline-pop{width:94vw} }
       </style>
       <div class="sp-toolbar">
         <div class="sp-stats" id="spStats"></div>
@@ -7354,6 +7355,7 @@ function ml2Hover(card) {
   tip.innerHTML = '<div class="mlt-name">' + name + ' · 近45日K线</div>'
     + '<canvas id="mltCanvas" width="288" height="120"></canvas>'
     + '<div class="mlt-rows">' + rows.join('') + '</div>';
+  tip.setAttribute('data-bk', code);   /* 当前悬浮标的；异步回调必须校验，防止旧请求画到新卡片上 */
   var rect = card.getBoundingClientRect();
   var left = rect.right + 12;
   if (left + 330 > window.innerWidth) left = Math.max(8, rect.left - 342);
@@ -7372,8 +7374,8 @@ function ml2Hover(card) {
       var bars = klines.map(function (s) { var p = s.split(','); return [p[0], +p[1], +p[2], +p[3], +p[4], +p[5]]; });
       BOARD_K_CACHE[code] = bars;
       var c2 = document.getElementById('mltCanvas');
-      if (c2 && tip.style.display === 'block') drawKline(c2, bars, 'mini');
-    }).catch(function () { var c2 = document.getElementById('mltCanvas'); if (c2) { var x = c2.getContext('2d'); x.clearRect(0,0,c2.width,c2.height); x.fillStyle = '#9aa7b5'; x.font = '12px sans-serif'; x.fillText('K线获取失败', 90, 64); } });
+      if (c2 && tip.style.display === 'block' && tip.getAttribute('data-bk') === code) drawKline(c2, bars, 'mini');
+    }).catch(function () { var c2 = document.getElementById('mltCanvas'); if (c2 && tip.getAttribute('data-bk') === code) { var x = c2.getContext('2d'); x.clearRect(0,0,c2.width,c2.height); x.fillStyle = '#9aa7b5'; x.font = '12px sans-serif'; x.fillText('K线获取失败', 90, 64); } });
   }
 }
 function ml2Unhover() { var tip = document.getElementById('mlHoverTip'); if (tip) tip.style.display = 'none'; }
@@ -7396,14 +7398,16 @@ function openStockKline(code, name) {
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'klineModal'; modal.className = 'kline-modal-mask';
-    modal.innerHTML = '<div class="kline-modal"><div class="kline-modal-h"><span id="klineModalTitle"></span><button class="kline-close" onclick="closeKlineModal()">✕</button></div><div class="kline-modal-body"><canvas id="klineModalCanvas" width="728" height="420"></canvas><div id="klineModalMsg" class="kline-msg"></div></div></div>';
+    modal.innerHTML = '<div class="kline-modal"><div class="kline-modal-h"><span id="klineModalTitle"></span><button class="kline-close" onclick="closeKlineModal()">✕</button></div><div class="kline-modal-body"><canvas id="klineModalCanvas" width="1040" height="480"></canvas><div id="klineModalMsg" class="kline-msg"></div></div></div>';
     modal.onclick = function (e) { if (e.target === modal) closeKlineModal(); };
     document.body.appendChild(modal);
   }
   document.getElementById('klineModalTitle').textContent = (name || code) + '（' + code + '）近60交易日 K线 + MACD';
   modal.style.display = 'flex';
+  modal.setAttribute('data-code', String(code));   /* 当前标的；异步回调只认同一个 code，杜绝错股 */
   var cv = document.getElementById('klineModalCanvas');
   var msg = document.getElementById('klineModalMsg');
+  var stillMine = function () { return modal && modal.getAttribute('data-code') === String(code) && modal.style.display !== 'none'; };
   if (st && st.k && st.k.length >= 30) {
     msg.textContent = '';
     drawKline(cv, st.k.slice(-60), 'full');
@@ -7412,6 +7416,7 @@ function openStockKline(code, name) {
   /* 实时回源：腾讯源已不可用，改用与均线/悬浮K线同源的东财 push2his（多主机互备） */
   msg.textContent = '正在获取 ' + (name || code) + ' 日K…';
   spFetchKlineEM(code, function (bars) {
+    if (!stillMine()) return;
     if (bars && bars.length >= 10) {
       msg.textContent = '';
       drawKline(cv, bars.slice(-60), 'full');
@@ -8961,6 +8966,7 @@ function strUpdateTurnMarks(){
 function strHoverKline(ev, code, sid){
   var pop = document.getElementById('strKlinePop');
   if(!pop) return;
+  code = String(code || '');
   var s = null; (STR.data.sectors||[]).forEach(function(x){ if(x.sector_id===sid) s=x; });
   var nm = strNameOf(code);
   document.getElementById('strKlinePopTitle').innerHTML = '<b>'+strEsc(code)+'</b> '+strEsc(nm)+' <span style="font-weight:400">· '+(s?strEsc(s.name):'')+'</span>';
@@ -8974,28 +8980,43 @@ function strHoverKline(ev, code, sid){
   pop.style.left = left + 'px';
   pop.style.top = top + 'px';
   pop.classList.add('show');
+  /* 标题与图必须同一次 code 绑定：异步回调只认当前悬浮标的，杜绝快速划过时旧股 K 线残留 */
+  pop.setAttribute('data-code', code);
 
+  var body = document.getElementById('strKlinePopBody');
+  function paint(k){
+    if(!pop.classList.contains('show') || pop.getAttribute('data-code') !== code) return;
+    if(k){
+      try { applyKline('strKlinePopBody', strSliceK(k, 160), 360); pop.setAttribute('data-drawn', code); }
+      catch(e){ body.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">K线渲染失败：'+strEsc(e.message||'')+'</div>'; }
+    } else {
+      body.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">暂无该股 K 线（本地导入的新票需经本地管线补齐）</div>';
+    }
+  }
   var k = (STR.kline[sid] && STR.kline[sid][code]) || strFindKline(code);
   if(k){
-    if(pop.getAttribute('data-code') !== code){
-      applyKline('strKlinePopBody', strSliceK(k, 160), 360);
-      pop.setAttribute('data-code', code);
-    }
-  } else {
-    document.getElementById('strKlinePopBody').innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">K线加载中…</div>';
-    pop.setAttribute('data-code', '');
-    loadKlineBundle(sid, function(){
-      var k2 = (STR.kline[sid] && STR.kline[sid][code]) || strFindKline(code);
-      if(pop.classList.contains('show')){
-        if(k2){ applyKline('strKlinePopBody', strSliceK(k2, 160), 360); pop.setAttribute('data-code', code); }
-        else { document.getElementById('strKlinePopBody').innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">暂无该股 K 线（本地导入的新票需经本地管线补齐）</div>'; }
-      }
-    });
+    /* 同标的重复悬浮不重复初始化；但切页会 dispose 图表实例，实例不在时必须重绘 */
+    var alive = false;
+    try { alive = !!(typeof charts !== 'undefined' && charts['strKlinePopBody']); } catch(e){}
+    if(pop.getAttribute('data-drawn') !== code || !alive) paint(k);
+    return;
   }
+  body.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">K线加载中…</div>';
+  pop.setAttribute('data-drawn', '');
+  loadKlineBundle(sid, function(){
+    paint((STR.kline[sid] && STR.kline[sid][code]) || strFindKline(code));
+  });
 }
 function strFindKline(code){
-  for(var sid in STR.kline){ var b = STR.kline[sid]; if(b && b[code]) return b[code]; }
-  return null;
+  /* 同一只票可能同时存在于多个板块分片；取数据最新（末根日期最靠后）的那份，避免展示陈旧K线 */
+  var best = null, bestLast = '';
+  for(var sid in STR.kline){
+    var b = STR.kline[sid], one = b && b[code];
+    if(!one) continue;
+    var d = one.date || [], last = d.length ? d[d.length - 1] : '';
+    if(!best || last > bestLast){ best = one; bestLast = last; }
+  }
+  return best;
 }
 function strHideKline(){
   var pop = document.getElementById('strKlinePop');
@@ -13192,30 +13213,62 @@ function spPumpMA() {
   }
 }
 
-/* ---------- 悬浮 K 线（近60日 K线 + 成交量 + MACD） ---------- */
+/* ---------- 悬浮 K 线（样式/尺寸/渲染对齐「板块强弱」：790px 浮窗 · 360px 图高 · ECharts 8均线+MACD） ---------- */
 function spOpenKline(id) { var r = spFind(id); if (r) openStockKline(r.code, r.name); }
 function spHoverKline(ev, id) {
   var r = spFind(id); if (!r) return;
+  var code = String(r.code || '');
   var pop = document.getElementById('spKlinePop');
   if (!pop) {
     pop = document.createElement('div');
     pop.id = 'spKlinePop'; pop.className = 'sp-kline-pop';
-    pop.innerHTML = '<div class="sp-kline-pop-h" id="spKlinePopH"></div><canvas id="spKlinePopCv" width="380" height="232"></canvas>';
+    pop.innerHTML = '<div class="sp-kline-pop-hd"><span id="spKlinePopH"></span><span>近 160 日 · 悬浮预览</span></div><div id="spKlinePopBody" style="height:360px"></div>';
     document.body.appendChild(pop);
   }
-  document.getElementById('spKlinePopH').innerHTML = '<b>' + r.code + '</b> ' + r.name + ' <span>· 近60日 K线 / 成交量 / MACD</span>';
+  /* 目标标的、标题、图三者同一次绑定：旧请求的回调绝不画到新标的浮窗上 */
+  pop.setAttribute('data-code', code);
+  document.getElementById('spKlinePopH').innerHTML = '<b>' + spEscText(code) + '</b> ' + spEscText(r.name || '') + ' <span style="font-weight:400">· 股票池跟踪</span>';
   var x = (ev && ev.clientX) || 0, y = (ev && ev.clientY) || 0;
-  var w = 392, h = 268;
-  pop.style.left = Math.min(x + 16, (window.innerWidth || 1280) - w - 12) + 'px';
-  pop.style.top = Math.min(y + 14, (window.innerHeight || 800) - h - 12) + 'px';
+  var w = 812, hgt = 448;
+  var left = Math.min(x + 18, (window.innerWidth || 1280) - w - 12);
+  var top = Math.min(y + 14, (window.innerHeight || 800) - hgt - 12);
+  if (left < 8) left = 8;
+  if (top < 8) top = 8;
+  pop.style.left = left + 'px'; pop.style.top = top + 'px';
   pop.classList.add('show');
-  var draw = function (bars) { spDrawKlinePop(document.getElementById('spKlinePopCv'), bars); };
-  if (spKlineCache[r.code]) { draw(spKlineCache[r.code]); return; }
-  spFetchKlineEM(r.code, function (bars) {
-    if (!bars || bars.length < 10) return;
-    spKlineCache[r.code] = bars;
-    if (pop.classList.contains('show')) draw(bars);
+
+  var body = document.getElementById('spKlinePopBody');
+  function paint(bars) {
+    if (!pop.classList.contains('show') || pop.getAttribute('data-code') !== code) return;
+    if (!bars || bars.length < 10) {
+      body.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">暂无 ' + spEscText(code) + ' 的日K（行情源暂不可达）</div>';
+      return;
+    }
+    try { applyKline('spKlinePopBody', spBarsToKline(bars, r.name), 360); }
+    catch (e) { body.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">K线渲染失败：' + spEscText(e.message || '') + '</div>'; }
+  }
+  if (spKlineCache[code]) { paint(spKlineCache[code]); return; }
+  body.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:14px">' + spEscText(code) + ' K线加载中…</div>';
+  spFetchKlineEM(code, function (bars) {
+    if (bars && bars.length >= 10) spKlineCache[code] = bars;
+    paint(bars);
   });
+}
+/* 东财行式 bars [date,open,close,high,low,vol] → 板块强弱 applyKline 用的列式结构（含 8 均线 + MACD） */
+function spBarsToKline(bars, name) {
+  var k = { name: name || '', date: [], o: [], c: [], h: [], l: [], v: [] };
+  bars.forEach(function (b) { k.date.push(b[0]); k.o.push(+b[1]); k.c.push(+b[2]); k.h.push(+b[3]); k.l.push(+b[4]); k.v.push(+b[5] || 0); });
+  [5, 13, 21, 34, 55, 89, 144, 233].forEach(function (n) {
+    var out = [], sum = 0;
+    for (var i = 0; i < k.c.length; i++) {
+      sum += k.c[i]; if (i >= n) sum -= k.c[i - n];
+      out.push(i >= n - 1 ? +(sum / n).toFixed(2) : null);
+    }
+    k['ma' + n] = out;
+  });
+  var m = (typeof computeMacd === 'function') ? computeMacd(k.c, 12, 26, 9) : null;
+  k.dif = m ? m.dif : []; k.dea = m ? m.dea : []; k.macd = m ? m.hist : [];
+  return k;
 }
 function spHideKline() { var pop = document.getElementById('spKlinePop'); if (pop) pop.classList.remove('show'); }
 
