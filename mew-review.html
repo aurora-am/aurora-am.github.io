@@ -1323,7 +1323,7 @@ body.wb-readonly .wb-datenav{opacity:1}
       <div class="sp-table-scroll">
         <div id="spTableWrap" class="table-wrap"></div>
       </div>
-      <div class="sp-foot-note">数据：近5日/20日涨停取自在线 <code>wbdata</code> 分片（limitUp.list 真实字段：连板 / 首封时间 / 板块）；均线为 5/8/13/21/34/55/89/144 日，现价站上即计；本地打开文件且网络受限时退回当日涨停池。跟踪数据存于本机浏览器，并同步至云端（登录同一账号 + 点「🔄 同步」或每 60 秒自动互通）。</div>
+      <div class="sp-foot-note"><span id="spQuoteState" style="font-weight:600"></span>数据：近5日/20日涨停取自在线 <code>wbdata</code> 分片（limitUp.list 真实字段：连板 / 首封时间 / 板块）；<b>「现价 / 当日涨幅」为最新行情</b>（打开页面即刷新，盘中随「⏱ 5秒刷新」每 60 秒更新，收盘后当日定格；连板/早板/均线仍为入池时快照）；本地打开文件且网络受限时退回当日涨停池。跟踪数据存于本机浏览器，并同步至云端（登录同一账号 + 点「🔄 同步」或每 60 秒自动互通）。</div>
     </div>
   </div>
 </div>
@@ -11741,6 +11741,7 @@ var _quoteLiveFail = 0;
 var _lastAutoLiveKick = 0;
 function fetchQuotes() {
   if (!CURRENT_IS_LATEST) return;
+  try { spRefreshQuotes(false); } catch (e) {}   // 股票池跟踪「现价/当日涨幅」：盘中每 60 秒刷新，休市每日一次定格
   // 🚨 防混日：若页面跨天仍开着，自动切到今天，避免把今日行情写入昨天日期
   var today = fmtDate(new Date());
   if (DATA.date !== today && today > DATA.date && isTradeDay(today)) {
@@ -12462,7 +12463,9 @@ function spMergeStore(cloud) {
       else if (lv && cv && cu > lu) { lr.dayMap[d] = cdm[d]; }
     }
     if (cu > lu) {
-      ['price', 'chgPct', 'streak', 'maCount', 'maList', 'maDone', 'sector', 'name'].forEach(function (kk) {
+      /* price / chgPct 由各端本地实时行情负责，刻意不跨设备同步：
+         否则云端那份入池旧快照会把刚刷新的最新行情盖回去。 */
+      ['streak', 'maCount', 'maList', 'maDone', 'sector', 'name'].forEach(function (kk) {
         if (cr[kk] !== undefined && cr[kk] !== null && cr[kk] !== '') lr[kk] = cr[kk];
       });
     }
@@ -12566,6 +12569,61 @@ function spCloudAutoSync() {
       if (st) { st.textContent = '已同步云端 ✓（自动更新）'; st.style.color = '#16a34a'; }
     }
   });
+}
+/* ---------- 行情就地刷新：现价 / 当日涨幅 更新为最新 ----------
+   复用现成的 LiveFeed.batchQuotes（东财 JSONP 主源 + 腾讯备源，分批 60 只，绕 CORS + 串行限流）。
+   · 触发：打开页面即刷一次；盘中随「⏱ 5秒刷新」每 60 秒刷；收盘后当日只刷一次定格；跨天自动重刷。
+   · 只写本地 localStorage：不改 r.updatedAt（那是用户编辑时间戳，避免干扰跨设备按行合并），
+     也不主动上传云端（行情是展示数据，各端自刷即可，避免 60 秒推一次 271 行大 payload）。
+   · 失败保留原值并明确提示「显示入池快照」，绝不伪造或用 0 冒充。 */
+var spQuoteState = { running: false, lastAt: 0, lastDate: '' };
+function spRefreshQuotes(force) {
+  if (spQuoteState.running) return;
+  if (typeof LiveFeed === 'undefined' || !LiveFeed.batchQuotes) return;
+  var rows = (spStore && spStore.rows) || [];
+  if (!rows.length) return;
+  var today = spFmtDate(new Date());
+  var inTrade = (typeof isMarketOpen === 'function' && isMarketOpen());
+  // 休市：每天只刷一次（收盘价定格）；盘中：每 60 秒刷一次；force 用于首访/手动拉候选
+  var due = force || spQuoteState.lastDate !== today || (inTrade && Date.now() - spQuoteState.lastAt > 60000);
+  if (!due) return;
+  spQuoteState.running = true;
+  var qs = document.getElementById('spQuoteState');
+  var codes = [];
+  rows.forEach(function (r) { var c = r && r.code && String(r.code); if (c && codes.indexOf(c) < 0) codes.push(c); });
+  var quotes = {}, okB = 0, failB = 0, chain = Promise.resolve();
+  for (var i = 0; i < codes.length; i += 60) {
+    (function (slice) {
+      chain = chain.then(function () {
+        return LiveFeed.batchQuotes(slice).then(function (m) {
+          Object.keys(m || {}).forEach(function (k) { quotes[k] = m[k]; }); okB++;
+        }, function () { failB++; });
+      });
+    })(codes.slice(i, i + 60));
+  }
+  chain.then(function () {
+    spQuoteState.running = false;
+    var n = 0;
+    rows.forEach(function (r) {
+      var q = quotes[String(r.code)];
+      if (!q || !isFinite(q.price) || !isFinite(q.chgPct)) return;
+      r.price = q.price; r.chgPct = q.chgPct; r.quoteAt = Date.now(); n++;
+    });
+    if (!n) {
+      if (qs) { qs.textContent = '⚠ 行情刷新失败，当前显示入池快照 · '; qs.style.color = '#dc2626'; }
+      return;
+    }
+    spQuoteState.lastAt = Date.now(); spQuoteState.lastDate = today;
+    spWriteLocalOnly();
+    // 正在编辑时不重绘（避免打断输入），数据已落本地，下次渲染自然生效
+    var ae = document.activeElement;
+    var editing = ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT') && ae.closest && ae.closest('#spTrackCard');
+    if (!editing) spRenderTable();
+    if (qs) {
+      qs.textContent = '行情 ' + new Date().toLocaleTimeString('zh-CN') + ' 更新 ' + n + '/' + rows.length + ' 只' + (failB ? '（部分批次失败）' : '') + ' · ';
+      qs.style.color = '#16a34a';
+    }
+  }).catch(function () { spQuoteState.running = false; });
 }
 /* ---------- 同步自检：Console 里跑 spDiag()，两台电脑分别跑对比 uid 是否同一个账号 ---------- */
 async function spDiag() {
@@ -12928,19 +12986,20 @@ function spTrackInit() {
         var added = 0;
         recent.forEach(function (r) { if (spAddStock(r, true)) added++; });
         spSaveStore(); spRenderStats(); spRenderTable(); spSetInfo('已自动导入近' + (spStore.winSize || 5) + '日涨停候选 ' + added + ' 只（可编辑/删除/补充）');
-        spLazyMA();
+        spLazyMA(); spRefreshQuotes(true);
       } else {
         var lu = (DATA && DATA.limitUp && DATA.limitUp.list) || [];
         lu.forEach(function (it) { spAddStock({ code: it.code, name: it.name, sector: (it.industry || it.board || ''), streak: it.streak || 1, minSeal: it.time || '15:00', price: it.price, chgPct: it.chgPct }, true); });
         spSaveStore(); spRenderStats(); spRenderTable();
         spSetInfo('⚠ 历史分片未能加载（本地打开文件或网络受限），已退回当日涨停池；联网访问 mimihub.cloud 可加载完整历史');
-        spLazyMA();
+        spLazyMA(); spRefreshQuotes(true);
       }
     });
   } else {
     spSetInfo('');
     spLazyMA();
   }
+  spRefreshQuotes(true);   // 打开页面即把「现价/当日涨幅」刷成最新（收盘后为当日收盘价）
 }
 
 /* ---------- 刷新5日候选（合并，不覆盖已有） ---------- */
@@ -12953,7 +13012,7 @@ function spRefreshCandidates() {
     recent.forEach(function (r) { if (spAddStock(r, true)) added++; });
     spSaveStore(); spRenderStats(); spRenderTable();
     spSetInfo(added ? ('已新增候选 ' + added + ' 只') : '候选已均在列表中，无新增');
-    spLazyMA();
+    spLazyMA(); spRefreshQuotes(true);
   });
 }
 
