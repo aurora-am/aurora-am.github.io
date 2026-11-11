@@ -12348,8 +12348,9 @@ function spSaveStore() {
   // 云端同步（异步；需登录且表已建才生效，失败不影响本地）
   spCloudSave().then(function (done) {
     if (done) {
-      if (st) { st.textContent = '已同步云端 ✓'; st.style.color = '#16a34a'; }
-      showNotify('✓ 已同步云端', 2000);
+      // 状态栏直接显示「手填 N 条」：填完一眼就能确认内容确实进了云端，不再靠猜
+      if (st) { st.textContent = spSyncStateText(null); st.style.color = '#16a34a'; }
+      showNotify('✓ 已同步云端 · 手填 ' + ((spStore.rows || []).reduce(function (a, r) { return a + spEditValCount(r); }, 0)) + ' 条', 2000);
     } else if (ok) {
       var msg = (window.MiaoSB && MiaoSB.state && MiaoSB.state.user)
         ? '已存本地（云端同步失败·查 Console 的 403/权限，确认 sp_track 表已建且策略无误）'
@@ -12406,14 +12407,33 @@ async function spCloudLoad() {
     });
     if (!r.ok) { var t1 = await r.text().catch(function () { return ''; }); console.warn('[spTrack] 云端读取失败', r.status, t1); return null; }
     var arr = await r.json();
-    if (!arr || !arr.length) return null;
-    return (arr[0] && arr[0].payload) || null;
+    /* 语义区分（跨设备写保护的前提）：
+       · null          = 读取失败 / 未登录 / 网络异常 → 禁止据此上传，否则会用本机旧数据覆盖云端
+       · {rows:[]...}  = 云端确实还没有这一行 → 可以安全首建 */
+    if (!arr || !arr.length) return { rows: [], allDates: [], winSize: 5, updatedAt: 0 };
+    return (arr[0] && arr[0].payload) || { rows: [], allDates: [], winSize: 5, updatedAt: 0 };
   } catch (e) { console.warn('[spTrack] cloud load error', e); return null; }
 }
-async function spCloudSave() {
+async function spCloudSave(opt) {
   try {
     var c = await spCloudToken(); if (!c) return false;
     var b = spCloudBase();
+    /* 🛡️ 写入保护（2026-11-11）：旧实现把本机整份 rows 直接 POST 覆盖云端。
+       一旦某台设备「云端读取失败」或「本地仍是旧快照」，就会把另一台刚填的
+       介入信号 / 日期备注整份抹掉 —— 这正是「同一账号不同设备看不到手填内容」的根因。
+       现在：上传前先取云端 → 按行合并补回云端独有的行与手填内容 → 再写；
+       云端读取失败(null)时宁可不写，绝不用残缺数据覆盖。 */
+    var cloud = (opt && opt.cloud !== undefined) ? opt.cloud : await spCloudLoad();
+    if (cloud === null) { console.warn('[spTrack] 云端读取失败，已拒绝上传（防覆盖另一台设备的手填内容）'); return false; }
+    if (cloud && cloud.rows) {
+      var mg = spMergeStore(cloud);
+      if (mg.added || mg.restored) {
+        spWriteLocalOnly();
+        var ae0 = document.activeElement;
+        var ed0 = ae0 && (ae0.tagName === 'TEXTAREA' || ae0.tagName === 'INPUT') && ae0.closest && ae0.closest('#spTrackCard');
+        if (!ed0) { spRenderStats(); spRenderTable(); }
+      }
+    }
     var payload = { rows: spStore.rows || [], allDates: spStore.allDates || [], winSize: spStore.winSize || 5, updatedAt: Date.now() };
     var r = await spCloudFetch(b.base + '/rest/v1/sp_track', {
       method: 'POST',
@@ -12503,9 +12523,12 @@ function spCloudLoadWithRetry(attempt) {
       // 按行合并，绝不整份覆盖：本地已填的介入信号/日期备注永远保留，云端的补回来
       var m = spMergeStore(cloud);
       spMigrateStore(); spComputeAllDates(); spSyncWinSel();
-      spWriteLocalOnly(); spRenderStats(); spRenderTable();
+      spWriteLocalOnly();
+      var aeL = document.activeElement;
+      var editingL = aeL && (aeL.tagName === 'TEXTAREA' || aeL.tagName === 'INPUT') && aeL.closest && aeL.closest('#spTrackCard');
+      if (!editingL) { spRenderStats(); spRenderTable(); }
       // 本地有云端没有的手填内容 / 本地独有行 → 立即回传，把另一台刚填的内容救上云
-      if (m.changed || m.restored || m.added) spCloudSave();
+      if (m.changed || m.restored || m.added) spCloudSave({ cloud: cloud });
       var st0 = document.getElementById('spSaveState');
       if (st0) { st0.textContent = spSyncStateText(m); st0.style.color = '#16a34a'; }
       return;
@@ -12539,11 +12562,14 @@ async function spCloudSyncNow(manual) {
     }
     var cloud = await spCloudLoad();
     // 按行合并（云端空则只合并本地内容）：彻底废掉 last-writer-wins 整份覆盖
-    var m = spMergeStore(cloud);
+    var m = spMergeStore(cloud || { rows: [] });
     spMigrateStore(); spComputeAllDates(); spSyncWinSel();
-    spWriteLocalOnly(); spRenderStats(); spRenderTable();
-    var ok = await spCloudSave();
-    var txt = ok ? spSyncStateText(m) : '上传失败（检查登录态 / Console 403）';
+    spWriteLocalOnly();
+    var aeS = document.activeElement;
+    var editingS = aeS && (aeS.tagName === 'TEXTAREA' || aeS.tagName === 'INPUT') && aeS.closest && aeS.closest('#spTrackCard');
+    if (!editingS) { spRenderStats(); spRenderTable(); }
+    var ok = await spCloudSave({ cloud: cloud });
+    var txt = ok ? spSyncStateText(m) : '未上传（未登录 / 云端读取失败）· 为保护另一台手填数据已跳过，详见 Console';
     if (st) { st.textContent = txt; st.style.color = ok ? '#16a34a' : '#dc2626'; }
     if (manual) {
       showNotify(ok
@@ -12876,6 +12902,25 @@ function spAutoSaveRow(inp, id) {
   var r = spCommitRow(id); if (!r) return;
   showNotify('✓ 已自动保存 ' + r.name, 1200);
 }
+/* ---------- 输入即时落盘（2026-11-11） ----------
+   旧逻辑只在「失焦」时才把 textarea 的值写进 spStore：期间任何重绘
+   （云端同步 / 行情刷新 / 首次拉取）都会重建 DOM，把正在输入的内容清空，
+   表现就是「明明填了，库里却查不到」。
+   现在 oninput 立刻写入内存中的行，DOM 重绘按最新值重建 → 内容绝不丢；
+   800ms 防抖后再写 localStorage + 上云（避免每敲一个字推一次整份数据）。 */
+function spLiveEdit(inp, id) {
+  spAutoGrow(inp);
+  var r = spFind(id); if (!r) return;
+  var f = inp.getAttribute('data-f');
+  if (f === 'signal') r.signal = inp.value;
+  else if (f && f.indexOf('d') === 0) {
+    var idx = parseInt(f.slice(1), 10), dcols = spVisibleDates();
+    if (dcols[idx]) { r.dayMap = r.dayMap || {}; r.dayMap[dcols[idx]] = inp.value; }
+  }
+  r.updatedAt = Date.now();
+  clearTimeout(window.__spLiveTimer);
+  window.__spLiveTimer = setTimeout(function () { spSaveStore(); }, 800);
+}
 
 /* ---------- 统计 ---------- */
 function spInLast5(d) {           // 固定「最近5个交易日」口径（用于20日涨停池弹窗筛选，不受表格窗口配置影响）
@@ -12944,10 +12989,10 @@ function spRenderTable() {
         '<td>' + (r.price === '' || r.price == null ? '-' : (+r.price).toFixed(2)) + '</td>' +
         '<td class="' + chgCls + '">' + chgTxt + '</td>' +
         '<td class="sp-ma" title="' + spMaTitle(r) + '">' + maTxt + '</td>' +
-        '<td><textarea class="sp-in" data-f="signal" rows="3" readonly oninput="spAutoGrow(this)" onfocus="spUnlockField(this)" onblur="spAutoSaveRow(this,\'' + r.id + '\')">' + spEscText(r.signal) + '</textarea></td>' +
+        '<td><textarea class="sp-in" data-f="signal" rows="3" readonly oninput="spLiveEdit(this,\'' + r.id + '\')" onfocus="spUnlockField(this)" onblur="spAutoSaveRow(this,\'' + r.id + '\')">' + spEscText(r.signal) + '</textarea></td>' +
         cols.map(function (c, i) {
           var v = (r.dayMap && r.dayMap[c] != null) ? r.dayMap[c] : '';
-          return '<td><textarea class="sp-in sp-day" data-f="d' + i + '" rows="2" readonly oninput="spAutoGrow(this)" onfocus="spUnlockField(this)" onblur="spAutoSaveRow(this,\'' + r.id + '\')">' + spEscText(v) + '</textarea></td>';
+          return '<td><textarea class="sp-in sp-day" data-f="d' + i + '" rows="2" readonly oninput="spLiveEdit(this,\'' + r.id + '\')" onfocus="spUnlockField(this)" onblur="spAutoSaveRow(this,\'' + r.id + '\')">' + spEscText(v) + '</textarea></td>';
         }).join('') +
         '<td class="sp-td-right sp-op">' +
           '<button class="btn btn-sm btn-outline" onclick="spEditRow(\'' + r.id + '\')">编辑</button> ' +
