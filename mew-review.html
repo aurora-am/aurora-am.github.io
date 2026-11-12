@@ -1260,6 +1260,13 @@ body.wb-readonly .wb-datenav{opacity:1}
           white-space:pre-wrap;word-break:break-word;
         }
         .sp-op button{margin:1px 0}
+        /* 批量删除多选（2026-11-12）：放在股票列内部，不新增列 → 不破坏 sticky 定位与行情就地更新的 td 索引 */
+        .sp-name-top{display:flex;align-items:center;gap:7px}
+        .sp-ck{display:inline-flex;align-items:center;cursor:pointer;margin:0}
+        .sp-ck input,.sp-th-ck input{width:14px;height:14px;margin:0;cursor:pointer;accent-color:var(--primary,#2f6fed);vertical-align:middle}
+        .sp-th-ck{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-weight:400;font-size:11px;color:var(--text-secondary);cursor:pointer;user-select:none}
+        #spBatchDelBtn:disabled{opacity:.5;cursor:not-allowed}
+        #spBatchDelBtn.sp-ck-del{color:#dc2626;border-color:#fecaca;background:#fff5f5}
         .sp-del{color:#c0392b;border-color:#e2a0a0}
         .sp-empty{padding:24px;text-align:center;color:var(--text-secondary)}
         .sp-red{color:var(--red,#e34d59)}.sp-green{color:var(--green,#1aad5e)}
@@ -1314,6 +1321,7 @@ body.wb-readonly .wb-datenav{opacity:1}
             </select>
           </label>
           <button class="btn btn-sm" onclick="spOpenAddModal()">＋新增个股</button>
+          <button id="spBatchDelBtn" class="btn btn-sm btn-outline" onclick="spBatchDelete()" disabled>🗑 批量删除 (0)</button>
           <button class="btn btn-sm" onclick="spOpenPoolModal()">20日内涨停池</button>
           <button class="btn btn-sm btn-outline" onclick="spRefreshCandidates()">↻ 拉取候选</button>
           <button id="spSyncBtn" class="btn btn-sm btn-primary" onclick="spCloudSyncNow(true)">🔄 同步</button>
@@ -1324,7 +1332,7 @@ body.wb-readonly .wb-datenav{opacity:1}
       <div class="sp-table-scroll">
         <div id="spTableWrap" class="table-wrap"></div>
       </div>
-      <div class="sp-foot-note"><span id="spQuoteState" style="font-weight:600"></span>数据：近5日/20日涨停取自在线 <code>wbdata</code> 分片（limitUp.list 真实字段：连板 / 首封时间 / 板块）；<b>「现价 / 当日涨幅」盘中每 60 秒刷新</b>，15:00 收盘后停止实时刷新，当日只刷一次收盘定稿价并定格、跨天自动重刷；<b>「站上均线数」按日K每日更新一次</b>，仅在 15:05 收盘定稿后计算，盘中不做实时更新（连板 / 早板 / 晋级仍为入池快照）；本地打开文件且网络受限时退回当日涨停池。跟踪数据存于本机浏览器，并同步至云端（登录同一账号 + 点「🔄 同步」或每 60 秒自动互通），删除同样跨设备生效。</div>
+      <div class="sp-foot-note"><span id="spQuoteState" style="font-weight:600"></span>数据：近5日/20日涨停取自在线 <code>wbdata</code> 分片（limitUp.list 真实字段：连板 / 首封时间 / 板块）；<b>只有「现价 / 当日涨幅」会刷新</b>：盘中每 60 秒就地更新，15:00 收盘后停止实时刷新，当日只刷一次收盘定稿价并定格、跨天自动重刷；<b>「站上均线数」每只票只计算一次并永久定格</b>，盘中、收盘时段、跨日均不再重算（连板 / 早板 / 晋级、介入信号与日期备注同样不做实时刷新，只在主动编辑时变化）；本地打开文件且网络受限时退回当日涨停池。跟踪数据存于本机浏览器，并同步至云端（登录同一账号 + 点「🔄 同步」或每 60 秒自动互通），单行删除与批量删除同样跨设备生效。</div>
     </div>
   </div>
 </div>
@@ -8279,7 +8287,13 @@ function renderPageCharts(page) {
   } else if (page === 'notes') {
     try { notesCalYM = null; renderNotesCal(); } catch(e) { console.error('notesCal:', e.message); }
     try { if (!notesCurDate) loadNotes(notesTodayStr()); } catch(e) {}
-    try { spTrackInit(); } catch(e) { console.error('spTrack:', e.message); }
+    /* 股票池跟踪是复盘笔记页最重的一块（数百行表格 + 云端 + 行情）：
+       放到切页后的空闲帧，导航点击与笔记日历/正文先完成，消除「点进来卡一下」。 */
+    try {
+      var _spBoot = function () { try { spTrackInit(); } catch (e2) { console.error('spTrack:', e2.message); } };
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(_spBoot, { timeout: 300 });
+      else setTimeout(_spBoot, 0);
+    } catch(e) { console.error('spTrack:', e.message); }
   } else if (page === 'theme') {
     try { renderThemeRadar(); } catch(e) { console.error('themeRadar:', e.message); }
   } else if (page === 'strength') {
@@ -12348,6 +12362,10 @@ var spMAQueue = [];             // MA 异步计算队列
 var spMARunning = 0;
 var spTrackInited = false;      // 切页不重复初始化（性能：378 行表格只建一次）
 var spStatsTimer = 0;           // 统计区重绘节流（MA 回调合并成一次）
+var spSelected = {};            // 批量删除多选态：id -> 1（整表重绘后仍保留）
+var SP_RENDER_CHUNK = 48;       // 每帧渲染行数：把 378 行的长任务拆成多帧
+var spRenderSeq = 0;            // 渲染代次，作废未完成的分批
+var spRenderComplete = true;    // 当前表格是否已完整渲染
 /* 删除墓碑：code -> 删除时间戳。跨设备「按行合并取并集」无法表达删除，
    没有墓碑时云端残留行会被 concat 回表格末尾，且再次 POST 回云端 → 删除永不生效。 */
 var SP_MA_CLOSE_BUFFER = 15 * 60 + 5;   // 15:05：收盘定稿缓冲结束（此前日K/行情未定稿，不刷新）
@@ -12542,9 +12560,16 @@ function spMergeStore(cloud) {
     }
     if (cu > lu) {
       /* price / chgPct 由各端本地实时行情负责，刻意不跨设备同步：
-         否则云端那份入池旧快照会把刚刷新的最新行情盖回去。 */
-      ['streak', 'maCount', 'maList', 'maDone', 'maDay', 'sector', 'name'].forEach(function (kk) {
+         否则云端那份入池旧快照会把刚刷新的最新行情盖回去。
+         「站上均线数」2026-11-12 起只算一次并永久定格，也不随云端旧值回退/重算。 */
+      ['streak', 'sector', 'name'].forEach(function (kk) {
         if (cr[kk] !== undefined && cr[kk] !== null && cr[kk] !== '') lr[kk] = cr[kk];
+      });
+    }
+    // 本地从未算过、云端已算好：继承一次，避免换设备重复请求 K 线；本地已定格则绝不被覆盖
+    if (!lr.maDone && cr.maDone) {
+      ['maCount', 'maList', 'maDone', 'maDay'].forEach(function (kk) {
+        if (cr[kk] !== undefined && cr[kk] !== null) lr[kk] = cr[kk];
       });
     }
     lr.updatedAt = Math.max(lu, cu);
@@ -12586,6 +12611,7 @@ function spSyncStateText(m) {
 function spDomRowsMatch() {
   var wrap = document.getElementById('spTableWrap');
   if (!wrap) return false;
+  if (!spRenderComplete) return true;   // 分帧追加中，别让 60 秒同步打断并整表重绘
   return wrap.querySelectorAll('tbody tr[data-id]').length === ((spStore && spStore.rows) || []).length;
 }
 function spDomColsMatch() {
@@ -12675,8 +12701,8 @@ async function spCloudSyncNow(manual) {
   }
 }
 function spCloudAutoSync() {
-  // 每日一次的「站上均线数」补算 + 收盘后当日行情定格：内部按收盘边界拦截，盘中/周末零请求，不依赖登录态
-  try { spLazyMA(); } catch (e) {}
+  // 「站上均线数」已改为只算一次并定格，60 秒轮询不再触发任何重算；
+  // 这里只做当日行情刷新（盘中每 60 秒 / 休市当日一次）与云端互通。
   try { spRefreshQuotes(false); } catch (e) {}
   var ae = document.activeElement;
   if (ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT') && ae.closest && ae.closest('#spTrackCard')) return;
@@ -12755,7 +12781,12 @@ function spPatchQuotes() {
   if (!wrap) return false;
   var rows = (spStore && spStore.rows) || [];
   var trs = wrap.querySelectorAll('tbody tr[data-id]');
-  if (!rows.length || trs.length !== rows.length) return false;
+  if (!rows.length || !trs.length) return false;
+  if (trs.length !== rows.length) {
+    // 大表格分帧追加期间 DOM 是数据的前缀子集：只更新已渲染行，剩余行由下一轮刷新补齐；
+    // 若已渲染完整却行数不符，或 DOM 比数据还多，则是真不一致 → 回退整表重绘。
+    if (spRenderComplete || trs.length > rows.length) return false;
+  }
   var byId = {};
   rows.forEach(function (r) { byId[r.id] = r; });
   for (var i = 0; i < trs.length; i++) {
@@ -12995,8 +13026,54 @@ function spDeleteRow(id) {
   spStore.deleted = spStore.deleted || {};
   spStore.deleted[r.code] = Date.now();
   spStore.rows = spStore.rows.filter(function (x) { return x.id !== id && x.code !== r.code; });
+  delete spSelected[id];
   spSaveStore(); spRenderStats(); spRenderTable();
   showNotify('✓ 已删除 ' + r.name + '（' + r.code + '）· 当前 ' + spStore.rows.length + ' 只', 2200);
+}
+/* ---------- 批量删除（2026-11-12）----------
+   多选框嵌在「股票」列内部（不新增列）：表头全选 + 每行勾选，选中态存在 spSelected，
+   整表重绘 / 60 秒同步 / 行情就地更新后都能恢复。删除沿用 code 墓碑，跨设备同样生效。 */
+function spSelectedIds() {
+  var out = [];
+  (spStore.rows || []).forEach(function (r) { if (r && spSelected[r.id]) out.push(r); });
+  return out;
+}
+function spSyncCheckAll() {
+  var a = document.getElementById('spCheckAll'); if (!a) return;
+  var total = ((spStore && spStore.rows) || []).length, sel = spSelectedIds().length;
+  a.checked = total > 0 && sel === total;
+  try { a.indeterminate = sel > 0 && sel < total; } catch (e) {}
+}
+function spUpdateBatchBtn() {
+  var b = document.getElementById('spBatchDelBtn');
+  var n = spSelectedIds().length;
+  if (b) {
+    b.disabled = !n;
+    b.textContent = '🗑 批量删除 (' + n + ')';
+    b.className = 'btn btn-sm ' + (n ? 'sp-ck-del' : 'btn-outline');
+  }
+  spSyncCheckAll();
+}
+function spToggleAll(on) {
+  spSelected = {};
+  if (on) (spStore.rows || []).forEach(function (r) { if (r && r.id) spSelected[r.id] = 1; });
+  var wrap = document.getElementById('spTableWrap');
+  if (wrap && wrap.querySelectorAll) wrap.querySelectorAll('.sp-row-ck').forEach(function (c) { c.checked = !!on; });
+  spUpdateBatchBtn();
+}
+function spBatchDelete() {
+  var list = spSelectedIds();
+  if (!list.length) { showNotify('请先勾选要删除的标的', 2200); return; }
+  if (!confirm('确认批量删除选中的 ' + list.length + ' 只标的？删除后其它设备同步生效，可随时用「＋新增个股」重新加入。')) return;
+  var ids = {}, codes = {}, n = list.length;
+  list.forEach(function (r) { ids[r.id] = 1; codes[r.code] = 1; });
+  spStore.deleted = spStore.deleted || {};
+  var ts = Date.now();
+  Object.keys(codes).forEach(function (c) { spStore.deleted[c] = ts; });
+  spStore.rows = (spStore.rows || []).filter(function (r) { return !ids[r.id] && !codes[r.code]; });
+  Object.keys(ids).forEach(function (id) { delete spSelected[id]; });
+  spSaveStore(); spRenderStats(); spRenderTable();
+  showNotify('✓ 已批量删除 ' + n + ' 只 · 当前 ' + spStore.rows.length + ' 只', 2600);
 }
 function spEditRow(id) {
   var tr = document.querySelector('tr[data-id="' + id + '"]'); if (!tr) return;
@@ -13100,8 +13177,9 @@ function spRenderTable() {
   if (!spStore.allDates || !spStore.allDates.length) spComputeAllDates();
   var cols = spVisibleDates();
   var rows = spStore.rows;
+  var seq = ++spRenderSeq;
   var head = '<tr>' +
-    '<th class="sp-th-left">股票</th>' +
+    '<th class="sp-th-left">股票 <label class="sp-th-ck" title="全选 / 取消全选" onclick="event.stopPropagation()"><input type="checkbox" id="spCheckAll" onchange="spToggleAll(this.checked)" onclick="event.stopPropagation()">全选</label></th>' +
     '<th>现价</th>' +
     '<th>当日涨幅</th>' +
     '<th>站上均线数</th>' +
@@ -13109,54 +13187,130 @@ function spRenderTable() {
     cols.map(function (c) { return '<th>' + c.slice(5) + '<br><small>' + spWeekdayShort(c) + '</small></th>'; }).join('') +
     '<th class="sp-th-right">操作</th>' +
     '</tr>';
-  var body = '';
-  if (!rows.length) {
-    body = '<tr><td colspan="' + (6 + cols.length) + '" class="sp-empty">暂无跟踪标的。点「＋新增个股」或「20日内涨停池」加入，或首访将自动拉取近' + (spStore.winSize || 5) + '日涨停候选。</td></tr>';
-  } else {
-    rows.forEach(function (r) {
-      var chgCls = (r.chgPct === '' || r.chgPct == null) ? '' : ((+r.chgPct) >= 0 ? 'sp-red' : 'sp-green');
-      var chgTxt = (r.chgPct === '' || r.chgPct == null) ? '-' : ((+r.chgPct) >= 0 ? '+' : '') + (+r.chgPct).toFixed(2) + '%';
-      var maTxt = r.maDone ? (r.maCount + '/8') : '…';
-      body += '<tr data-id="' + r.id + '">' +
-        '<td class="sp-td-left sp-name" onmouseenter="spHoverKline(event,\'' + r.id + '\')" onmouseleave="spHideKline()" onclick="spOpenKline(\'' + r.id + '\')">' +
-          '<span class="sp-name-m">' + r.name + '</span>' +
-          '<span class="sp-name-s">' + r.code + (r.sector ? ' · ' + r.sector : '') + '</span>' +
-          (r.earlyBoard ? '<span class="sp-badge sp-badge-early">早板</span>' : '') +
-          ((r.streak || 1) >= 2 ? '<span class="sp-badge sp-badge-lb">' + r.streak + '板</span>' : '') +
-        '</td>' +
-        '<td>' + (r.price === '' || r.price == null ? '-' : (+r.price).toFixed(2)) + '</td>' +
-        '<td class="' + chgCls + '">' + chgTxt + '</td>' +
-        '<td class="sp-ma" title="' + spMaTitle(r) + '">' + maTxt + '</td>' +
-        '<td><textarea class="sp-in" data-f="signal" rows="3" readonly oninput="spLiveEdit(this,\'' + r.id + '\')" onfocus="spUnlockField(this)" onblur="spAutoSaveRow(this,\'' + r.id + '\')">' + spEscText(r.signal) + '</textarea></td>' +
-        cols.map(function (c, i) {
-          var v = (r.dayMap && r.dayMap[c] != null) ? r.dayMap[c] : '';
-          return '<td><textarea class="sp-in sp-day" data-f="d' + i + '" rows="2" readonly oninput="spLiveEdit(this,\'' + r.id + '\')" onfocus="spUnlockField(this)" onblur="spAutoSaveRow(this,\'' + r.id + '\')">' + spEscText(v) + '</textarea></td>';
-        }).join('') +
-        '<td class="sp-td-right sp-op">' +
-          '<button class="btn btn-sm btn-outline" onclick="spEditRow(\'' + r.id + '\')">编辑</button> ' +
-          '<button class="btn btn-sm" onclick="spSaveRow(\'' + r.id + '\')">保存</button> ' +
-          '<button class="btn btn-sm sp-del" onclick="spDeleteRow(\'' + r.id + '\')">删除</button>' +
-        '</td>' +
-        '</tr>';
-    });
+  var tableOpen = '<table class="sp-tbl"><thead>' + head + '</thead><tbody>';
+
+  function rowHtml(r) {
+    var chgCls = (r.chgPct === '' || r.chgPct == null) ? '' : ((+r.chgPct) >= 0 ? 'sp-red' : 'sp-green');
+    var chgTxt = (r.chgPct === '' || r.chgPct == null) ? '-' : ((+r.chgPct) >= 0 ? '+' : '') + (+r.chgPct).toFixed(2) + '%';
+    var maTxt = r.maDone ? (r.maCount + '/8') : '…';
+    return '<tr data-id="' + r.id + '">' +
+      '<td class="sp-td-left sp-name" onmouseenter="spHoverKline(event,\'' + r.id + '\')" onmouseleave="spHideKline()" onclick="spOpenKline(\'' + r.id + '\')">' +
+        '<div class="sp-name-top" onclick="event.stopPropagation()"><label class="sp-ck" onclick="event.stopPropagation()"><input type="checkbox" class="sp-row-ck" data-ck="' + r.id + '"' + (spSelected[r.id] ? ' checked' : '') + ' onclick="event.stopPropagation()"></label>' +
+        '<span class="sp-name-m">' + r.name + '</span></div>' +
+        '<span class="sp-name-s">' + r.code + (r.sector ? ' · ' + r.sector : '') + '</span>' +
+        (r.earlyBoard ? '<span class="sp-badge sp-badge-early">早板</span>' : '') +
+        ((r.streak || 1) >= 2 ? '<span class="sp-badge sp-badge-lb">' + r.streak + '板</span>' : '') +
+      '</td>' +
+      '<td>' + (r.price === '' || r.price == null ? '-' : (+r.price).toFixed(2)) + '</td>' +
+      '<td class="' + chgCls + '">' + chgTxt + '</td>' +
+      '<td class="sp-ma" title="' + spMaTitle(r) + '">' + maTxt + '</td>' +
+      '<td><textarea class="sp-in" data-f="signal" rows="3" readonly>' + spEscText(r.signal) + '</textarea></td>' +
+      cols.map(function (c, i) {
+        var v = (r.dayMap && r.dayMap[c] != null) ? r.dayMap[c] : '';
+        return '<td><textarea class="sp-in sp-day" data-f="d' + i + '" rows="2" readonly>' + spEscText(v) + '</textarea></td>';
+      }).join('') +
+      '<td class="sp-td-right sp-op">' +
+        '<button class="btn btn-sm btn-outline" onclick="spEditRow(\'' + r.id + '\')">编辑</button> ' +
+        '<button class="btn btn-sm" onclick="spSaveRow(\'' + r.id + '\')">保存</button> ' +
+        '<button class="btn btn-sm sp-del" onclick="spDeleteRow(\'' + r.id + '\')">删除</button>' +
+      '</td>' +
+      '</tr>';
   }
-  wrap.innerHTML = '<table class="sp-tbl"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>';
+
+  if (!rows.length) {
+    wrap.innerHTML = tableOpen + '<tr><td colspan="' + (6 + cols.length) + '" class="sp-empty">暂无跟踪标的。点「＋新增个股」或「20日内涨停池」加入，或首访将自动拉取近' + (spStore.winSize || 5) + '日涨停候选。</td></tr></tbody></table>';
+    spRenderComplete = true;
+    spBindTableEvents(wrap); spAutoGrowAll(wrap); spUpdateBatchBtn();
+    return;
+  }
+  var first = Math.min(rows.length, SP_RENDER_CHUNK), part = [], i;
+  for (i = 0; i < first; i++) part.push(rowHtml(rows[i]));
+  wrap.innerHTML = tableOpen + part.join('') + '</tbody></table>';
+  spBindTableEvents(wrap);
   spAutoGrowAll(wrap);
+  spUpdateBatchBtn();
+  if (rows.length <= first) { spRenderComplete = true; return; }
+
+  /* 大表格分帧追加（2026-11-12）：先让首屏 48 行可见，其余每帧补一批，
+     把一次 300~400ms 的长任务拆成多个 <50ms 的短任务，导航点击 / 滚动 / 输入
+     都能插帧响应。最终 DOM 与一次性渲染完全一致；期间 spRenderComplete=false，
+     行情就地更新与 60 秒同步按「前缀子集」处理，不误触发整表重绘。 */
+  spRenderComplete = false;
+  var cursor = first, tasSoFar = wrap.querySelectorAll('textarea.sp-in').length;
+  function nextBatch() {
+    if (seq !== spRenderSeq) return;                 // 已被新一次渲染作废
+    var tb = wrap.querySelector('tbody');
+    if (!tb) { spRenderComplete = true; return; }
+    var end = Math.min(rows.length, cursor + SP_RENDER_CHUNK), buf = [], j;
+    for (j = cursor; j < end; j++) buf.push(rowHtml(rows[j]));
+    tb.insertAdjacentHTML('beforeend', buf.join(''));
+    cursor = end;
+    spAutoGrowAll(wrap, tasSoFar);
+    tasSoFar = wrap.querySelectorAll('textarea.sp-in').length;
+    spUpdateBatchBtn();
+    if (cursor >= rows.length) { spRenderComplete = true; return; }
+    spNextFrame(nextBatch);
+  }
+  spNextFrame(nextBatch);
+}
+function spNextFrame(fn) {
+  var run = function () { try { fn(); } catch (e) { console.error('spTrack frame:', e && e.message); } };
+  try {
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(run);
+    else setTimeout(run, 0);
+  } catch (e) { setTimeout(run, 0); }
+}
+/* 表格事件委托（2026-11-12 性能）：
+   旧版每个 textarea 都带 oninput/onfocus/onblur 三个内联属性，378 行 × 6 框 ≈ 6800 个
+   事件属性字符串，innerHTML 解析与节点创建是切页耗时的主要来源。改为容器级 4 个监听器
+   （输入 / 聚焦 / 失焦 / 勾选），行为完全一致：data-f 决定字段，closest('tr[data-id]') 决定行。 */
+function spRowIdOf(el) {
+  var tr = el && el.closest ? el.closest('tr[data-id]') : null;
+  return tr ? tr.getAttribute('data-id') : '';
+}
+function spBindTableEvents(wrap) {
+  if (!wrap || wrap.__spBound || typeof wrap.addEventListener !== 'function') return;
+  wrap.__spBound = true;
+  function isIn(t) { return t && t.classList && t.classList.contains('sp-in'); }
+  wrap.addEventListener('input', function (e) {
+    if (!isIn(e.target)) return;
+    var id = spRowIdOf(e.target); if (id) spLiveEdit(e.target, id);
+  }, false);
+  wrap.addEventListener('focus', function (e) { if (isIn(e.target)) spUnlockField(e.target); }, true);
+  wrap.addEventListener('blur', function (e) {
+    if (!isIn(e.target)) return;
+    var id = spRowIdOf(e.target); if (id) spAutoSaveRow(e.target, id);
+  }, true);
+  wrap.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t || !t.classList || !t.classList.contains('sp-row-ck')) return;
+    var id = t.getAttribute('data-ck'); if (!id) return;
+    if (t.checked) spSelected[id] = 1; else delete spSelected[id];
+    spUpdateBatchBtn();
+  }, false);
+  wrap.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t && t.classList && (t.classList.contains('sp-row-ck') || (t.closest && t.closest('.sp-ck')))) e.stopPropagation();
+  }, true);
 }
 function spEscAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 function spEscText(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-/* 批量自适应高度（2026-11-11 性能修复）：
-   旧版对每个 textarea 依次「写 height:auto → 读 scrollHeight → 写新 height」，
-   读写交替会强制浏览器同步重排；378 行 × 8 列 ≈ 3000 次强制 layout，整表渲染要数百毫秒到数秒。
-   改为三阶段「只写 → 只读 → 只写」，浏览器只需 1~2 次布局，显示结果完全一致。 */
-function spAutoGrowAll(wrap) {
+/* 批量自适应高度（2026-11-12 二次优化）：
+   旧版对全部 textarea（约 2268 个）依次「写 height:auto → 读 scrollHeight → 写新 height」，
+   即便已做读写分离，仍需 2000+ 次属性访问。实际绝大多数手填框是空的，
+   空框用 CSS min-height 即可，无需任何 inline 高度：现在空框零操作，
+   只对真正有内容的框做「只写 → 只读 → 只写」，显示结果与旧版完全一致。 */
+function spAutoGrowAll(wrap, from) {
   var tas = wrap.querySelectorAll('textarea.sp-in');
-  if (!tas.length) return;
+  if (!tas || !tas.length) return;
   var cap = 58 + 5 * 1.45 * 12 + 40;
-  var hs = new Array(tas.length), i;
-  for (i = 0; i < tas.length; i++) tas[i].style.height = 'auto';        // 阶段1：只写
-  for (i = 0; i < tas.length; i++) hs[i] = Math.min(tas[i].scrollHeight, cap);  // 阶段2：只读
-  for (i = 0; i < tas.length; i++) tas[i].style.height = hs[i] + 'px';  // 阶段3：只写
+  var need = [], hs = [], i, start = from || 0;   // 分帧追加时只处理新增的文本框
+  for (i = start; i < tas.length; i++) {
+    if (!tas[i].value) continue;                 // 空框：交给 CSS min-height，零次布局读取
+    need.push(tas[i]); tas[i].style.height = 'auto';   // 阶段1：只写
+  }
+  for (i = 0; i < need.length; i++) hs[i] = Math.min(need[i].scrollHeight, cap); // 阶段2：只读
+  for (i = 0; i < need.length; i++) need[i].style.height = hs[i] + 'px';         // 阶段3：只写
 }
 function spAutoGrow(ta) { try { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 58 + 5 * 1.45 * 12 + 40) + 'px'; } catch (e) {} }
 
@@ -13175,29 +13329,42 @@ function spTrackInit() {
   spComputeAllDates();
   spSyncWinSel();
   spRenderStats();
-  spRenderTable();
-  if (!spStore.rows.length) {
-    spSetInfo('正在拉取近 ' + (spStore.winSize || 5) + ' 日涨停数据…');
-    spEnsurePool(spPoolNeed(), function (pool) {
-      if (pool && pool.length) {
-        var recent = pool.filter(function (r) { return r.dates.some(function (d) { return spInWindow(d); }); });
-        var added = 0;
-        recent.forEach(function (r) { if (spAddStock(r, true, true)) added++; });
-        spSaveStore(); spRenderStats(); spRenderTable(); spSetInfo('已自动导入近' + (spStore.winSize || 5) + '日涨停候选 ' + added + ' 只（可编辑/删除/补充）');
-        spLazyMA(); spRefreshQuotes(true);
-      } else {
-        var lu = (DATA && DATA.limitUp && DATA.limitUp.list) || [];
-        lu.forEach(function (it) { spAddStock({ code: it.code, name: it.name, sector: (it.industry || it.board || ''), streak: it.streak || 1, minSeal: it.time || '15:00', price: it.price, chgPct: it.chgPct }, true, true); });
-        spSaveStore(); spRenderStats(); spRenderTable();
-        spSetInfo('⚠ 历史分片未能加载（本地打开文件或网络受限），已退回当日涨停池；联网访问 mimihub.cloud 可加载完整历史');
-        spLazyMA(); spRefreshQuotes(true);
-      }
-    });
-  } else {
-    spSetInfo('');
-    spLazyMA();
-  }
-  spRefreshQuotes(true);   // 打开页面即把「现价/当日涨幅」刷成最新（收盘后为当日收盘价）
+  spSetInfo('正在载入跟踪列表…');
+  /* 重活全部延后到空闲帧：整表 HTML 构建、MA 首次计算、行情批量刷新、候选池网络拉取，
+     不再与导航切换 / 复盘笔记日历渲染抢同一个主线程时间片。 */
+  spIdle(function () {
+    spRenderTable();
+    if (!spStore.rows.length) {
+      spSetInfo('正在拉取近 ' + (spStore.winSize || 5) + ' 日涨停数据…');
+      spEnsurePool(spPoolNeed(), function (pool) {
+        if (pool && pool.length) {
+          var recent = pool.filter(function (r) { return r.dates.some(function (d) { return spInWindow(d); }); });
+          var added = 0;
+          recent.forEach(function (r) { if (spAddStock(r, true, true)) added++; });
+          spSaveStore(); spRenderStats(); spRenderTable(); spSetInfo('已自动导入近' + (spStore.winSize || 5) + '日涨停候选 ' + added + ' 只（可编辑/删除/补充）');
+          spLazyMA(); spRefreshQuotes(true);
+        } else {
+          var lu = (DATA && DATA.limitUp && DATA.limitUp.list) || [];
+          lu.forEach(function (it) { spAddStock({ code: it.code, name: it.name, sector: (it.industry || it.board || ''), streak: it.streak || 1, minSeal: it.time || '15:00', price: it.price, chgPct: it.chgPct }, true, true); });
+          spSaveStore(); spRenderStats(); spRenderTable();
+          spSetInfo('⚠ 历史分片未能加载（本地打开文件或网络受限），已退回当日涨停池；联网访问 mimihub.cloud 可加载完整历史');
+          spLazyMA(); spRefreshQuotes(true);
+        }
+      });
+    } else {
+      spSetInfo('');
+      spLazyMA();
+    }
+    spRefreshQuotes(true);   // 打开页面即把「现价/当日涨幅」刷成最新（收盘后为当日收盘价）
+  });
+}
+/* 空闲帧调度：无 requestIdleCallback 时退化为下一宏任务，jsdom / 老浏览器同样可用 */
+function spIdle(fn) {
+  var run = function () { try { fn(); } catch (e) { console.error('spTrack idle:', e && e.message); } };
+  try {
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 300 });
+    else setTimeout(run, 0);
+  } catch (e) { setTimeout(run, 0); }
 }
 
 /* ---------- 刷新5日候选（合并，不覆盖已有） ---------- */
@@ -13247,9 +13414,9 @@ function spFetchKlineEM(code, cb) {
 function spComputeMA(code, cb, anchor) {
   var maDay = spMaBoundary().day;
   var ckey = 'spMA_' + code;
-  /* 缓存按「本地日历日」失效：每天最多取一次日K，盘中绝不因 24h 滚动过期而重算。
-     （无 day 的旧缓存平滑兼容：24h 内仍可直接用） */
-  try { var c = localStorage.getItem(ckey); if (c) { var o = JSON.parse(c); if (o.maDone && ((o.day && o.day === maDay) || (!o.day && o.t && (Date.now() - o.t) < 86400000))) { cb(o); return; } } } catch (e) {}
+  /* 「只更新一次」：只要本地已有算好的结果就直接复用，不按日历日失效、不重取日K。
+     这样每只票全生命周期只发一次 K 线请求，站上均线数永不随行情/日期跳动。 */
+  try { var c = localStorage.getItem(ckey); if (c) { var o = JSON.parse(c); if (o && o.maDone) { cb(o); return; } } } catch (e) {}
   var secid = spSecid(code);
   var hosts = ['https://push2his.eastmoney.com', 'https://push2delay.eastmoney.com', 'https://82.push2delay.eastmoney.com'];
   var urls = hosts.map(function (h) {
@@ -13290,15 +13457,13 @@ function spComputeMA(code, cb, anchor) {
     chanJsonp(urls[0]).then(function (j) { try { done(parse(j)); } catch (e) { fail(); } }).catch(function () { fail(); });
   }
 }
-/* ---------- 「站上均线数」刷新边界（2026-11-11） ----------
-   它是日K口径的日频指标，不是实时行情。规则：
-     · 每日最多更新一次（key = 本地日历日，写进 row.maDay）
-     · 盘中 9:15–15:00 与收盘定稿缓冲 15:00–15:05 一律不重算：
-       此时东财日K/收盘价尚未定稿，用实时价当锚点会把「站上均线数」变成实时跳动的伪指标
-     · 15:05 后（收盘定稿）由 60 秒轮询自动补算当日那一次，当天不再重复
-     · 周末 / 非交易日不重算，沿用上一交易日结果
-     · 从未算过的行（含新加个股）立即初始化一次，不受边界限制（保持原有功能）
-     · 每日重算用纯日K收盘价，不吃实时现价；仅首次初始化沿用入池快照价兜底 */
+/* ---------- 「站上均线数」只更新一次并定格（2026-11-12） ----------
+   它是日K口径的日频指标，不是实时行情。口径：除现价/涨幅外一律不实时刷新，
+   「站上均线数」只要更新一次就行。规则：
+     · 每行首次计算成功写入 maDone=true 后永久定格，之后不再重算、不按日刷新
+     · 盘中 9:15–15:05 收盘定稿缓冲、周末一律不重算（缓冲常量仍供行情刷新共用）
+     · 计算失败的行冷却后重试，直到成功为止（避免一次网络抖动就永远显示「计算中」）
+     · 结果写入 localStorage 缓存并跨设备继承，同一 code 不重复请求 K 线 */
 function spMaBoundary() {
   var now = new Date();
   var wd = now.getDay(), hm = now.getHours() * 60 + now.getMinutes();
@@ -13307,10 +13472,7 @@ function spMaBoundary() {
   return { day: spFmtDate(now), blocked: blocked };
 }
 function spMaDue(r) {
-  var b = spMaBoundary();
-  if (!r.maDone) return true;               // 初始化：必须算一次
-  if (r.maDay === b.day) return false;      // 当日已算：不再重复（每天一次）
-  return !b.blocked;                        // 跨日：仅收盘定稿后才算
+  return !r.maDone;   // 只算一次：算完即定格，永不按日/按行情重算
 }
 var spMaSaveTimer = 0;
 function spMaPersistSoon() {
@@ -13321,17 +13483,17 @@ function spRenderStatsSoon() {
   if (spStatsTimer) return;
   spStatsTimer = setTimeout(function () { spStatsTimer = 0; spRenderStats(); }, 120);
 }
-var SP_MA_BATCH = 80;           // 每轮最多入队 80 只：收盘后当日重算分批完成，不挤占首屏行情/云端请求的连接池
+var SP_MA_BATCH = 80;           // 每轮最多入队 80 只：首屏不一次挤占连接池
 function spLazyMA() {
-  var queued = {}, init = [], daily = [], q;
+  var queued = {}, pending = [], q;
   for (q = 0; q < spMAQueue.length; q++) queued[spMAQueue[q]] = 1;
   spStore.rows.forEach(function (r) {
-    if (queued[r.code] || !spMaDue(r)) return;
-    if (r.maErrAt && (Date.now() - r.maErrAt) < 60000) return; // 失败冷却，避免刷屏重试
+    if (queued[r.code] || !spMaDue(r)) return;   // 已定格的行永不再入队
+    if (r.maErrAt && (Date.now() - r.maErrAt) < 60000) return; // 失败冷却
     queued[r.code] = 1;
-    (r.maDone ? daily : init).push(r.code);   // 新行初始化优先于每日重算
+    pending.push(r.code);
   });
-  init.concat(daily).slice(0, SP_MA_BATCH).forEach(function (c) { spMAQueue.push(c); });
+  pending.slice(0, SP_MA_BATCH).forEach(function (c) { spMAQueue.push(c); });
   spPumpMA();
 }
 function spPumpMA() {
