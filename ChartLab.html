@@ -1536,7 +1536,7 @@ body.wb-readonly .wb-datenav{opacity:1}
     #page-strength .str-grp-head .gc-n{font-size:11px;color:var(--text-light);background:var(--primary-light);
       padding:1px 8px;border-radius:999px}
     #page-strength .str-grp-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
-    #page-strength .str-grp.open .str-grp-body{max-height:2000px}
+    #page-strength .str-grp.open .str-grp-body{max-height:8000px}
     #page-strength .str-grp-members{padding:2px 8px 8px}
     #page-strength .str-grp-mrow{display:flex;align-items:center;gap:10px;padding:7px 8px;border-top:1px solid var(--card-border);cursor:pointer;font-size:12.5px;transition:background .15s}
     #page-strength .str-grp-mrow:hover{background:var(--primary-light)}
@@ -1564,7 +1564,7 @@ body.wb-readonly .wb-datenav{opacity:1}
       </div>
       <div class="strength-sub-h">板块强弱趋势（滚轮缩放 · 框选放大 · 拖拽平移）</div>
       <div id="strengthTrendChart" style="height:380px"></div>
-      <div class="strength-sub-h">板块总榜（三档视图：主线归并 / 板块明细 / 行业全景 · 点击行展开成分股 · 点趋势图任意日期可回看当日榜单）</div>
+      <div class="strength-sub-h">板块总榜（三档视图：主线明细 / 板块明细 / 行业全景 · 点击行展开成分股 · 点趋势图任意日期可回看当日榜单）</div>
       <div id="strViewBar" class="str-views"></div>
       <div id="strengthViewBar" class="str-viewbar"></div>
       <div id="strengthBoardTable"></div>
@@ -8643,7 +8643,7 @@ function strRenderViewBar(){
   var bar = document.getElementById('strViewBar');
   if(!bar) return;
   var defs = [
-    {k:'main', t:'主线归并'},
+    {k:'main', t:'主线明细'},
     {k:'board', t:'板块明细'},
     {k:'industry', t:'行业全景'}
   ];
@@ -8667,7 +8667,7 @@ function strToggleGrp(headEl){
   g.classList.toggle('open');
 }
 
-/* ---------- 主线归并视图（概念按 60 日相关性归并；行业板块单独成组） ---------- */
+/* ---------- 主线明细视图（概念按 60 日相关性归并为组，组内直接铺开板块明细；行业板块单独成组） ---------- */
 function strRenderMainView(){
   var d = STR.data; if(!d) return;
   var secs = STR.secsLatest || [];
@@ -8678,6 +8678,7 @@ function strRenderMainView(){
     groups.push({gid:'__ind', name:'行业板块（申万）', n:indSecs.length,
                  sids: indSecs.map(function(s){ return String(s.sector_id); }), synthetic:true});
   }
+  var cols = ['板块','强弱分','拐头','阶段','成分股数','上升占比','3日增量'];
   var html = '';
   if(!groups.length){
     html += '<div class="str-empty">暂无主线分组数据（概念板块未归并）</div>';
@@ -8688,29 +8689,36 @@ function strRenderMainView(){
       members.sort(function(a,b){
         return (strSafe(strRowData(b).strength_avg, 0) || 0) - (strSafe(strRowData(a).strength_avg, 0) || 0);
       });
-      var top = members[0], topL = strRowData(top);
       html += '<div class="str-grp'+(gi === 0 ? ' open' : '')+'" data-gid="'+strEsc(String(g.gid))+'">';
       html += '<div class="str-grp-head" onclick="strToggleGrp(this)">'
         + '<span class="gc">▶</span>'
         + '<span class="gn">'+strEsc(g.name)+'</span>'
-        + '<span class="gs">代表 <b>'+strEsc(top.name)+'</b> '+strNum(topL.strength_avg)+'</span>'
-        + '<span class="gc-n">'+members.length+' 个板块</span>'
+        + '<span class="gc-n">'+members.length+' 个板块（点击展开/收起）</span>'
         + '</div>';
-      html += '<div class="str-grp-body"><div class="str-grp-members">';
+      html += '<div class="str-grp-body"><div class="str-grp-members"><table class="str-table"><thead><tr>'
+        + cols.map(function(c){ return '<th>'+c+'</th>'; }).join('')
+        + '</tr></thead><tbody>';
       members.forEach(function(s){
         var L = strRowData(s);
-        var isRep = (s.group_rep === true);
-        var badge = s.board_type === 'industry'
-          ? '<span class="str-badge ind">申万'+(s.sw_level===1?'一级':'二级')+'</span>' : '';
+        var upPct = (L.up_ratio!=null) ? (Math.round(L.up_ratio*100)+'%') : '-';
+        var d3 = (L.delta_3d!=null) ? ((L.delta_3d>=0?'+':'')+Number(L.delta_3d).toFixed(2)) : '-';
         var turn = L.turn_state || '-';
-        var tCol = turn === 'UP' ? strUp() : (turn === 'DOWN' ? strDn() : 'var(--text-secondary)');
-        html += '<div class="str-grp-mrow" onclick="strJumpSector('+s.sector_id+')">'
-          + '<span class="mn">'+strEsc(s.name)+badge+(isRep?'<span class="mrep">代表</span>':'')+'</span>'
-          + '<span class="mt">'+strNum(s.member_count)+'只 · 拐头<span style="color:'+tCol+'">'+strEsc(turn)+'</span></span>'
-          + '<span class="ms">'+strNum(L.strength_avg)+'</span>'
-          + '</div>';
+        var tCol = turn==='UP' ? strUp() : (turn==='DOWN' ? strDn() : 'var(--text-secondary)');
+        var d3Col = d3==='-' ? 'var(--text-secondary)' : (d3.indexOf('+')>=0 ? strUp() : strDn());
+        var badge = '';
+        if(s.board_type==='industry'){ badge = '<span class="str-badge ind">申万'+(s.sw_level===1?'一级':'二级')+'</span>'; }
+        else if(s.group_rep===true){ badge = '<span class="mrep">代表</span>'; }
+        html += '<tr class="str-row" data-sid="'+s.sector_id+'" onclick="strToggleDrawer('+s.sector_id+')">'
+          + '<td>'+strEsc(s.name)+badge+'</td>'
+          + '<td><b>'+strNum(L.strength_avg)+'</b></td>'
+          + '<td style="color:'+tCol+';font-weight:600">'+strEsc(turn)+'</td>'
+          + '<td>'+strEsc(L.phase||'-')+'</td>'
+          + '<td>'+strNum(s.member_count)+'</td>'
+          + '<td>'+upPct+'</td>'
+          + '<td style="color:'+d3Col+'">'+d3+'</td>'
+          + '</tr>';
       });
-      html += '</div></div></div>';
+      html += '</tbody></table></div></div></div>';
     });
   }
   document.getElementById('strengthBoardTable').innerHTML = html;
