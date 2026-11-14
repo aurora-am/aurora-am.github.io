@@ -1438,14 +1438,12 @@ body.wb-readonly .wb-datenav{opacity:1}
     #page-strength .str-drawer.open{max-height:1600px;opacity:1}
     #page-strength .str-drawer-inner{padding:12px 14px 16px;background:linear-gradient(180deg,var(--primary-light) 0%,transparent 60%);transform:translateY(-8px) scale(.995);transform-origin:top center;transition:transform .42s cubic-bezier(.34,1.3,.64,1)}
     #page-strength .str-drawer.open .str-drawer-inner{transform:none}
-    #page-strength .str-drawer.open .str-log,#page-strength .str-drawer.open .str-scroll{animation:strFadeUp .42s both}
+    #page-strength .str-drawer.open .str-scroll{animation:strFadeUp .42s both}
     @keyframes strFadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
     #page-strength .str-drawer-h{font-size:12.5px;font-weight:600;color:var(--text);margin:2px 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     #page-strength .str-drawer-h::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--primary)}
-    #page-strength .str-log{max-height:150px;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:4px}
-    #page-strength .str-log-item{font-size:12px;padding:5px 10px;border-left:3px solid var(--gray);border-radius:0 var(--radius-sm) var(--radius-sm) 0;background:var(--card-bg);color:var(--text-secondary)}
     #page-strength .str-empty{font-size:12px;color:var(--text-light);padding:4px 0}
-    /* 抽屉·板块信息网格（替代原拐头复核日志） */
+    /* 抽屉·板块信息网格（板块信息 + 所属主线 + 重合度） */
     #page-strength .str-info-grid{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;padding:2px 2px 10px;font-size:12px;align-items:baseline}
     #page-strength .str-info-grid .il{color:var(--text-light);white-space:nowrap}
     #page-strength .str-info-grid .iv{color:var(--text);font-weight:600;word-break:break-all}
@@ -8846,7 +8844,7 @@ function strRenderDrawer(sid, inner){
   var vHint = STR.viewDate
     ? '<div class="str-empty" style="color:var(--primary);font-weight:600">正在回看 '+strFmtDate(STR.viewDate)+' 的榜单 · 成分股明细仍为最新快照</div>'
     : '';
-  /* ① 板块信息（替代原「拐头复核日志」） */
+  /* ① 板块信息（含所属主线 / 重合度，替代原「拐头复核日志」展示） */
   function _it(label, val){
     return '<div class="il">'+label+'</div><div class="iv">'+val+'</div>';
   }
