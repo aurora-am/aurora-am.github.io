@@ -1564,7 +1564,7 @@ body.wb-readonly .wb-datenav{opacity:1}
       </div>
       <div class="strength-sub-h">板块强弱趋势（滚轮缩放 · 框选放大 · 拖拽平移）</div>
       <div id="strengthTrendChart" style="height:380px"></div>
-      <div class="strength-sub-h">板块总榜（三档视图：主线明细 / 板块明细 / 行业全景 · 点击行展开成分股 · 点趋势图任意日期可回看当日榜单）</div>
+      <div class="strength-sub-h">板块总榜（板块明细 / 行业全景 · 点击行展开成分股 · 点趋势图任意日期可回看当日榜单）</div>
       <div id="strViewBar" class="str-views"></div>
       <div id="strengthViewBar" class="str-viewbar"></div>
       <div id="strengthBoardTable"></div>
@@ -8424,7 +8424,7 @@ function restoreDark() {
 
 /* ===== 板块强弱雷达（JS模块插入） ===== */
 /* ===================== 缠论板块强弱雷达 ===================== */
-var STR = { data: null, kline: {}, loading: false, openSid: null, trend: null, memberIndex: null, _uid: 0 };
+var STR = { data: null, kline: {}, loading: false, openSid: null, trend: null, memberIndex: null, _uid: 0, historyLoaded: false, historyLoading: false };
 var STR_DATA_BASE = 'wbdata/';   // 板块强弱数据根（与 WBData 内部 BASE 同值，但独立声明）
 var STR_TREND_DATES = null;
 var STR_SERIES_TURN = [];        // [{name, pts:[{idx,date,value,state}]}]
@@ -8436,8 +8436,8 @@ var STR_TREND_SECS = [];         // 当前参与绘制的板块（按渲染顺�
 var STR_LEGEND_SEL = {};         // 图例勾选状态
 STR.hoverPx = null;              // 最近一次悬浮像素，供缩放/平移后重算
 STR.viewDate = null;             // 历史日期查看（点击趋势图触发）
-var STR_VIEW = 'main';           // 'main' 主线明细 / 'board' 板块明细 / 'industry' 行业全景
-try { STR_VIEW = localStorage.getItem('str_view') || 'main'; } catch(e){}
+var STR_VIEW = 'board';          // 'board' 板块明细 / 'industry' 行业全景
+try { var _sv = localStorage.getItem('str_view'); STR_VIEW = (_sv==='board'||_sv==='industry') ? _sv : 'board'; } catch(e){}
 var STR_MA_NAMES = ['MA5','MA13','MA21','MA34','MA55','MA89','MA144','MA233'];
 var STR_MA_COLORS = ['#e34d59','#1aad5e','#4995ff','#f5a623','#9b59b6','#16a085','#e67e22','#7f8c8d'];
 var STR_DEFAULT_DAYS = 22;       // 默认只展示近 1 个月（约 22 个交易日）
@@ -8468,8 +8468,31 @@ function renderStrengthRadar(){
       strLoadUserBoards();
       STR.memberIndex = strBuildMemberIndex();
       renderStrengthBoard();
+      strLoadHistory();   // 历史趋势拆出懒加载：首屏表格先出，趋势图/回看稍后补齐
     })
     .catch(function(e){ STR.loading = false; wrap.innerHTML='<div style="padding:24px;color:'+strUp()+'">板块强弱数据加载失败：'+strEsc(e.message)+'<br>请确认 sector-strength-radar.json 已发布到同目录</div>'; });
+}
+
+/* ---------- 历史趋势懒加载（sector_history.json，仅趋势图/回看需要） ---------- */
+function strLoadHistory(){
+  if(STR.historyLoaded || STR.historyLoading || !STR.data) return;
+  STR.historyLoading = true;
+  fetch(STR_DATA_BASE + 'sector_history.json', { cache:'no-store' })
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(hm){
+      (STR.data.sectors||[]).forEach(function(s){
+        var x = hm[String(s.sector_id)] || hm[s.sector_id];
+        if(x){
+          s.history = x.history;
+          s._idx_close = x._idx_close;
+          delete s._hm;          // 清掉旧的日期映射缓存，重新构建
+        }
+      });
+      STR.historyLoaded = true; STR.historyLoading = false;
+      if(STR.secsLatest && STR.secsLatest.length) renderStrengthTrend(STR.secsLatest);
+      if(STR.viewDate) strRenderBoardTable();
+    })
+    .catch(function(){ STR.historyLoading = false; });
 }
 
 /* ---------- 数据源入口：一行摘要 + 点击下拉全部板块 ---------- */
@@ -8481,9 +8504,8 @@ function strNormDate(x){
   return t.length >= 8 ? t.slice(0,8) : '';
 }
 function strSrcDate(s, d){
-  var h = s.history || [];
-  var raw = h.length ? (h[h.length-1] && h[h.length-1].date) : null;
-  return strNormDate(raw) || strNormDate(s.updated_at) || strNormDate(d && d.latest_date);
+  var raw = s.last_date || s.updated_at || (d && d.latest_date);
+  return strNormDate(raw);
 }
 /* 摘要 + 分组标签（分组顺序：白名单 → 动态入池 → 本地导入 → 其它） */
 function strSrcHtml(d){
@@ -8600,7 +8622,7 @@ function renderStrengthBoard(){
   strUpdateViewBar();
   strRenderViewBar();
   strRenderBoardTable();
-  renderStrengthTrend(byLatest);
+  if(STR.historyLoaded) renderStrengthTrend(byLatest);   // 未加载时由 strLoadHistory 触发首绘
   strPreloadBundles();
 }
 
@@ -8643,7 +8665,6 @@ function strRenderViewBar(){
   var bar = document.getElementById('strViewBar');
   if(!bar) return;
   var defs = [
-    {k:'main', t:'主线明细'},
     {k:'board', t:'板块明细'},
     {k:'industry', t:'行业全景'}
   ];
@@ -8654,7 +8675,7 @@ function strRenderViewBar(){
   bar.innerHTML = html;
 }
 function strSetView(v){
-  if(v !== 'main' && v !== 'board' && v !== 'industry') v = 'main';
+  if(v !== 'board' && v !== 'industry') v = 'board';
   if(v === STR_VIEW) return;
   STR_VIEW = v;
   try { localStorage.setItem('str_view', v); } catch(e){}
@@ -8665,63 +8686,6 @@ function strToggleGrp(headEl){
   var g = headEl && headEl.closest ? headEl.closest('.str-grp') : null;
   if(!g) return;
   g.classList.toggle('open');
-}
-
-/* ---------- 主线明细视图（概念按 60 日相关性归并为组，组内直接铺开板块明细；行业板块单独成组） ---------- */
-function strRenderMainView(){
-  var d = STR.data; if(!d) return;
-  var secs = STR.secsLatest || [];
-  var byId = {}; secs.forEach(function(s){ byId[s.sector_id] = s; });
-  var groups = (d.groups || []).slice();
-  var indSecs = secs.filter(function(s){ return s.board_type === 'industry'; });
-  if(indSecs.length){
-    groups.push({gid:'__ind', name:'行业板块（申万）', n:indSecs.length,
-                 sids: indSecs.map(function(s){ return String(s.sector_id); }), synthetic:true});
-  }
-  var cols = ['板块','强弱分','拐头','阶段','成分股数','上升占比','3日增量'];
-  var html = '';
-  if(!groups.length){
-    html += '<div class="str-empty">暂无主线分组数据（概念板块未归并）</div>';
-  } else {
-    groups.forEach(function(g, gi){
-      var members = g.sids.map(function(sid){ return byId[Number(sid)]; }).filter(Boolean);
-      if(!members.length) return;
-      members.sort(function(a,b){
-        return (strSafe(strRowData(b).strength_avg, 0) || 0) - (strSafe(strRowData(a).strength_avg, 0) || 0);
-      });
-      html += '<div class="str-grp'+(gi === 0 ? ' open' : '')+'" data-gid="'+strEsc(String(g.gid))+'">';
-      html += '<div class="str-grp-head" onclick="strToggleGrp(this)">'
-        + '<span class="gc">▶</span>'
-        + '<span class="gn">'+strEsc(g.name)+'</span>'
-        + '<span class="gc-n">'+members.length+' 个板块（点击展开/收起）</span>'
-        + '</div>';
-      html += '<div class="str-grp-body"><div class="str-grp-members"><table class="str-table"><thead><tr>'
-        + cols.map(function(c){ return '<th>'+c+'</th>'; }).join('')
-        + '</tr></thead><tbody>';
-      members.forEach(function(s){
-        var L = strRowData(s);
-        var upPct = (L.up_ratio!=null) ? (Math.round(L.up_ratio*100)+'%') : '-';
-        var d3 = (L.delta_3d!=null) ? ((L.delta_3d>=0?'+':'')+Number(L.delta_3d).toFixed(2)) : '-';
-        var turn = L.turn_state || '-';
-        var tCol = turn==='UP' ? strUp() : (turn==='DOWN' ? strDn() : 'var(--text-secondary)');
-        var d3Col = d3==='-' ? 'var(--text-secondary)' : (d3.indexOf('+')>=0 ? strUp() : strDn());
-        var badge = '';
-        if(s.board_type==='industry'){ badge = '<span class="str-badge ind">申万'+(s.sw_level===1?'一级':'二级')+'</span>'; }
-        else if(s.group_rep===true){ badge = '<span class="mrep">代表</span>'; }
-        html += '<tr class="str-row" data-sid="'+s.sector_id+'" onclick="strToggleDrawer('+s.sector_id+')">'
-          + '<td>'+strEsc(s.name)+badge+'</td>'
-          + '<td><b>'+strNum(L.strength_avg)+'</b></td>'
-          + '<td style="color:'+tCol+';font-weight:600">'+strEsc(turn)+'</td>'
-          + '<td>'+strEsc(L.phase||'-')+'</td>'
-          + '<td>'+strNum(s.member_count)+'</td>'
-          + '<td>'+upPct+'</td>'
-          + '<td style="color:'+d3Col+'">'+d3+'</td>'
-          + '</tr>';
-      });
-      html += '</tbody></table></div></div></div>';
-    });
-  }
-  document.getElementById('strengthBoardTable').innerHTML = html;
 }
 
 /* ---------- 行业全景视图（全部申万一/二级，不淘汰，标「入池」） ---------- */
@@ -8774,8 +8738,7 @@ function strRenderBoardTable(){
   STR.openSid = null;
   var od = document.querySelector('.str-drawer.open'); if(od) od.classList.remove('open');
   var ar = document.querySelector('tr.str-row.active'); if(ar) ar.classList.remove('active');
-  if(STR_VIEW === 'main'){ strRenderMainView(); }
-  else if(STR_VIEW === 'industry'){ strRenderIndustryView(); }
+  if(STR_VIEW === 'industry'){ strRenderIndustryView(); }
   else { strRenderBoardView(); }
 }
 function strRenderBoardView(){
@@ -8913,7 +8876,14 @@ function renderStrengthTrend(secs){
   var el = document.getElementById('strengthTrendChart');
   if(!el) return;
   var withHist = (secs||[]).filter(function(s){ return (s.history||[]).length > 0; });
-  if(!withHist.length){ el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">暂无历史趋势数据（本地导入板块需经本地管线重算后才绘制）</div>'; strTipHide(); return; }
+  if(!withHist.length){
+    if(!STR.historyLoaded && !STR.historyLoading){
+      el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">历史趋势加载中…（首次稍候）</div>';
+    } else {
+      el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">暂无历史趋势数据（本地导入板块需经本地管线重算后才绘制）</div>';
+    }
+    strTipHide(); return;
+  }
   var dates = (withHist[0].history||[]).map(function(h){ return h.date; });
   STR_TREND_DATES = dates;
   STR_SERIES_TURN = [];
