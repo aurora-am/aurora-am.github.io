@@ -1218,7 +1218,16 @@ body.wb-readonly .wb-datenav{opacity:1}
         .sp-win-sel{padding:5px 8px;border:1px solid var(--card-border,#e2e8f0);border-radius:6px;font:inherit;background:var(--card-bg,#fff);color:var(--text);cursor:pointer}
         .sp-info{font-size:12px;color:var(--text-secondary);background:var(--gray-light,#f3f4f6);padding:6px 10px;border-radius:6px;margin-bottom:8px;line-height:1.6}
         .sp-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-        .sp-tbl{border-collapse:collapse;width:100%;font-size:12px;min-width:1000px}
+        /* 折叠/展开：禁用全站卡片通用的 `transition: max-height .3s`。
+           378 行大表格在 300ms 过渡期间会被逐帧重排数千个单元格（约 18 帧），
+           这才是「点开复盘笔记模块卡一下」的真正来源。
+           刻意保留 max-height 的布局树、不改用 display:none：实测后者会让
+           展开时重建整棵表格布局树，单次从 1.6ms 恶化到 80ms。 */
+        #spTrackBody{transition:none!important}
+        /* 固定布局：列宽由 colgroup 一次决定，浏览器不再测量
+           378 行 × 11 列 ≈ 4000 个单元格（含 2200+ textarea）来推算列宽，
+           把整表布局从 O(全表) 降为 O(列数)；列宽值与原自适应结果一致。 */
+        .sp-tbl{border-collapse:collapse;width:100%;font-size:12px;min-width:1000px;table-layout:fixed}
         .sp-tbl th,.sp-tbl td{border:1px solid var(--card-border,#e2e8f0);padding:6px 8px;white-space:nowrap;text-align:center;vertical-align:middle}
         .sp-tbl thead th{background:var(--gray-light,#f3f4f6);position:sticky;top:0;z-index:1;font-weight:600}
         .sp-tbl th small{font-weight:400;color:var(--text-secondary)}
@@ -1564,7 +1573,7 @@ body.wb-readonly .wb-datenav{opacity:1}
       </div>
       <div class="strength-sub-h">板块强弱趋势（滚轮缩放 · 框选放大 · 拖拽平移）</div>
       <div id="strengthTrendChart" style="height:380px"></div>
-      <div class="strength-sub-h">板块总榜（板块明细 / 行业全景 · 点击行展开成分股 · 点趋势图任意日期可回看当日榜单）</div>
+      <div class="strength-sub-h">板块总榜（点击行展开成分股 · 点趋势图任意日期可回看当日榜单 · 同源概念已合并去重）</div>
       <div id="strViewBar" class="str-views"></div>
       <div id="strengthViewBar" class="str-viewbar"></div>
       <div id="strengthBoardTable"></div>
@@ -8371,10 +8380,38 @@ function switchTab(panelId, btn) {
 }
 
 /* ===== Card Toggle ===== */
+/* 性能（2026-11-14）：旧版对任意卡片展开都在 300ms 后无条件 resizeAllCharts()，
+   遍历并触发全站 ECharts 实例重绘；纯表格 / 纯文本卡片（股票池跟踪 378 行大表、
+   复盘笔记正文）里根本没有图表，却要一起付出这份代价，是点开模块卡顿的主因。
+   现在只处理真正含图表实例的卡片，且只 resize 该卡片内部的实例，连点合并为一次。 */
+var _cardResizeT = 0;
 function toggleCard(header) {
   var card = header.closest('.card');
-  if (card) card.classList.toggle('collapsed');
-  setTimeout(function() { resizeAllCharts(); }, 300);
+  if (!card) return;
+  card.classList.toggle('collapsed');
+  var need = false;
+  try {
+    Object.keys(charts).forEach(function (k) {
+      var inst = charts[k];
+      if (!inst || !inst.getDom || !inst.resize) return;
+      var el = inst.getDom();
+      if (el && card.contains(el)) need = true;
+    });
+  } catch (e) {}
+  if (!need) return;
+  if (_cardResizeT) clearTimeout(_cardResizeT);
+  _cardResizeT = setTimeout(function () {
+    _cardResizeT = 0;
+    if (card.classList.contains('collapsed')) return;
+    try {
+      Object.keys(charts).forEach(function (k) {
+        var inst = charts[k];
+        if (!inst || !inst.getDom || !inst.resize) return;
+        var el = inst.getDom();
+        if (el && card.contains(el)) inst.resize();
+      });
+    } catch (e) {}
+  }, 320);
 }
 
 /* ===== Sidebar Toggle (Mobile) ===== */
@@ -8436,8 +8473,8 @@ var STR_TREND_SECS = [];         // 当前参与绘制的板块（按渲染顺�
 var STR_LEGEND_SEL = {};         // 图例勾选状态
 STR.hoverPx = null;              // 最近一次悬浮像素，供缩放/平移后重算
 STR.viewDate = null;             // 历史日期查看（点击趋势图触发）
-var STR_VIEW = 'board';          // 'board' 板块明细 / 'industry' 行业全景
-try { var _sv = localStorage.getItem('str_view'); STR_VIEW = (_sv==='board'||_sv==='industry') ? _sv : 'board'; } catch(e){}
+var STR_VIEW = 'board';          // 仅保留「板块明细」单视图（行业全景已移除）
+try { localStorage.removeItem('str_view'); } catch(e){}
 var STR_MA_NAMES = ['MA5','MA13','MA21','MA34','MA55','MA89','MA144','MA233'];
 var STR_MA_COLORS = ['#e34d59','#1aad5e','#4995ff','#f5a623','#9b59b6','#16a085','#e67e22','#7f8c8d'];
 var STR_DEFAULT_DAYS = 22;       // 默认只展示近 1 个月（约 22 个交易日）
@@ -8660,19 +8697,11 @@ function strSetViewDate(dt){
   strRenderBoardTable();
 }
 
-/* ---------- 三档视图切换条 ---------- */
+/* ---------- 视图标识（仅保留「板块明细」单视图，行业全景已移除） ---------- */
 function strRenderViewBar(){
   var bar = document.getElementById('strViewBar');
   if(!bar) return;
-  var defs = [
-    {k:'board', t:'板块明细'},
-    {k:'industry', t:'行业全景'}
-  ];
-  var html = '<span class="str-views-label">视图：</span>';
-  defs.forEach(function(d){
-    html += '<span class="str-view-btn'+(STR_VIEW===d.k?' active':'')+'" onclick="strSetView(\''+d.k+'\')">'+d.t+'</span>';
-  });
-  bar.innerHTML = html;
+  bar.innerHTML = '<span class="str-views-label">板块明细</span>';
 }
 function strSetView(v){
   if(v !== 'board' && v !== 'industry') v = 'board';
@@ -8688,58 +8717,12 @@ function strToggleGrp(headEl){
   g.classList.toggle('open');
 }
 
-/* ---------- 行业全景视图（全部申万一/二级，不淘汰，标「入池」） ---------- */
-function strRenderIndustryView(){
-  var d = STR.data; if(!d) return;
-  var snap = (d.industry_all || []).slice();
-  snap.sort(function(a, b){
-    if(a.sc == null) return 1; if(b.sc == null) return -1; return b.sc - a.sc;
-  });
-  STR._indSnap = snap;
-  var html = '<div class="str-ind-tools">'
-    + '<input class="str-ind-search" id="strIndSearch" placeholder="搜索申万行业（一级/二级）…" oninput="strIndFilter(this.value)">'
-    + '<span class="str-ind-tip">共 '+snap.length+' 个申万行业 · 标「入池」者已进板块总榜，点击可看成分</span>'
-    + '</div>';
-  html += '<div class="str-scroll"><table class="str-table"><thead><tr>'
-    + ['行业','层级','强弱分','3日Δ','涨停数','5日超额','成分数','状态'].map(function(c){ return '<th>'+c+'</th>'; }).join('')
-    + '</tr></thead><tbody>';
-  snap.forEach(function(x){
-    var rel5 = (x.rel5 != null) ? ((x.rel5 >= 0 ? '+' : '') + (x.rel5 * 100).toFixed(2) + '%') : '-';
-    var d3 = (x.d3 != null) ? ((x.d3 >= 0 ? '+' : '') + Number(x.d3).toFixed(2)) : '-';
-    var badge = x.picked ? '<span class="str-ind-picked">入池</span>' : '';
-    var clickAttr = x.picked ? (' onclick="strJumpSector('+Number(x.code)+')" style="cursor:pointer"') : '';
-    html += '<tr class="str-ind-row'+(x.picked?' picked':'')+'" data-name="'+strEsc(x.name)+'"'+clickAttr+'>'
-      + '<td class="in">'+strEsc(x.name)+badge+'</td>'
-      + '<td>'+(x.lv===1?'申万一级':(x.lv===2?'申万二级':'-'))+'</td>'
-      + '<td><b>'+strNum(x.sc)+'</b></td>'
-      + '<td>'+d3+'</td>'
-      + '<td>'+strNum(x.lu)+'</td>'
-      + '<td>'+rel5+'</td>'
-      + '<td>'+strNum(x.n)+'</td>'
-      + '<td>'+(x.picked
-            ? '<span style="color:var(--primary);font-weight:600">入池</span>'
-            : '<span style="color:var(--text-light)">未入池</span>')+'</td>'
-      + '</tr>';
-  });
-  html += '</tbody></table></div>';
-  document.getElementById('strengthBoardTable').innerHTML = html;
-}
-function strIndFilter(q){
-  q = (q || '').trim().toLowerCase();
-  var rows = document.querySelectorAll('#strengthBoardTable tr.str-ind-row');
-  for(var i = 0; i < rows.length; i++){
-    var nm = (rows[i].getAttribute('data-name') || '').toLowerCase();
-    rows[i].style.display = (!q || nm.indexOf(q) >= 0) ? '' : 'none';
-  }
-}
-
 function strRenderBoardTable(){
   var d = STR.data; if(!d) return;
   STR.openSid = null;
   var od = document.querySelector('.str-drawer.open'); if(od) od.classList.remove('open');
   var ar = document.querySelector('tr.str-row.active'); if(ar) ar.classList.remove('active');
-  if(STR_VIEW === 'industry'){ strRenderIndustryView(); }
-  else { strRenderBoardView(); }
+  strRenderBoardView();
 }
 function strRenderBoardView(){
   var d = STR.data; if(!d) return;
@@ -8834,8 +8817,10 @@ function strRenderDrawer(sid, inner){
     info += _it('申万层级', (s.sw_level===1?'一级':'二级')+'（父级：'+(s.sw_parent||'-')+'）');
     info += _it('申万成分总数', strNum(s.sw_total));
   }
-  if(s.group_name){
-    info += _it('所属主线', '<span class="str-badge grp">'+strEsc(s.group_name)+'</span> 共 '+strNum(s.group_n)+' 个同源板块');
+  if(s.merged_from && s.merged_from.length){
+    info += _it('同源合并', '含 '+s.merged_from.length+' 个同源概念：'+s.merged_from.map(function(x){return '「'+strEsc(x)+'」';}).join('、'));
+  } else if(s.group_name){
+    info += _it('主题', '<span class="str-badge grp">'+strEsc(s.group_name)+'</span>');
   }
   if(s.overlap_with){
     info += _it('最高重合', '与「'+strEsc(s.overlap_with)+'」重合 '+strNum(s.overlap_max)+'%');
@@ -12395,7 +12380,10 @@ function init() {
   });
 
   window.addEventListener('resize', function() {
-    resizeAllCharts();
+    /* 拖动窗口时 resize 事件每秒可触发数十次，旧版每次都全量
+       resizeAllCharts()，是整页交互发顿的隐性来源；合并为一次。 */
+    if (window._miaoResizeAllT) clearTimeout(window._miaoResizeAllT);
+    window._miaoResizeAllT = setTimeout(function () { window._miaoResizeAllT = 0; resizeAllCharts(); }, 120);
     if (window._miaoResizeT) clearTimeout(window._miaoResizeT);
     window._miaoResizeT = setTimeout(function() { renderPageCharts(getCurrentPage()); }, 260);
   });
@@ -13369,7 +13357,15 @@ function spRenderTable() {
     cols.map(function (c) { return '<th>' + c.slice(5) + '<br><small>' + spWeekdayShort(c) + '</small></th>'; }).join('') +
     '<th class="sp-th-right">操作</th>' +
     '</tr>';
-  var tableOpen = '<table class="sp-tbl"><thead>' + head + '</thead><tbody>';
+  /* 固定列宽：数值 = 优化前 auto 布局在 378 行 / 5 日期列下的 Chrome 实测列宽
+     （股票 133 / 现价 45 / 涨幅 65 / 均线 77 / 介入信号 227 / 日期 109 / 操作 152），
+     因此改为 table-layout:fixed 后视觉与原来一致，但浏览器只读 colgroup 就能定列宽，
+     不再逐格测量 378 行 × 11 列（含 2200+ textarea）来推算宽度。 */
+  var spColW = [133, 45, 65, 77, 227];
+  var tableOpen = '<table class="sp-tbl"><colgroup>' +
+    spColW.map(function (w) { return '<col style="width:' + w + 'px">'; }).join('') +
+    cols.map(function () { return '<col style="width:109px">'; }).join('') +
+    '<col style="width:152px"></colgroup><thead>' + head + '</thead><tbody>';
 
   function rowHtml(r) {
     var chgCls = (r.chgPct === '' || r.chgPct == null) ? '' : ((+r.chgPct) >= 0 ? 'sp-red' : 'sp-green');
@@ -13427,8 +13423,8 @@ function spRenderTable() {
     for (j = cursor; j < end; j++) buf.push(rowHtml(rows[j]));
     tb.insertAdjacentHTML('beforeend', buf.join(''));
     cursor = end;
-    spAutoGrowAll(wrap, tasSoFar);
-    tasSoFar = wrap.querySelectorAll('textarea.sp-in').length;
+    // 返回本次已收集的 textarea 总数，省掉外层第二次全表 querySelectorAll
+    tasSoFar = spAutoGrowAll(wrap, tasSoFar);
     spUpdateBatchBtn();
     if (cursor >= rows.length) { spRenderComplete = true; return; }
     spNextFrame(nextBatch);
@@ -13484,7 +13480,7 @@ function spEscText(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;')
    只对真正有内容的框做「只写 → 只读 → 只写」，显示结果与旧版完全一致。 */
 function spAutoGrowAll(wrap, from) {
   var tas = wrap.querySelectorAll('textarea.sp-in');
-  if (!tas || !tas.length) return;
+  if (!tas || !tas.length) return tas ? tas.length : 0;
   var cap = 58 + 5 * 1.45 * 12 + 40;
   var need = [], hs = [], i, start = from || 0;   // 分帧追加时只处理新增的文本框
   for (i = start; i < tas.length; i++) {
@@ -13493,6 +13489,7 @@ function spAutoGrowAll(wrap, from) {
   }
   for (i = 0; i < need.length; i++) hs[i] = Math.min(need[i].scrollHeight, cap); // 阶段2：只读
   for (i = 0; i < need.length; i++) need[i].style.height = hs[i] + 'px';         // 阶段3：只写
+  return tas.length;
 }
 function spAutoGrow(ta) { try { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 58 + 5 * 1.45 * 12 + 40) + 'px'; } catch (e) {} }
 
@@ -14093,8 +14090,12 @@ function spOpenPoolModal() {
       var body = document.getElementById('spPoolBody');
       if (!body) return;
       if (!arr.length) { body.innerHTML = '<div class="sp-pool-empty">无匹配标的</div>'; return; }
+      /* 预建代码索引：原版每个候选项都调 spHasCode() 线性扫描全部跟踪行，
+         500 只票 × 378 行 ≈ 19 万次比较，逐字符输入时是查询卡顿主因。 */
+      var inCodes = {};
+      (spStore.rows || []).forEach(function (r) { if (r && r.code) inCodes[r.code] = 1; });
       body.innerHTML = arr.map(function (r) {
-        var inList = spHasCode(r.code);
+        var inList = !!inCodes[r.code];
         return '<label class="sp-pool-item' + (inList ? ' sp-pool-in' : '') + '">' +
           '<input type="checkbox" data-c="' + r.code + '"' + (inList ? ' disabled checked' : '') + '>' +
           '<span class="sp-pool-name">' + r.name + ' <small>' + r.code + '</small></span>' +
@@ -14117,7 +14118,17 @@ function spOpenPoolModal() {
       '<button class="btn" id="spPoolAdd">批量加入选中</button><button class="btn btn-outline" onclick="closeModal()">关闭</button>');
     render();
     var ps = document.getElementById('spPoolSearch');
-    if (ps) ps.oninput = function () { state.q = ps.value.trim(); render(); };
+    /* 120ms 防抖：连续打字只在停顿时重建一次列表，避免每敲一个字符
+       都过滤 + innerHTML 重建数百条候选（旧版「查询慢」的直接原因）。 */
+    var poolDebounce = 0;
+    if (ps) ps.oninput = function () {
+      if (poolDebounce) clearTimeout(poolDebounce);
+      poolDebounce = setTimeout(function () {
+        poolDebounce = 0;
+        state.q = ps.value.trim();
+        render();
+      }, 120);
+    };
     document.querySelectorAll('.sp-pf').forEach(function (b) { b.onclick = function () { state.filter = b.getAttribute('data-f'); document.querySelectorAll('.sp-pf').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); render(); }; });
     var add = document.getElementById('spPoolAdd');
     if (add) add.onclick = function () {
