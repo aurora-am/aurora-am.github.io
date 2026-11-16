@@ -6501,19 +6501,16 @@ function renderThemeRadar() {
   var nextRank = {};
   var html = '';
   shown.forEach(function (t) {
-    /* --- 前排涨停梯队：第一排序键 涨速降序，第二排序键 封单降序 --- */
+    /* --- 前排涨停梯队：第一排序键 涨停时间升序（最先涨停在前），第二排序键 封单降序 --- */
     var fArr = (t.front || []).slice();
     fArr.sort(function (a, b) {
-      var za = _themeZs(a.code), zb = _themeZs(b.code);
-      if (za != null || zb != null) {
-        if (za == null) return 1;                                   // 无涨速数据排在最后
-        if (zb == null) return -1;
-        if (Math.abs(zb - za) > 1e-9) return zb - za;               // 涨速降序
-      }
+      var ta = a.time || '', tb = b.time || '';
+      if (!ta !== !tb) return ta ? -1 : 1;                        // 无涨停时间的排最后
+      if (ta && ta !== tb) return ta < tb ? -1 : 1;               // 涨停时间升序
       var sa = (a.sealAmount == null ? -Infinity : a.sealAmount);
       var sb = (b.sealAmount == null ? -Infinity : b.sealAmount);
-      if (sa !== sb) return sb - sa;                                // 封单降序
-      return (b.streak || 1) - (a.streak || 1) || ((a.time || '') < (b.time || '') ? -1 : 1); // 兜底沿用原排序
+      if (sa !== sb) return sb - sa;                              // 同秒内封单降序
+      return (b.streak || 1) - (a.streak || 1);
     });
     // 🚨 根据实时行情二次校验前排：未达涨停阈值的票从「前排涨停梯队」移除，避免昨日涨停时间残留；降级票并入后排候选
     var realFront = [], demoted = [];
@@ -6602,7 +6599,7 @@ function renderThemeRadar() {
       + '<span class="theme-meta">涨停 ' + (t.count || 0) + ' 只 · 最高 ' + (t.lbcMax || 1) + ' 板'
       + ' · 后排 ' + (backArr.length) + ' 只'
       + ' · <span class="theme-strength-chip">题材强度 ' + stTxt + '</span></span></div>'
-      + '<div class="theme-sub">前排涨停梯队（按涨速降序 → 封单降序）</div>'
+      + '<div class="theme-sub">前排涨停梯队（按涨停时间升序 · 最先涨停在前 · 同秒封单降序）</div>'
       + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>连板</th><th>涨停时间</th><th>封单</th><th>主力净流入</th><th>市值</th></tr></thead><tbody>' + frontRows + '</tbody></table></div>'
       + '<div class="theme-sub">同板块后排补涨候选（全板块·涨幅0.5%~9.5%·非ST · 涨幅实时更新 · 按涨速降序 → 补涨强度降序）</div>'
       + '<div class="table-wrap"><table class="data-table"><thead><tr><th>代码</th><th>名称</th><th>涨幅</th><th>涨速</th><th>量比</th><th>主力净流入</th><th>补涨强度</th><th>市值</th></tr></thead><tbody>' + backRows + '</tbody></table></div>'
