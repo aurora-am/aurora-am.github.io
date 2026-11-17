@@ -5463,13 +5463,8 @@ function renderCapitalPage() {
   charts.capitalIndex = echarts.init(el);
   var revData = data.slice().reverse();                       // 上证在上、创业板在下
   var cats = revData.map(function (d) { return d.name; });
-  var posData = revData.map(function (d) { return d.netInflow >= 0 ? +d.netInflow : '-'; });
-  var negData = revData.map(function (d) { return d.netInflow < 0 ? +d.netInflow : '-'; });
-  var lblFmt = function (p) { return (p.value > 0 ? '+' : '') + p.value + '亿'; };
-  var cw = el.clientWidth || 600;
-  var narrow = cw < 480;
-  // 🛡️ 2026-11-17：加大左侧留白，给 Y 轴名称足够宽度，避免与柱端数值标签叠字
-  var grid = narrow ? { left: '32%', right: '6%', top: '4%', bottom: '14%' } : { left: '27%', right: '16%', top: '6%', bottom: '10%' };
+  /* 2026-11-17 按老K规格重构：固定 X 区间、单 series 逐项判正负着色/定位、固定 grid 留白。
+     正数=红色向右、标签右侧外偏 6px 左对齐；负数=绿色向左、标签左侧外偏 6px 右对齐。 */
   charts.capitalIndex.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (ps) {
       var d = revData[ps[0].dataIndex];
@@ -5479,17 +5474,25 @@ function renderCapitalPage() {
         + '<br/><span style="color:' + TC.green + '">中单净流入: ' + (d.zd > 0 ? '+' : '') + d.zd + '亿</span>'
         + '<br/><span style="color:' + TC.green + '">小单净流入: ' + (d.xd > 0 ? '+' : '') + d.xd + '亿</span>';
     } },
-    grid: grid,
-    xAxis: { type: 'value', axisLabel: { color: TC.textSecondary, fontSize: narrow ? 9 : 10, formatter: '{value}亿' }, splitLine: { lineStyle: { color: TC.splitLine } } },
-    yAxis: { type: 'category', data: cats, axisLabel: { color: TC.text, fontSize: narrow ? 10 : 12, width: narrow ? 66 : 92, overflow: 'truncate', margin: 12 }, axisLine: { lineStyle: { color: TC.border } } },
-    series: [
-      { name: '主力净流入', type: 'bar', stack: 'flow', data: posData, barWidth: narrow ? '46%' : '34%',
-        itemStyle: { color: TC.red, borderRadius: [0, 4, 4, 0] },
-        label: { show: true, position: narrow ? 'insideRight' : 'right', color: narrow ? '#fff' : TC.text, fontSize: narrow ? 10 : 11, fontWeight: 'bold', formatter: lblFmt } },
-      { name: '主力净流出', type: 'bar', stack: 'flow', data: negData, barWidth: narrow ? '46%' : '34%',
-        itemStyle: { color: TC.green, borderRadius: [4, 0, 0, 4] },
-        label: { show: true, position: narrow ? 'insideLeft' : 'left', color: narrow ? '#fff' : TC.text, fontSize: narrow ? 10 : 11, fontWeight: 'bold', formatter: lblFmt } }
-    ]
+    grid: { left: 120, right: 80, top: 20, bottom: 30 },
+    xAxis: { type: 'value', min: -180, max: 40, interval: 20,
+      axisLabel: { color: TC.textSecondary, fontSize: 10, formatter: '{value}亿' },
+      splitLine: { lineStyle: { color: TC.splitLine } } },
+    yAxis: { type: 'category', data: cats,
+      axisLabel: { color: TC.text, fontSize: 12 },
+      axisLine: { lineStyle: { color: TC.border } } },
+    series: [{
+      name: '主力净流入', type: 'bar', barWidth: '34%',
+      data: revData.map(function (d) {
+        var v = +d.netInflow || 0, isIn = v >= 0;
+        return {
+          value: v,
+          itemStyle: { color: isIn ? TC.red : TC.green, borderRadius: isIn ? [0, 4, 4, 0] : [4, 0, 0, 4] },
+          label: { position: isIn ? 'right' : 'left', offset: isIn ? [6, 0] : [-6, 0], align: isIn ? 'left' : 'right' }
+        };
+      }),
+      label: { show: true, color: TC.text, fontSize: 12, formatter: '{c}亿' }
+    }]
   });
   if (charts.capitalIndex) charts.capitalIndex.resize();
   var realSF = hasRealSectorFlow();
