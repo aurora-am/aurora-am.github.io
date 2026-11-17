@@ -1231,7 +1231,11 @@ body.wb-readonly .wb-datenav{opacity:1}
         .sp-tbl th,.sp-tbl td{border:1px solid var(--card-border,#e2e8f0);padding:6px 8px;white-space:nowrap;text-align:center;vertical-align:middle}
         .sp-tbl thead th{background:var(--gray-light,#f3f4f6);position:sticky;top:0;z-index:1;font-weight:600}
         .sp-tbl th small{font-weight:400;color:var(--text-secondary)}
-        .sp-th-left,.sp-td-left{position:sticky;left:0;z-index:3;background:var(--card-bg,#fff);text-align:left}
+        /* 🛡️ 2026-11-17：勾选框独立首列（sticky left:0），股票列右移到 left:40px；
+           全选不再挤在「股票」标题里，行勾选框也不再压在股票名上。 */
+        .sp-th-ckcol,.sp-td-ckcol{position:sticky;left:0;z-index:4;background:var(--card-bg,#fff);text-align:center;padding:6px 2px}
+        .sp-tbl thead .sp-th-ckcol{z-index:6;background:var(--gray-light,#f3f4f6)}
+        .sp-th-left,.sp-td-left{position:sticky;left:40px;z-index:3;background:var(--card-bg,#fff);text-align:left}
         .sp-th-right,.sp-td-right{position:sticky;right:0;z-index:3;background:var(--card-bg,#fff)}
         .sp-tbl thead .sp-th-left,.sp-tbl thead .sp-th-right{z-index:4}
         .sp-name{display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:132px}
@@ -1272,7 +1276,7 @@ body.wb-readonly .wb-datenav{opacity:1}
         /* 批量删除多选（2026-11-12）：放在股票列内部，不新增列 → 不破坏 sticky 定位与行情就地更新的 td 索引 */
         .sp-name-top{display:flex;align-items:center;gap:7px}
         .sp-ck{display:inline-flex;align-items:center;cursor:pointer;margin:0}
-        .sp-ck input,.sp-th-ck input{width:14px;height:14px;margin:0;cursor:pointer;accent-color:var(--primary,#2f6fed);vertical-align:middle}
+        .sp-ck input,.sp-th-ck input,.sp-th-ckcol input,.sp-td-ckcol input{width:15px;height:15px;margin:0;cursor:pointer;accent-color:var(--primary,#2f6fed);vertical-align:middle}
         .sp-th-ck{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-weight:400;font-size:11px;color:var(--text-secondary);cursor:pointer;user-select:none}
         #spBatchDelBtn:disabled{opacity:.5;cursor:not-allowed}
         #spBatchDelBtn.sp-ck-del{color:#dc2626;border-color:#fecaca;background:#fff5f5}
@@ -13000,12 +13004,13 @@ function spPatchQuotes() {
   rows.forEach(function (r) { byId[r.id] = r; });
   for (var i = 0; i < trs.length; i++) {
     var tr = trs[i], r = byId[tr.getAttribute('data-id')], td = tr.children;
-    if (!r || !td || td.length < 3) return false;
+    // 2026-11-17：新增首位勾选列后，现价/涨幅由 td[1]/td[2] 后移为 td[2]/td[3]
+    if (!r || !td || td.length < 4) return false;
     var chgCls = (r.chgPct === '' || r.chgPct == null) ? '' : ((+r.chgPct) >= 0 ? 'sp-red' : 'sp-green');
     var chgTxt = (r.chgPct === '' || r.chgPct == null) ? '-' : ((+r.chgPct) >= 0 ? '+' : '') + (+r.chgPct).toFixed(2) + '%';
-    td[1].textContent = (r.price === '' || r.price == null) ? '-' : (+r.price).toFixed(2);
-    td[2].textContent = chgTxt;
-    td[2].className = chgCls;
+    td[2].textContent = (r.price === '' || r.price == null) ? '-' : (+r.price).toFixed(2);
+    td[3].textContent = chgTxt;
+    td[3].className = chgCls;
   }
   return true;
 }
@@ -13388,7 +13393,8 @@ function spRenderTable() {
   var rows = spStore.rows;
   var seq = ++spRenderSeq;
   var head = '<tr>' +
-    '<th class="sp-th-left">股票 <label class="sp-th-ck" title="全选 / 取消全选" onclick="event.stopPropagation()"><input type="checkbox" id="spCheckAll" onchange="spToggleAll(this.checked)" onclick="event.stopPropagation()">全选</label></th>' +
+    '<th class="sp-th-ckcol" title="全选 / 取消全选"><label class="sp-ck" style="margin:0"><input type="checkbox" id="spCheckAll" onchange="spToggleAll(this.checked)" onclick="event.stopPropagation()"></label></th>' +
+    '<th class="sp-th-left">股票</th>' +
     '<th>现价</th>' +
     '<th>当日涨幅</th>' +
     '<th>站上均线数</th>' +
@@ -13400,7 +13406,7 @@ function spRenderTable() {
      （股票 133 / 现价 45 / 涨幅 65 / 均线 77 / 介入信号 227 / 日期 109 / 操作 152），
      因此改为 table-layout:fixed 后视觉与原来一致，但浏览器只读 colgroup 就能定列宽，
      不再逐格测量 378 行 × 11 列（含 2200+ textarea）来推算宽度。 */
-  var spColW = [133, 45, 65, 77, 227];
+  var spColW = [40, 133, 45, 65, 77, 227];   // 2026-11-17：首位 40px 为独立勾选列，其余依次后移
   var tableOpen = '<table class="sp-tbl"><colgroup>' +
     spColW.map(function (w) { return '<col style="width:' + w + 'px">'; }).join('') +
     cols.map(function () { return '<col style="width:109px">'; }).join('') +
@@ -13411,8 +13417,9 @@ function spRenderTable() {
     var chgTxt = (r.chgPct === '' || r.chgPct == null) ? '-' : ((+r.chgPct) >= 0 ? '+' : '') + (+r.chgPct).toFixed(2) + '%';
     var maTxt = r.maDone ? (r.maCount + '/8') : '…';
     return '<tr data-id="' + r.id + '">' +
+      '<td class="sp-td-ckcol"><label class="sp-ck" style="margin:0"><input type="checkbox" class="sp-row-ck" data-ck="' + r.id + '"' + (spSelected[r.id] ? ' checked' : '') + ' onclick="event.stopPropagation()"></label></td>' +
       '<td class="sp-td-left sp-name" onmouseenter="spHoverKline(event,\'' + r.id + '\')" onmouseleave="spHideKline()" onclick="spOpenKline(\'' + r.id + '\')">' +
-        '<div class="sp-name-top" onclick="event.stopPropagation()"><label class="sp-ck" onclick="event.stopPropagation()"><input type="checkbox" class="sp-row-ck" data-ck="' + r.id + '"' + (spSelected[r.id] ? ' checked' : '') + ' onclick="event.stopPropagation()"></label>' +
+        '<div class="sp-name-top" onclick="event.stopPropagation()">' +
         '<span class="sp-name-m">' + r.name + '</span></div>' +
         '<span class="sp-name-s">' + r.code + (r.sector ? ' · ' + r.sector : '') + '</span>' +
         (r.earlyBoard ? '<span class="sp-badge sp-badge-early">早板</span>' : '') +
@@ -13435,7 +13442,7 @@ function spRenderTable() {
   }
 
   if (!rows.length) {
-    wrap.innerHTML = tableOpen + '<tr><td colspan="' + (6 + cols.length) + '" class="sp-empty">暂无跟踪标的。点「＋新增个股」或「20日内涨停池」加入，或首访将自动拉取近' + (spStore.winSize || 5) + '日涨停候选。</td></tr></tbody></table>';
+    wrap.innerHTML = tableOpen + '<tr><td colspan="' + (7 + cols.length) + '" class="sp-empty">暂无跟踪标的。点「＋新增个股」或「20日内涨停池」加入，或首访将自动拉取近' + (spStore.winSize || 5) + '日涨停候选。</td></tr></tbody></table>';
     spRenderComplete = true;
     spBindTableEvents(wrap); spAutoGrowAll(wrap); spUpdateBatchBtn();
     return;
@@ -14115,7 +14122,16 @@ function spOpenPoolModal() {
     var list = pool || ((DATA && DATA.limitUp && DATA.limitUp.list) || []).map(function (it) {
       return { code: it.code, name: it.name, sector: (it.industry || it.board || ''), dates: [DATA.date], streak: it.streak || 1, lastDate: DATA.date, lastSeal: it.time || '15:00', minSeal: it.time || '15:00', price: it.price, chgPct: it.chgPct };
     });
-    var state = { q: '', filter: 'all' };
+    var state = { q: '', filter: 'all', sel: {} };   // 2026-11-17：sel 跨筛选/搜索保留勾选，配合全选按钮
+    function syncPoolSelBtn() {
+      var b = document.getElementById('spPoolSelAll');
+      if (!b) return;
+      var boxes = document.querySelectorAll('#spPoolBody input[type=checkbox]:not(:disabled)');
+      var n = 0, c = 0;
+      for (var i = 0; i < boxes.length; i++) { n++; if (boxes[i].checked) c++; }
+      b.textContent = (n && c === n) ? '☐ 取消全选' : '☑ 全选';
+      b.title = '勾选/取消当前筛选下的全部可加入标的（已入池的除外）';
+    }
     function viewData() {
       var arr = list.slice();
       if (state.filter === 'five') arr = arr.filter(function (r) { return r.dates.some(function (d) { return spInLast5(d); }); });
@@ -14128,7 +14144,7 @@ function spOpenPoolModal() {
       var arr = viewData();
       var body = document.getElementById('spPoolBody');
       if (!body) return;
-      if (!arr.length) { body.innerHTML = '<div class="sp-pool-empty">无匹配标的</div>'; return; }
+      if (!arr.length) { body.innerHTML = '<div class="sp-pool-empty">无匹配标的</div>'; syncPoolSelBtn(); return; }
       /* 预建代码索引：原版每个候选项都调 spHasCode() 线性扫描全部跟踪行，
          500 只票 × 378 行 ≈ 19 万次比较，逐字符输入时是查询卡顿主因。 */
       var inCodes = {};
@@ -14136,17 +14152,19 @@ function spOpenPoolModal() {
       body.innerHTML = arr.map(function (r) {
         var inList = !!inCodes[r.code];
         return '<label class="sp-pool-item' + (inList ? ' sp-pool-in' : '') + '">' +
-          '<input type="checkbox" data-c="' + r.code + '"' + (inList ? ' disabled checked' : '') + '>' +
+          '<input type="checkbox" data-c="' + r.code + '"' + (inList ? ' disabled checked' : (state.sel[r.code] ? ' checked' : '')) + '>' +
           '<span class="sp-pool-name">' + r.name + ' <small>' + r.code + '</small></span>' +
           '<span class="sp-pool-sec">' + (r.sector || '-') + '</span>' +
           '<span class="sp-pool-meta">涨停' + r.dates.length + '次·' + r.streak + '板·' + (r.minSeal <= SP_EARLY_CUT ? '早板' : '非早板') + '</span>' +
           (inList ? '<span class="sp-pool-tag">已在表</span>' : '') +
           '</label>';
       }).join('');
+      syncPoolSelBtn();
     }
     var mbody =
       '<div class="sp-pool-bar">' +
         '<input id="spPoolSearch" class="sp-search" placeholder="搜索名称/代码" style="flex:1">' +
+        '<button class="btn btn-sm btn-outline" id="spPoolSelAll" title="勾选/取消当前筛选下的全部可加入标的">☑ 全选</button>' +
         '<button class="btn btn-sm btn-outline sp-pf' + (state.filter === 'all' ? ' on' : '') + '" data-f="all">全部</button>' +
         '<button class="btn btn-sm btn-outline sp-pf' + (state.filter === 'five' ? ' on' : '') + '" data-f="five">5日内涨停</button>' +
         '<button class="btn btn-sm btn-outline sp-pf' + (state.filter === 'lb' ? ' on' : '') + '" data-f="lb">连板</button>' +
@@ -14156,6 +14174,29 @@ function spOpenPoolModal() {
     openModal('20日内涨停池（' + list.length + ' 只）', mbody,
       '<button class="btn" id="spPoolAdd">批量加入选中</button><button class="btn btn-outline" onclick="closeModal()">关闭</button>');
     render();
+    /* 2026-11-17：批量勾选。勾选状态存 state.sel，跨筛选/搜索重建不丢；
+       事件委托挂在容器上（render 只换 innerHTML，容器不变）→ 无需每帧重绑。 */
+    var poolBody = document.getElementById('spPoolBody');
+    if (poolBody) poolBody.addEventListener('change', function (e) {
+      var t = e.target;
+      if (!t || t.type !== 'checkbox' || t.disabled) return;
+      var code = t.getAttribute('data-c');
+      if (t.checked) state.sel[code] = 1; else delete state.sel[code];
+      syncPoolSelBtn();
+    }, false);
+    var selAllBtn = document.getElementById('spPoolSelAll');
+    if (selAllBtn) selAllBtn.onclick = function () {
+      var boxes = Array.prototype.slice.call(document.querySelectorAll('#spPoolBody input[type=checkbox]:not(:disabled)'));
+      if (!boxes.length) { showNotify('当前筛选无可勾选标的', 1600); return; }
+      var allOn = boxes.every(function (b) { return b.checked; });
+      boxes.forEach(function (b) {
+        var code = b.getAttribute('data-c');
+        b.checked = !allOn;
+        if (allOn) delete state.sel[code]; else state.sel[code] = 1;
+      });
+      syncPoolSelBtn();
+      showNotify(allOn ? '已取消全选' : ('已勾选当前筛选 ' + boxes.length + ' 只'), 1600);
+    };
     var ps = document.getElementById('spPoolSearch');
     /* 120ms 防抖：连续打字只在停顿时重建一次列表，避免每敲一个字符
        都过滤 + innerHTML 重建数百条候选（旧版「查询慢」的直接原因）。 */
