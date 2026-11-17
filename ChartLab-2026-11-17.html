@@ -5468,7 +5468,8 @@ function renderCapitalPage() {
   var lblFmt = function (p) { return (p.value > 0 ? '+' : '') + p.value + '亿'; };
   var cw = el.clientWidth || 600;
   var narrow = cw < 480;
-  var grid = narrow ? { left: '28%', right: '6%', top: '4%', bottom: '14%' } : { left: '24%', right: '16%', top: '6%', bottom: '10%' };
+  // 🛡️ 2026-11-17：加大左侧留白，给 Y 轴名称足够宽度，避免与柱端数值标签叠字
+  var grid = narrow ? { left: '32%', right: '6%', top: '4%', bottom: '14%' } : { left: '27%', right: '16%', top: '6%', bottom: '10%' };
   charts.capitalIndex.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (ps) {
       var d = revData[ps[0].dataIndex];
@@ -5480,7 +5481,7 @@ function renderCapitalPage() {
     } },
     grid: grid,
     xAxis: { type: 'value', axisLabel: { color: TC.textSecondary, fontSize: narrow ? 9 : 10, formatter: '{value}亿' }, splitLine: { lineStyle: { color: TC.splitLine } } },
-    yAxis: { type: 'category', data: cats, axisLabel: { color: TC.text, fontSize: narrow ? 10 : 12 }, axisLine: { lineStyle: { color: TC.border } } },
+    yAxis: { type: 'category', data: cats, axisLabel: { color: TC.text, fontSize: narrow ? 10 : 12, width: narrow ? 66 : 92, overflow: 'truncate', margin: 12 }, axisLine: { lineStyle: { color: TC.border } } },
     series: [
       { name: '主力净流入', type: 'bar', stack: 'flow', data: posData, barWidth: narrow ? '46%' : '34%',
         itemStyle: { color: TC.red, borderRadius: [0, 4, 4, 0] },
