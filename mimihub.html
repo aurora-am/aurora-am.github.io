@@ -475,6 +475,12 @@ body {
 .chart-box.h400 { height:400px; }
 .chart-box.h500 { height:500px; }
 .chart-box.h460 { height:460px; }
+/* 三大指数主力净流入：左侧固定名称列 + 右侧自适应柱区（2026-11-17 修重叠/固定列） */
+.cap-idx-wrap { display:flex; align-items:stretch; width:100%; gap:0; }
+.cap-idx-labels { flex:0 0 96px; width:96px; display:flex; flex-direction:column; padding:20px 0 30px; box-sizing:border-box; }
+.cap-idx-labels .cil { flex:1 1 0; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font-size:12px; font-weight:600; color:var(--text); white-space:nowrap; }
+.cap-idx-plot { flex:1 1 auto; min-width:0; }
+@media (max-width:768px){ .cap-idx-labels{flex-basis:74px;width:74px;} .cap-idx-labels .cil{font-size:11px;padding-right:6px;} }
 /* 资金流向模块：进度条列表纵向自适应，填充拉伸后的卡片/网格高度，消除底部空白（样式不变） */
 .cap-fill-card { display:flex; flex-direction:column; }
 .cap-fill-card > .card-body { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
@@ -901,7 +907,7 @@ body.wb-readonly .wb-datenav{opacity:1}
   </div>
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title">📊 三大指数主力净流入/流出</span><span class="card-toggle">▼</span></div>
-    <div class="card-body"><div class="chart-box h300" id="capitalIndexChart"></div></div>
+    <div class="card-body"><div class="cap-idx-wrap"><div class="cap-idx-labels" id="capIdxLabels"></div><div class="cap-idx-plot"><div class="chart-box h300" id="capitalIndexChart"></div></div></div></div>
   </div>
   <div class="card">
     <div class="card-header" onclick="toggleCard(this)"><span class="card-title" id="capitalTopCardTitle">🏆 板块主力净流入 Top5 / 净流出 Top5（交易所口径）</span><span class="card-toggle">▼</span></div>
@@ -4476,30 +4482,48 @@ function renderCapitalPage() {
   charts.capitalIndex = echarts.init(el);
   var revData = data.slice().reverse();                       // 上证在上、创业板在下
   var cats = revData.map(function (d) { return d.name; });
-  var posData = revData.map(function (d) { return d.netInflow >= 0 ? +d.netInflow : '-'; });
-  var negData = revData.map(function (d) { return d.netInflow < 0 ? +d.netInflow : '-'; });
-  var lblFmt = function (p) { return (p.value > 0 ? '+' : '') + p.value + '亿'; };
+  /* 2026-11-17 修（老K反馈）：①三大主力名称移到左侧固定 HTML 列，与柱行严格对齐（padding 20/30 == grid top/bottom）；
+     ②ECharts y 轴标签隐藏，负值标签用 grid.left 专属空间，彻底消除「名称 vs 数值」重叠；
+     ③右侧柱区 flex:1 自适应页面宽度；④tooltip 只渲染真实存在字段，杜绝 undefined。 */
+  function capIdxName(n) {
+    return n === '上证指数' ? '上证主力' : n === '深证成指' ? '深证主力' : n === '创业板指' ? '创业板主力' : n;
+  }
+  var labelsEl = document.getElementById('capIdxLabels');
+  if (labelsEl) labelsEl.innerHTML = cats.map(function (n) {
+    return '<div class="cil">' + capIdxName(n) + '</div>';
+  }).join('');
+  var NF = function (v) { return (v != null && isFinite(v)); };
   charts.capitalIndex.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (ps) {
       var d = revData[ps[0].dataIndex];
-      return d.name + '<br/>主力净流入: ' + (d.netInflow > 0 ? '+' : '') + d.netInflow + '亿'
-        + '<br/><span style="color:' + TC.red + '">超大单净流入: ' + (d.xdd > 0 ? '+' : '') + d.xdd + '亿</span>'
-        + '<br/><span style="color:' + TC.red + '">大单净流入: ' + (d.dd > 0 ? '+' : '') + d.dd + '亿</span>'
-        + '<br/><span style="color:' + TC.green + '">中单净流入: ' + (d.zd > 0 ? '+' : '') + d.zd + '亿</span>'
-        + '<br/><span style="color:' + TC.green + '">小单净流入: ' + (d.xd > 0 ? '+' : '') + d.xd + '亿</span>';
+      var s = capIdxName(d.name);
+      if (NF(d.netInflow)) s += '<br/>主力净流入: ' + (d.netInflow > 0 ? '+' : '') + d.netInflow + '亿';
+      if (NF(d.mainNetPct)) s += '<br/>主力净占比: ' + (d.mainNetPct > 0 ? '+' : '') + d.mainNetPct + '%';
+      // 分级单仅在该字段真实存在时展示（快照源 f62 无此数据，实时源可能有）
+      var subs = [['超大单净流入','xdd',TC.red],['大单净流入','dd',TC.red],['中单净流入','zd',TC.green],['小单净流入','xd',TC.green]];
+      subs.forEach(function (it) { if (NF(d[it[1]])) s += '<br/><span style="color:' + it[2] + '">' + it[0] + ': ' + (d[it[1]] > 0 ? '+' : '') + d[it[1]] + '亿</span>'; });
+      if (s === capIdxName(d.name)) s += '<br/><span style="color:' + TC.textSecondary + '">该指数资金明细暂不可用</span>';
+      return s;
     } },
-    grid: { left: '24%', right: '16%', top: '6%', bottom: '6%' },
-    xAxis: { type: 'value', axisLabel: { color: TC.textSecondary, fontSize: 10, formatter: '{value}亿' }, splitLine: { lineStyle: { color: TC.splitLine } } },
-    yAxis: { type: 'category', data: cats, axisLabel: { color: TC.text, fontSize: 12 }, axisLine: { lineStyle: { color: TC.border } } },
-    series: [
-      { name: '主力净流入', type: 'bar', stack: 'flow', data: posData, barWidth: '34%',
-        itemStyle: { color: TC.red, borderRadius: [0, 4, 4, 0] },
-        label: { show: true, position: 'right', color: TC.text, fontSize: 11, fontWeight: 'bold', formatter: lblFmt } },
-      { name: '主力净流出', type: 'bar', stack: 'flow', data: negData, barWidth: '34%',
-        itemStyle: { color: TC.green, borderRadius: [4, 0, 0, 4] },
-        label: { show: true, position: 'left', color: TC.text, fontSize: 11, fontWeight: 'bold', formatter: lblFmt } }
-    ]
+    grid: { left: 72, right: 68, top: 20, bottom: 30 },
+    xAxis: { type: 'value', min: -180, max: 40, interval: 20,
+      axisLabel: { color: TC.textSecondary, fontSize: 10, formatter: '{value}亿' },
+      splitLine: { lineStyle: { color: TC.splitLine } } },
+    yAxis: { type: 'category', data: cats, axisLabel: { show: false }, axisLine: { show: false }, axisTick: { show: false } },
+    series: [{
+      name: '主力净流入', type: 'bar', barWidth: '34%',
+      data: revData.map(function (d) {
+        var v = NF(d.netInflow) ? +d.netInflow : 0, isIn = v >= 0;
+        return {
+          value: v,
+          itemStyle: { color: isIn ? TC.red : TC.green, borderRadius: isIn ? [0, 4, 4, 0] : [4, 0, 0, 4] },
+          label: { position: isIn ? 'right' : 'left', offset: isIn ? [6, 0] : [-6, 0], align: isIn ? 'left' : 'right' }
+        };
+      }),
+      label: { show: true, color: TC.text, fontSize: 12, formatter: '{c}亿' }
+    }]
   });
+
   if (charts.capitalIndex) charts.capitalIndex.resize();
   var realSF = hasRealSectorFlow();
   var tt = document.getElementById('capitalTopCardTitle');
