@@ -6149,6 +6149,7 @@ function _backRowsFromStatic(bm, brp, _diag, onlyNames) {
       });
       back.sort(function (a, b) { return b.strength - a.strength; });
       j._backFull = back;              // 先全量留存，等跨卡去重后再截断
+      t._prevBack = (t.backRows || []).slice();   // 🛡️ 保存内嵌旧后排，算不出时恢复
       t.backRows = [];
       if (j.force) {   // 强制题材：用成员池真实涨幅 ≥9.5% 填充前排，使卡片完整
         var front = [];
@@ -6166,6 +6167,7 @@ function _backRowsFromStatic(bm, brp, _diag, onlyNames) {
         t.forceShow = true;
       }
       if (j.aliasOf) t.aliasOf = j.aliasOf;
+      if (!(t.backRows || []).length && (t._prevBack || []).length) t.backRows = t._prevBack;  // 🛡️ 算不出则恢复旧后排
     });
     /* 跨卡去重：同一只票只在「排序更靠前」的那张卡里当后排补涨（板块高度重叠时否则一张票出现 3 次）。
        先让每张卡各自排好序，再按卡顺序认领，保证强卡拿到最强票。 */
@@ -10383,7 +10385,9 @@ var LiveFeed = (function () {
   function boardMembers(code) {
     if (!code) return Promise.reject(new Error('no-code'));
     // 多主机互备（push2delay / push2his / 82.push2delay）：任一返回即成功，显著降低东财按 IP 限流导致的「后排全空」
-    var hosts = ['https://push2delay.eastmoney.com', 'https://push2his.eastmoney.com', 'https://82.push2delay.eastmoney.com'];
+    var hosts = ['https://push2delay.eastmoney.com', 'https://push2.eastmoney.com', 'https://82.push2.eastmoney.com',
+      'https://1.push2.eastmoney.com', 'https://2.push2.eastmoney.com', 'https://17.push2.eastmoney.com',
+      'https://33.push2.eastmoney.com', 'https://48.push2.eastmoney.com', 'https://push2his.eastmoney.com'];
     var FIELDS = 'f12,f14,f2,f3,f5,f6,f8,f10,f20,f62,f100';
     function page(pn) {
       var urls = hosts.map(function (h) {
@@ -10423,7 +10427,9 @@ var LiveFeed = (function () {
   function marketSnapshot() {
     if (_mktSnap.v && Date.now() - _mktSnap.at < 90000) return Promise.resolve(_mktSnap.v);
     if (_mktSnap.p) return _mktSnap.p;
-    var hosts = ['https://push2delay.eastmoney.com', 'https://push2his.eastmoney.com', 'https://82.push2delay.eastmoney.com'];
+    var hosts = ['https://push2delay.eastmoney.com', 'https://push2.eastmoney.com', 'https://82.push2.eastmoney.com',
+      'https://1.push2.eastmoney.com', 'https://2.push2.eastmoney.com', 'https://17.push2.eastmoney.com',
+      'https://33.push2.eastmoney.com', 'https://48.push2.eastmoney.com', 'https://push2his.eastmoney.com'];
     var FS = 'm:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23,m:0+t:81+s:2048';
     var FIELDS = 'f12,f14,f3,f6,f10,f20,f62,f100';
     function pg(pn) {
