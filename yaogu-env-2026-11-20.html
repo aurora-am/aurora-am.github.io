@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>妖股出现环境评估 · 2026-11-20 收盘</title>
+<script src="echarts.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:#f5f6f8; color:#1f2430; padding:14px; line-height:1.6; }
+  .wrap { max-width:980px; margin:0 auto; }
+  header { background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:12px; }
+  h1 { font-size:21px; }
+  .sub { color:#6b7280; font-size:13px; margin-top:6px; }
+  .card { background:#fff; border-radius:12px; padding:18px 20px; margin-bottom:12px; }
+  .card h2 { font-size:16px; margin-bottom:12px; padding-left:10px; border-left:4px solid #c0392b; }
+  .verdict { display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+  .score-box { min-width:150px; }
+  .score-num { font-size:52px; font-weight:700; color:#c0392b; line-height:1.1; }
+  .score-unit { font-size:14px; color:#6b7280; }
+  .verdict-tag { background:#fdecea; color:#c0392b; border:1px solid #f5c6c0; border-radius:8px; padding:8px 14px; font-weight:600; }
+  .verdict-txt { flex:1; min-width:240px; font-size:14px; color:#374151; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
+  .dim { border:1px solid #e5e7eb; border-radius:10px; padding:12px; }
+  .dim .name { font-size:13px; color:#6b7280; }
+  .dim .val { font-size:26px; font-weight:700; margin:2px 0; }
+  .dim .why { font-size:12px; color:#6b7280; }
+  .c-low { color:#c0392b; } .c-mid { color:#d97706; } .c-high { color:#16a34a; }
+  .chart { width:100%; height:330px; }
+  .chart.tall { height:360px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { border:1px solid #e5e7eb; padding:8px 10px; text-align:left; }
+  th { background:#f3f4f6; font-weight:600; }
+  .src { font-size:12px; color:#6b7280; margin-top:10px; }
+  ul.signals { padding-left:20px; font-size:14px; }
+  ul.signals li { margin-bottom:8px; }
+  .foot { font-size:12px; color:#9ca3af; padding:6px 4px 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🎯 妖股出现环境评估</h1>
+  <div class="sub">评估基准日：2026-11-20（周五）收盘 · 报告生成：2026-11-22（周日，非交易日，采用最近交易日数据）<br>
+  数据来源：东方财富妙想（mx-ds-mcp）· 腾讯自选股（westock-mcp）· 东方财富资讯检索</div>
+</header>
+
+<div class="card">
+  <div class="verdict">
+    <div class="score-box">
+      <div class="score-num">29<span class="score-unit"> / 100</span></div>
+      <div class="score-unit">综合环境评分</div>
+    </div>
+    <div>
+      <div class="verdict-tag">判定：不适合出妖股</div>
+      <div class="verdict-txt">当前处于「情绪冰点退潮 × 监管高压」<b>双压期</b>。妖股诞生的三要素——情绪修复、新主线启动、监管边际放松，<b>当前一个都不具备</b>。现在不是妖股出现的窗口，而是孕育期：需等下方观察信号确认后，妖股捕捉信号才具备升级条件。</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>五维环境评分（0–100，越高越适合出妖股）</h2>
+  <div class="grid">
+    <div class="dim"><div class="name">① 大盘情绪（权重25%）</div><div class="val c-low">22</div><div class="why">上涨仅 5.6%、93.8% 下跌；涨停约 30 家 vs 跌停 68 家；指数 5 日 4 跌，冰点</div></div>
+    <div class="dim"><div class="name">② 题材环境（权重25%）</div><div class="val c-low">28</div><div class="why">涨幅第一概念仅 +1.09%，无主线；涨停股分散无板块效应；科技半导体链重挫</div></div>
+    <div class="dim"><div class="name">③ 资金环境（权重20%）</div><div class="val c-mid">42</div><div class="why">成交 1.42 万亿放量下跌，抛压重；资金仍买涨停股但高位股大面积派发</div></div>
+    <div class="dim"><div class="name">④ 监管环境（权重20%）</div><div class="val c-low">18</div><div class="why">四连板即特停、复牌跌停；监管工作函密集；账户暂停交易、重点监控</div></div>
+    <div class="dim"><div class="name">⑤ 个股胚子（权重10%）</div><div class="val c-mid">48</div><div class="why">普跌清洗后低位试错仍在（约 30 家涨停），胚子不缺，但缺土壤</div></div>
+  </div>
+  <div class="src">打分口径：综合 = 大盘 25% + 题材 25% + 资金 20% + 监管 20% + 胚子 10% = 29 分。评分为基于公开数据的环境研判，非精确测量。</div>
+</div>
+
+<div class="card">
+  <h2>① 大盘情绪：指数全线重挫，情绪冰点</h2>
+  <div id="chartIndex" class="chart"></div>
+  <div class="chart" id="chartWidth" style="height:300px;margin-top:6px;"></div>
+  <div class="src">来源：东方财富妙想（指数行情）、腾讯自选股（涨跌分布），均为 2026-11-20 收盘。涨停 29~30 家、跌停 68 家：westock 与东方财富两源跌停口径存在差异（68 vs 7），本报告采用 westock 口径并如实标注分歧。</div>
+</div>
+
+<div class="card">
+  <h2>② 题材环境：无主线，涨幅第一概念仅 +1.09%</h2>
+  <div id="chartSector" class="chart"></div>
+  <div class="src">来源：腾讯自选股概念板块排行，2026-11-20 收盘。涨幅居前全部为证金/汇金/银行等防御权重，跌幅居前为光刻机/靶材/SRAM 等科技半导体链——题材全线萎靡，无涨停扩散的主线。</div>
+</div>
+
+<div class="card">
+  <h2>③ 资金环境：1.42 万亿放量下跌，资金边打边撤</h2>
+  <div id="chartLhb" class="chart"></div>
+  <div class="src">来源：腾讯自选股龙虎榜，2026-11-20。净买入前列多为当日涨停股（超声电子 4.41 亿、东方海洋 3.14 亿、冰山冷热 2.99 亿），但阳光照明（-1.31 亿）、洪都航空（-1.50 亿）、粤芯半导体（-1.68 亿）、襄阳轴承（-2.70 亿）等高位股/前期强势股大面积净卖出——资金仍在运作，但增量不足、边打边撤。</div>
+</div>
+
+<div class="card">
+  <h2>④ 监管环境：高压期，四连板即特停（本报告最差一维）</h2>
+  <table>
+    <tr><th style="width:110px;">时间</th><th>事件</th></tr>
+    <tr><td>11-12</td><td>上交所向大东方、日出东方（5 连板）发出监管工作函；东方环宇 4 连板风险提示；17 天 9 板的东方海洋随后降温、尾盘一度跌停（金融界，2026-11-12）</td></tr>
+    <tr><td>11-13</td><td>天普股份 4 连板被停牌核查（11-16 起停牌），四连板即特停被称"罕见"；上交所当周：监管工作函 17 份、异常交易核查 28 单、对 95 起拉抬打压/虚假申报采取自律监管措施（金融界 / 上交所发布，2026-11-13）</td></tr>
+    <tr><td>11-19</td><td>天普股份核查完成复牌，开盘即封跌停 66.44 元/股（腾讯新闻，2026-11-19）</td></tr>
+    <tr><td>背景</td><td>爱丽家居多次停牌核查 + 纳入重点监控 + 相关账户被暂停交易；2026 年开年已有 7 股停牌核查。监管已从"问询上市公司"转向"交易端直接管控账户"</td></tr>
+  </table>
+  <div class="src">来源：东方财富资讯检索（金融界、腾讯新闻、上交所发布等，2026-11），属媒体二手来源，监管原文请以上交所/公司公告为准。</div>
+</div>
+
+<div class="card">
+  <h2>⑤ 综合判断与前瞻观察信号</h2>
+  <ul class="signals">
+    <li><b>当前结论：</b>环境评分 29 分，妖股出现的土壤尚未形成。妖股捕捉信号在当前环境下应<b>降级为"观察"或直接过滤</b>，等待环境修复。</li>
+    <li><b>观察信号 1（情绪修复）：</b>涨停家数从约 30 家回升至 50+，跌停收敛至个位数，昨日涨停溢价转正。</li>
+    <li><b>观察信号 2（新主线启动）：</b>出现新题材涨停扩散——板块涨停 ≥3 家 + 连板高度重新打开，而非零散个股行为。</li>
+    <li><b>观察信号 3（监管边际放松）：</b>监管工作函/特停频率下降，高位股复牌不再出现一字跌停，妖股高度重新被资金试探。</li>
+    <li><b>升级规则：</b>上述三信号出现<b>两个及以上</b>，环境评分上调至 60+，妖股捕捉信号方可升级为高置信；只有一个信号时维持"观察"。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>风险提示与数据口径</h2>
+  <ul class="signals">
+    <li>环境评估是<b>概率放大器而非充分条件</b>：环境差时个股强催化仍可能走出独立妖股，环境好也不等于必然出妖股。</li>
+    <li>监管环境是<b>突变项</b>，无法靠日均指标覆盖，需持续跟踪交易所通报与个股公告。</li>
+    <li>跌停家数两源口径不一致（westock 68 家 / 东方财富 7 家），可能源于"收盘封死"与"盘中触及"口径差异，引用时注意。</li>
+    <li>本评估基于 2026-11-20 收盘数据，非交易日不刷新；下一交易日盘后应重新评估。</li>
+  </ul>
+</div>
+
+<div class="foot">
+  **免责声明**：以上内容基于公开数据和量化分析，仅供参考，不构成投资建议。市场有风险，投资需谨慎。任何投资决策应结合个人风险承受能力、资金状况和投资目标独立判断，必要时咨询持牌专业机构。过往表现不预示未来收益。
+</div>
+
+</div>
+
+<script>
+// 图1：指数 11-20 涨跌幅（A股惯例：涨红跌绿）
+(function(){
+  var data = [
+    {name:'中证2000', v:-5.36},
+    {name:'中证1000', v:-4.89},
+    {name:'创业板指', v:-3.54},
+    {name:'深证成指', v:-3.09},
+    {name:'上证指数', v:-1.23},
+    {name:'沪深300', v:-0.76}
+  ];
+  echarts.init(document.getElementById('chartIndex')).setOption({
+    tooltip: { trigger:'axis', formatter: function(p){ return p[0].name + '：' + p[0].value + '%'; } },
+    grid: { left: 80, right: 30, top: 20, bottom: 20 },
+    xAxis: { type:'value', name:'涨跌幅(%)' },
+    yAxis: { type:'category', data: data.map(function(d){ return d.name; }) },
+    series: [{
+      type:'bar',
+      data: data.map(function(d){ return { value:d.v, itemStyle:{ color: d.v >= 0 ? '#c0392b' : '#2e8b57' } }; }),
+      barWidth: 16,
+      label: { show:true, position:'right', formatter:'{c}%' }
+    }]
+  });
+})();
+
+// 图2：市场涨跌分布
+(function(){
+  echarts.init(document.getElementById('chartWidth')).setOption({
+    tooltip: { trigger:'axis' },
+    grid: { left: 50, right: 20, top: 30, bottom: 40 },
+    xAxis: { type:'category', data:['上涨','平盘','下跌','涨停','跌停'] },
+    yAxis: { type:'value', name:'家数' },
+    series: [{
+      type:'bar',
+      data: [
+        { value:313, itemStyle:{ color:'#c0392b' } },
+        { value:31, itemStyle:{ color:'#9ca3af' } },
+        { value:5236, itemStyle:{ color:'#2e8b57' } },
+        { value:30, itemStyle:{ color:'#c0392b' } },
+        { value:68, itemStyle:{ color:'#2e8b57' } }
+      ],
+      barWidth: 42,
+      label: { show:true, position:'top' }
+    }]
+  });
+})();
+
+// 图3：板块涨幅前5 vs 跌幅前5
+(function(){
+  var up = [['证金持股',1.09],['汇金持股',0.50],['主营聚乙烯',0.39],['银行概念',0.22],['昨日连板',0.22]];
+  var down = [['靶材',-7.88],['光刻机',-7.69],['SRAM',-7.57],['激光',-7.56],['防护服',-7.46]];
+  var names = down.concat(up).map(function(d){ return d[0]; });
+  var vals = down.concat(up).map(function(d){ return d[1]; });
+  echarts.init(document.getElementById('chartSector')).setOption({
+    tooltip: { trigger:'axis', formatter: function(p){ return p[0].name + '：' + p[0].value + '%'; } },
+    grid: { left: 80, right: 40, top: 20, bottom: 20 },
+    xAxis: { type:'value', name:'涨跌幅(%)' },
+    yAxis: { type:'category', data: names },
+    series: [{
+      type:'bar',
+      data: vals.map(function(v){ return { value:v, itemStyle:{ color: v >= 0 ? '#c0392b' : '#2e8b57' } }; }),
+      barWidth: 14,
+      label: { show:true, position:'right', formatter:'{c}%' }
+    }]
+  });
+})();
+
+// 图4：龙虎榜净买入 TOP8（亿元）
+(function(){
+  var data = [
+    ['超声电子',4.41,9.98],
+    ['东方海洋',3.14,9.97],
+    ['冰山冷热',2.99,10.03],
+    ['中京电子',2.44,10.02],
+    ['深南电路',1.96,-0.59],
+    ['北纬科技',1.87,8.17],
+    ['满坤科技',1.20,20.00],
+    ['好当家',1.20,10.00]
+  ];
+  echarts.init(document.getElementById('chartLhb')).setOption({
+    tooltip: { trigger:'axis', formatter: function(p){
+      var d = data[p[0].dataIndex];
+      return d[0] + '：净买入 ' + d[1] + ' 亿（当日 ' + (d[2] >= 0 ? '+' : '') + d[2] + '%）';
+    } },
+    grid: { left: 80, right: 60, top: 20, bottom: 20 },
+    xAxis: { type:'value', name:'净买入(亿元)' },
+    yAxis: { type:'category', data: data.map(function(d){ return d[0]; }) },
+    series: [{
+      type:'bar',
+      data: data.map(function(d){ return { value:d[1], itemStyle:{ color: d[2] >= 0 ? '#c0392b' : '#2e8b57' } }; }),
+      barWidth: 16,
+      label: { show:true, position:'right', formatter: function(p){ return p.value + '亿'; } }
+    }]
+  });
+})();
+</script>
+</body>
+</html>
