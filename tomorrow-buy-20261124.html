@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>观复・研社 · 明日(11/25)买入策略 · 2026-11-24</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root{--up:#d32f2f;--down:#2e7d32;--warn:#ef9a00;--ink:#1b1f24;--sub:#5b6570;--line:#e3e7ec;--bg:#f4f6f9;--card:#fff;--accent:#1a4e8a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6;font-size:15px}
+.wrap{max-width:960px;margin:0 auto;padding:16px}
+header{background:linear-gradient(135deg,#12365f,#1a4e8a);color:#fff;border-radius:14px;padding:20px 22px;margin-bottom:14px}
+header h1{margin:0 0 6px;font-size:22px}
+header .meta{font-size:12px;opacity:.85}
+.tldr{background:#fff;border-left:5px solid var(--accent);border-radius:10px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.tldr h2{margin:0 0 8px;font-size:17px;color:var(--accent)}
+.tldr p{margin:6px 0}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;margin-right:6px;font-weight:600}
+.tag.red{background:#fdecea;color:var(--up)}.tag.green{background:#e8f5e9;color:var(--down)}.tag.orange{background:#fff3e0;color:#c26a00}.tag.blue{background:#e8f0fb;color:var(--accent)}
+.card{background:var(--card);border-radius:12px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card h2{margin:0 0 12px;font-size:17px;border-left:4px solid var(--accent);padding-left:10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:640px){.grid{grid-template-columns:repeat(2,1fr)}.wrap{padding:10px}header h1{font-size:18px}.tblwrap{overflow-x:auto}}
+.kpi{background:#f8fafc;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.kpi .n{font-size:20px;font-weight:700}.kpi .l{font-size:12px;color:var(--sub)}
+.up{color:var(--up)!important}.down{color:var(--down)!important}
+.chart{width:100%;height:340px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line)}
+th{background:#eef2f7;color:#33404f;font-weight:600;white-space:nowrap}
+td.l,th.l{text-align:left}
+.rank{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}
+.chain .node{background:#eef2f7;border:1px solid #d7e0ea;border-radius:8px;padding:8px 12px;font-size:13px}
+.chain .node.hot{background:#fdecea;border-color:#f5c6c0}
+.chain .node.cold{background:#e8f5e9;border-color:#c8e6c9}
+.chain .arr{color:#98a4b3;font-weight:700}
+.note{font-size:12px;color:var(--sub);margin-top:8px}
+.avoid{background:#fdecea;border-radius:8px;padding:10px 14px;font-size:13px}
+.avoid li{margin:4px 0}
+.disclaimer{background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px 16px;font-size:12px;color:#6b5518}
+.src{font-size:11px;color:#8a949f;margin-top:6px}
+.big{font-size:16px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>明日（11/25）可以买什么 · 分层低吸策略</h1>
+  <div class="meta">数据基准：2026-11-24 收盘 ｜ 生成：2026-11-24 22:20 ｜ 观复・研社 · 复盘工作台</div>
+</header>
+
+<div class="tldr">
+  <h2>30 秒结论</h2>
+  <p><span class="tag orange">市场档位：震荡·偏防守</span>今天是「外盘暴力反弹 → A股高开低走」的典型<strong>情绪脉冲 + 筹码兑现</strong>日：沪指 +0.27% 靠权重撑住，深成 / 创业板翻绿，超 3400 股下跌，封板率从昨日 84% 崩到 <strong>43.5%</strong>，大盘收在 MA20（3623）下方。</p>
+  <p><span class="tag red">明日主线</span>资金真金白银的方向只有三个：<strong>人形机器人 / 汽车零部件</strong>（8 只涨停、3 板梯队）、<strong>消费电子</strong>（+24.9 亿）、<strong>算力/半导体权重</strong>（电子 +84.7 亿）。算力硬件 CPO 今日净流出超 106 亿，属兑现窗口，<strong>不追高、只接回踩</strong>。</p>
+  <p><span class="tag blue">打法</span>明日大概率 3500–3585 区间震荡。策略＝<strong>放弃高位接力，专做「持续吸筹 + 筹码成本贴近现价 + 主线方向」的回踩低吸</strong>。下方给出 A/B/C 三档共 8 只，每只都带真实资金与筹码证据、入场区间和止损位。</p>
+</div>
+
+<div class="card">
+  <h2>一、今日市场体检：指数红、个股绿</h2>
+  <div class="grid">
+    <div class="kpi"><div class="n up">3548.37 +0.27%</div><div class="l">上证 · 高开0.82%后回落</div></div>
+    <div class="kpi"><div class="n down">10423.6 −0.29%</div><div class="l">深成指 · 收在当日低点附近</div></div>
+    <div class="kpi"><div class="n down">2278.99 −0.05%</div><div class="l">创业板 · 盘中曾 +4% 后翻绿</div></div>
+    <div class="kpi"><div class="n up">1250.09 +1.81%</div><div class="l">科创50 · 少数权重驱动</div></div>
+    <div class="kpi"><div class="n">1.66 万亿</div><div class="l">两市成交 · 放量 1022 亿</div></div>
+    <div class="kpi"><div class="n down">1837 / 3267</div><div class="l">涨/跌家数 · 红盘率仅 35%</div></div>
+    <div class="kpi"><div class="n">55 / 2</div><div class="l">涨停(非ST) / 跌停</div></div>
+    <div class="kpi"><div class="n down">43.5%</div><div class="l">封板率 · 前一日 84.4%</div></div>
+    <div class="kpi"><div class="n">4 板</div><div class="l">最高连板 · 中京电子独苗</div></div>
+  </div>
+  <p class="note">解读：放量千亿但指数没涨、个股大面积下跌＝增量资金没进场、存量高低切换。券商口径普遍认为「筹码压力未解决前反弹空间有限」，本轮是「进二退一」式修复而非趋势反转。</p>
+  <div class="src">来源：本机收盘快照 _snap_1124.json（东财+腾讯+datacenter 真实抓取，11-24 16:23）、westock 指数行情；媒体口径交叉见 11-24 澎湃/中国基金报报道。</div>
+</div>
+
+<div class="card">
+  <h2>二、外盘与消息面：催化是真的，但要打折看</h2>
+  <div class="chain">
+    <span class="node hot">黄仁勋复职 → 英伟达 +31.48%</span><span class="arr">→</span>
+    <span class="node hot">纳指 +6.51% / 费半 +14.03%</span><span class="arr">→</span>
+    <span class="node">日经 +3.91% / 韩国 +6.32%</span><span class="arr">→</span>
+    <span class="node cold">A股高开 → 获利盘兑现 → 收长上影</span>
+  </div>
+  <p><strong>必须记录的反向信号</strong>（决定明日能否续涨）：美元指数 104.32 创 19 个月新高、2 年美债 4.662%、利率期货隐含 12 月加息概率回到 100%、11 月美国综合 PMI 54.6 为四个月最低；油价跌超 3%。这说明隔夜暴涨是<strong>治理风险消除的空头回补</strong>，不是景气上修——A股今天已经用「高开低走」投了票。</p>
+  <p><span class="tag orange">消息催化 1 · 钴</span>刚果（金）ARECOMS 宣布 <strong>11/30 起全面暂停钴出口</strong>（配额也不豁免、不结转），国内钴价单日暴涨 11.76% 至 29.85 万元/吨，钴 2701 合约 +11.52%。腾远钴业 +14.23%、寒锐钴业 +8.77%、华友钴业 +5.72%。<span class="down">注意：这是供给侧政策脉冲，需求端仍弱（3C 淡季、高镍低钴），不宜追已大涨的票。</span></p>
+  <p><span class="tag orange">消息催化 2 · 政策</span>11/30 起两融保证金比例 100%→80%、创业板做市商征求意见、交易所降费——三项利好都在<strong>月底才生效</strong>，对明日是预期支撑而非真金白银。</p>
+  <p><span class="tag red">最大风险点</span><strong>11/25（周三）美国 10 月核心 PCE + Q3 GDP 修正值</strong>，直接决定 12 月加息路径。结果出来前，高估值成长不宜重仓过夜。</p>
+  <div class="src">来源：domain_search 多源汇总（中国基金报/财联社/澎湃/证券时报/生意社/OFweek 等，均为 2026-11-24 发布）；属媒体二次来源，关键数字以交易所及官方披露为准。</div>
+</div>
+
+<div class="card">
+  <h2>三、资金选择了谁：板块主力净流入（亿元）</h2>
+  <div id="sectorChart" class="chart"></div>
+  <p class="note">电子链（元件 +31.1 / 消费电子 +24.9 / 半导体 +13.1）与机器人链（汽零 +6.7 / 通用设备 +4.3）是仅有的持续流入方向；证券、电力、小金属、计算机设备净流出居前。注意：不同数据商口径有差异，此处为 westock 申万二级口径，媒体 Wind 口径电子净流入 84.65 亿、通信 +13.38 亿，方向一致。</p>
+  <div class="src">来源：westock-mcp data_sector（ranking / mainNetInflow，2026-11-24），单位由万元换算为亿元。</div>
+</div>
+
+<div class="card">
+  <h2>四、筹码体检：获利盘越高，低吸越危险</h2>
+  <div id="chipChart" class="chart"></div>
+  <p class="note">红柱＝获利盘低（上方套牢重但抛压小、性价比相对好）；绿柱＝获利盘 &gt;85%（随时可能兑现，只做回踩不追）。<strong>安培龙获利盘 100%、金新农 96%、东方海洋 92%</strong>——这三只今日涨停但明日接力赔率最差。</p>
+  <div class="src">来源：westock-mcp data_chip（2026-11-24），chipProfitRate / chipAvgCost / chipConcentration90。</div>
+</div>
+
+<div class="card">
+  <h2>五、明日买入清单（按推荐优先级分档）</h2>
+
+  <p><span class="tag red">A 档 · 核心低吸</span>持续吸筹 + 筹码成本贴近现价 + 主线方向，三重共振，性价比最高</p>
+  <div class="tblwrap"><table>
+  <tr><th class="l">标的</th><th>收盘/涨幅</th><th>主力当日</th><th>主力5日</th><th>主力20日</th><th>获利盘</th><th>筹码成本</th><th class="l">明日低吸区</th><th>止损</th></tr>
+  <tr><td class="l"><span class="rank">1</span> <b>寒武纪</b><br>688256 · 算力</td><td class="up">970.00 +6.03%</td><td class="up">+10.83亿</td><td class="up">+18.47亿</td><td class="up">+31.69亿</td><td>43.7%</td><td>1003.57<br><span class="note">现价略低于成本</span></td><td class="l">940–960 回踩买<br><span class="note">算力总龙头，20日持续吸筹最硬</span></td><td>897<br>(今日低点)</td></tr>
+  <tr><td class="l"><span class="rank">2</span> <b>沪电股份</b><br>002463 · PCB</td><td class="up">84.13 +1.73%</td><td class="up">+6.06亿</td><td class="up">+22.56亿</td><td class="up">+20.98亿</td><td>38.5%</td><td>89.14<br><span class="note">贴近现价</span></td><td class="l">82–84 回踩买<br><span class="note">PCB 里资金最持续，未追高</span></td><td>79</td></tr>
+  <tr><td class="l"><span class="rank">3</span> <b>科森科技</b><br>603626 · 消费电子2板</td><td class="up">26.22 +9.98%</td><td class="up">+7642万</td><td class="down">−1.72亿</td><td class="up">+5.15亿</td><td>50.1%</td><td>26.13<br><span class="note">≈现价，半获利半套牢</span></td><td class="l">24.5–25.5 回踩买<br><span class="note">换手仅2.6%锁仓好，成本线支撑</span></td><td>23.84<br>(启动价)</td></tr>
+  </table></div>
+
+  <p style="margin-top:16px"><span class="tag orange">B 档 · 龙头/连板低吸</span>高弹性但获利盘偏高，<strong>只做开板回踩，一字板不参与</strong></p>
+  <div class="tblwrap"><table>
+  <tr><th class="l">标的</th><th>收盘/涨幅</th><th>主力当日</th><th>主力5日</th><th>获利盘</th><th>换手</th><th class="l">明日低吸区</th><th>止损</th></tr>
+  <tr><td class="l"><span class="rank">4</span> <b>中京电子</b><br>002579 · 4板空间龙</td><td class="up">16.20 +9.98%</td><td class="up">+1.37亿</td><td class="up">+8.53亿</td><td class="down">88.0%</td><td>8.81%</td><td class="l">13.5–14.5（5日线附近）<br><span class="note">封单1.97亿一字，开板分歧才接</span></td><td>13.0</td></tr>
+  <tr><td class="l"><span class="rank">5</span> <b>克来机电</b><br>603960 · 机器人3板龙</td><td class="up">16.91 +10.02%</td><td class="up">+2053万</td><td class="up">+6569万</td><td>74.4%</td><td>0.59%</td><td class="l">15.2–15.8（成本线15.25）<br><span class="note">换手0.59%极度锁仓，封单3.35亿</span></td><td>14.8</td></tr>
+  <tr><td class="l"><span class="rank">6</span> <b>福莱新材</b><br>605488 · 机器人2板</td><td class="up">51.45 +10.01%</td><td class="up">+1.18亿</td><td class="up">+1.83亿</td><td>73.9%</td><td>6.62%</td><td class="l">48–49 回踩买<br><span class="note">机器人+材料，5日吸筹1.83亿</span></td><td>46.5</td></tr>
+  </table></div>
+
+  <p style="margin-top:16px"><span class="tag blue">C 档 · 消息面 / 有预期</span>钴出口禁令 + 军工主轴，等回踩，不追今日涨幅</p>
+  <div class="tblwrap"><table>
+  <tr><th class="l">标的</th><th>收盘/涨幅</th><th>主力当日</th><th>筹码成本</th><th>获利盘</th><th class="l">逻辑与低吸区</th><th>止损</th></tr>
+  <tr><td class="l"><span class="rank">7</span> <b>华友钴业</b><br>603799 · 钴龙头</td><td class="up">31.60 +5.72%</td><td class="up">+2.48亿</td><td>34.28<br><span class="note">现价低于成本</span></td><td>25.5%</td><td class="l">PE 9.64 估值低，钴价单日+11.76%<br>等回踩 30–31 低吸，不追高</td><td>29</td></tr>
+  <tr><td class="l"><span class="rank">8</span> <b>中国船舶</b><br>600150 · 航海装备</td><td class="up">35.34 +3.03%</td><td class="up">+3.77亿</td><td>35.04<br><span class="note">≈现价</span></td><td>55.2%</td><td class="l">筹码集中度10.05（高度集中）<br>回踩 34.5–35 低吸</td><td>33.8</td></tr>
+  </table></div>
+
+  <div class="note" style="margin-top:14px"><b>仓位建议：</b>市场处震荡档，总仓位控制在 5 成以内。A 档单只试错仓 10–15%，回踩确认后再加 10%；B 档仅 5–8% 试错、次日不弱转强即走；C 档 5–8% 事件博弈仓。<strong>任何一只跌破止损位无条件离场，不摊薄成本。</strong></div>
+  <div class="src">来源：westock-mcp data_quote / data_fund_flow / data_chip（均为 2026-11-24 收盘值）；入场区间与止损为依据今日低点、筹码成本线、5 日线推导的技术位，非预测价格。</div>
+</div>
+
+<div class="card">
+  <h2>六、明确回避清单</h2>
+  <div class="avoid">
+    <ul>
+      <li><b>东方海洋 002086</b>：今日主力净流出 8125 万、换手 35.2%、获利盘 91.6% —— 高位派发特征明显。</li>
+      <li><b>安培龙 301413</b>：筹码获利盘 <b>100%</b>、换手 24.1%，无人套牢＝全员可兑现，接力赔率最差。</li>
+      <li><b>金新农 002548</b>：获利盘 96.1%，3 板后风险收益比不佳。</li>
+      <li><b>工业富联 601138</b>：今日主力猛吸 22.93 亿（全市场第一），但获利盘仅 6.6%、平均成本 61.95 元 vs 现价 40.96 元 —— 上方 93% 套牢盘，反弹阻力极大，<strong>只适合超跌博弈，不适合低吸</strong>。</li>
+      <li><b>CPO / 光模块（中际旭创、新易盛等）</b>：今日概念净流出超 106 亿，中际旭创成交 285 亿、新易盛 250 亿位列前二，是获利了结集中区，等缩量企稳再看。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <h2>七、明日 3 个必须盯的验证信号</h2>
+  <p><span class="tag red">① 位置</span>上证 <b>3539</b>（今日低点）得失。守住＝震荡修复延续；有效跌破＝今日冲高回落坐实，降仓到 3 成。</p>
+  <p><span class="tag orange">② 情绪</span>涨停家数能否回到 <b>80 家以上</b>、封板率能否回到 <b>60% 以上</b>（今日 43.5%）。达不到＝继续只做低吸不做接力。</p>
+  <p><span class="tag blue">③ 外围</span>11/25 晚美国核心 PCE。数据前控制隔夜风险敞口；若加息预期再升温，高估值成长（算力/半导体）优先减。</p>
+  <p class="note">判断失效标志：机器人/消费电子主线出现龙头开板大跌且中军不接，或指数放量跌破 3500 —— 出现任一，本清单全部作废，转为观望。</p>
+</div>
+
+<div class="disclaimer">
+<b>免责声明</b>：以上内容基于公开数据和量化分析，仅供参考，不构成投资建议。市场有风险，投资需谨慎。任何投资决策应结合个人风险承受能力、资金状况和投资目标独立判断，必要时咨询持牌专业机构。过往表现不预示未来收益。
+</div>
+
+</div>
+
+<script>
+(function(){
+  var c1 = document.getElementById('sectorChart');
+  if (c1 && typeof echarts !== 'undefined') {
+    var names = ['元件','消费电子','通信设备','半导体','汽车零部件','光伏设备','航海装备Ⅱ','保险Ⅱ','通用设备','证券Ⅱ','电力','小金属','IT服务Ⅱ','计算机设备','工业金属'];
+    var vals = [31.09,24.86,14.03,13.08,6.75,6.47,4.49,4.40,4.31,-15.41,-11.39,-11.27,-9.38,-7.58,-8.15];
+    echarts.init(c1).setOption({
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: 95, right: 40, top: 16, bottom: 30 },
+      xAxis: { type: 'value', name: '主力净流入(亿元)' },
+      yAxis: { type: 'category', data: names, inverse: true },
+      series: [{
+        type: 'bar',
+        barWidth: '65%',
+        data: vals.map(function(v){ return { value: v, itemStyle: { color: v >= 0 ? '#d32f2f' : '#2e7d32' } }; }),
+        label: { show: true, position: 'right', formatter: '{c}' }
+      }]
+    });
+  }
+  var c2 = document.getElementById('chipChart');
+  if (c2 && typeof echarts !== 'undefined') {
+    var cnames = ['安培龙','金新农','东方海洋','中京电子','克来机电','福莱新材','中国船舶','科森科技','寒武纪','沪电股份','华友钴业'];
+    var cvals = [100,96.1,91.6,88.0,74.4,73.9,55.2,50.1,43.7,38.5,25.5];
+    echarts.init(c2).setOption({
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: 85, right: 45, top: 16, bottom: 30 },
+      xAxis: { type: 'value', name: '获利盘比例(%)', max: 100 },
+      yAxis: { type: 'category', data: cnames, inverse: true },
+      series: [{
+        type: 'bar',
+        barWidth: '65%',
+        data: cvals.map(function(v){ return { value: v, itemStyle: { color: v > 85 ? '#2e7d32' : (v > 60 ? '#ef9a00' : '#d32f2f') } }; }),
+        label: { show: true, position: 'right', formatter: '{c}%' }
+      }]
+    });
+  }
+})();
+</script>
+</body>
+</html>
