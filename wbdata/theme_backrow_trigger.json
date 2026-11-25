@@ -1,20 +1,580 @@
 {
-  "seq": 4,
-  "asOf": "2026-11-25 14:05:00",
+  "seq": 5,
+  "asOf": "2026-11-25 14:59:00",
   "date": "2026-11-25",
   "boards": [
     {
-      "bk": "BK0595",
-      "name": "风能",
+      "bk": "BK0506",
+      "name": "创投",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0634",
+      "name": "大数据",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0800",
+      "name": "人工智能",
+      "type": "concept",
+      "count": 10,
+      "addedCount": 3,
+      "firstIgnite": false
+    },
+    {
+      "bk": "BK0567",
+      "name": "股权激励",
       "type": "concept",
       "count": 3,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "HY:化学原料",
-      "name": "化学原料",
+      "bk": "BK0465",
+      "name": "化学制药",
       "type": "industry",
+      "count": 8,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0615",
+      "name": "中药概念",
+      "type": "concept",
+      "count": 9,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0906",
+      "name": "流感",
+      "type": "concept",
+      "count": 10,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1001",
+      "name": "内贸流通",
+      "type": "concept",
+      "count": 7,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1056",
+      "name": "幽门螺杆菌概念",
+      "type": "concept",
+      "count": 4,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1657",
+      "name": "病原体防治",
+      "type": "concept",
+      "count": 10,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "HY:汽车零部",
+      "name": "汽车零部",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0802",
+      "name": "智能驾驶",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1090",
+      "name": "机器人概念",
+      "type": "concept",
+      "count": 8,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0900",
+      "name": "新能源车",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1783",
+      "name": "汽车电子",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0554",
+      "name": "物联网",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0590",
+      "name": "西部大开发",
+      "type": "concept",
+      "count": 8,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0963",
+      "name": "商业航天",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0825",
+      "name": "新零售",
+      "type": "concept",
+      "count": 8,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0889",
+      "name": "医美概念",
+      "type": "concept",
+      "count": 7,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0665",
+      "name": "电商概念",
+      "type": "concept",
+      "count": 10,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1184",
+      "name": "人形机器人",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0989",
+      "name": "储能概念",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1763",
+      "name": "医药电商",
+      "type": "concept",
+      "count": 4,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0676",
+      "name": "独家药品",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0936",
+      "name": "长寿药",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1656",
+      "name": "特色药",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1078",
+      "name": "肝炎概念",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0675",
+      "name": "病毒防治",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1652",
+      "name": "新消费",
+      "type": "concept",
+      "count": 4,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0834",
+      "name": "乡村振兴",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0974",
+      "name": "化妆品概念",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0689",
+      "name": "阿里概念",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1629",
+      "name": "AI应用",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1106",
+      "name": "创新药",
+      "type": "concept",
+      "count": 6,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0668",
+      "name": "医疗器械概念",
+      "type": "concept",
+      "count": 6,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "HY:农化制品",
+      "name": "农化制品",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0894",
+      "name": "阿兹海默",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1775",
+      "name": "民营医院",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0492",
+      "name": "煤化工概念",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0512",
+      "name": "化工原料",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1718",
+      "name": "外资背景",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0833",
+      "name": "小米概念",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0641",
+      "name": "智能穿戴",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1646",
+      "name": "消费电子概念",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0893",
+      "name": "无线耳机",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0653",
+      "name": "养老概念",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0939",
+      "name": "辅助生殖",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0870",
+      "name": "单抗概念",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0693",
+      "name": "基因测序",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1650",
+      "name": "通信技术",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0714",
+      "name": "5G概念",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1136",
+      "name": "光通信模块",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1061",
+      "name": "数字经济",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0696",
+      "name": "国产软件",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0845",
+      "name": "百度概念",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0830",
+      "name": "区块链",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0579",
+      "name": "云计算",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0860",
+      "name": "边缘计算",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1104",
+      "name": "信创",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1064",
+      "name": "东数西算",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0922",
+      "name": "数据中心",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0854",
+      "name": "华为概念",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1716",
+      "name": "反转股",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0917",
+      "name": "半导体概念",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "HY:IT服务Ⅱ",
+      "name": "IT服务Ⅱ",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0447",
+      "name": "互联网服务",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1183",
+      "name": "谷子经济",
+      "type": "concept",
+      "count": 4,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1696",
+      "name": "私募新进",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0852",
+      "name": "冷链物流",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "HY:出版",
+      "name": "出版",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0662",
+      "name": "在线教育",
+      "type": "concept",
       "count": 2,
       "addedCount": 1,
       "firstIgnite": true
