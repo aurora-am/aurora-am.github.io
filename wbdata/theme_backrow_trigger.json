@@ -1,85 +1,21 @@
 {
-  "seq": 3,
-  "asOf": "2026-11-25 13:16:00",
+  "seq": 4,
+  "asOf": "2026-11-25 14:05:00",
   "date": "2026-11-25",
   "boards": [
     {
-      "bk": "BK0800",
-      "name": "人工智能",
-      "type": "concept",
-      "count": 9,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1733",
-      "name": "增持计划",
-      "type": "concept",
-      "count": 7,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0940",
-      "name": "网红经济",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1690",
-      "name": "基金增仓",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0722",
-      "name": "虚拟现实",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1183",
-      "name": "谷子经济",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0847",
-      "name": "影视概念",
+      "bk": "BK0595",
+      "name": "风能",
       "type": "concept",
       "count": 3,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK1135",
-      "name": "数据要素",
-      "type": "concept",
+      "bk": "HY:化学原料",
+      "name": "化学原料",
+      "type": "industry",
       "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0662",
-      "name": "在线教育",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1111",
-      "name": "AIGC概念",
-      "type": "concept",
-      "count": 4,
       "addedCount": 1,
       "firstIgnite": true
     }
