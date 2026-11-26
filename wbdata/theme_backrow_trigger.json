@@ -1,109 +1,93 @@
 {
-  "seq": 6,
-  "asOf": "2026-11-26 11:15:00",
+  "seq": 7,
+  "asOf": "2026-11-26 13:01:00",
   "date": "2026-11-26",
   "boards": [
     {
-      "bk": "BK0623",
-      "name": "海洋经济",
+      "bk": "BK0963",
+      "name": "商业航天",
       "type": "concept",
-      "count": 4,
+      "count": 10,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK0459",
-      "name": "元件",
-      "type": "industry",
+      "bk": "BK0623",
+      "name": "海洋经济",
+      "type": "concept",
       "count": 6,
-      "addedCount": 6,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1094",
+      "name": "钙钛矿电池",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK1185",
       "name": "冰雪经济",
       "type": "concept",
-      "count": 2,
+      "count": 3,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK0731",
-      "name": "农化制品",
-      "type": "industry",
-      "count": 2,
-      "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0843",
-      "name": "天然气",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1019",
-      "name": "化学原料",
+      "bk": "HY:汽车零部",
+      "name": "汽车零部",
       "type": "industry",
       "count": 3,
-      "addedCount": 3,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
-      "bk": "BK1036",
-      "name": "半导体",
-      "type": "industry",
-      "count": 2,
-      "addedCount": 2,
+      "bk": "BK0888",
+      "name": "农业种植",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0538",
       "name": "化学制品",
       "type": "industry",
-      "count": 4,
-      "addedCount": 4,
+      "count": 5,
+      "addedCount": 1,
+      "firstIgnite": false
+    },
+    {
+      "bk": "BK0523",
+      "name": "新材料",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK0910",
-      "name": "专用设备",
-      "type": "industry",
-      "count": 2,
-      "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0606",
-      "name": "油气设服",
+      "bk": "BK0601",
+      "name": "海工装备",
       "type": "concept",
       "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK1192",
-      "name": "雅下水电概念",
+      "bk": "BK1160",
+      "name": "柔性屏(折叠屏)",
       "type": "concept",
       "count": 2,
       "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0732",
-      "name": "贵金属",
-      "type": "industry",
-      "count": 2,
-      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0545",
       "name": "通用设备",
       "type": "industry",
-      "count": 2,
+      "count": 4,
       "addedCount": 2,
       "firstIgnite": true
     }
