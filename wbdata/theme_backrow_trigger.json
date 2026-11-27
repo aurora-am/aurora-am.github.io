@@ -1,53 +1,61 @@
 {
-  "seq": 14,
-  "asOf": "2026-11-27 14:15:00",
+  "seq": 15,
+  "asOf": "2026-11-27 14:49:00",
   "date": "2026-11-27",
   "boards": [
     {
       "bk": "BK1238",
       "name": "IT服务Ⅱ",
       "type": "industry",
-      "count": 31,
-      "addedCount": 6,
+      "count": 33,
+      "addedCount": 2,
       "firstIgnite": false
     },
     {
       "bk": "BK0995",
       "name": "华为昇腾",
       "type": "concept",
-      "count": 19,
-      "addedCount": 1,
+      "count": 22,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1781",
       "name": "华为鲲鹏",
       "type": "concept",
-      "count": 24,
-      "addedCount": 1,
+      "count": 26,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK1792",
       "name": "算力租赁",
       "type": "concept",
-      "count": 23,
-      "addedCount": 3,
+      "count": 25,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK1104",
       "name": "信创",
       "type": "concept",
-      "count": 31,
-      "addedCount": 3,
+      "count": 38,
+      "addedCount": 7,
       "firstIgnite": true
     },
     {
       "bk": "BK0579",
       "name": "云计算",
       "type": "concept",
-      "count": 23,
+      "count": 26,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1182",
+      "name": "智谱AI概念",
+      "type": "concept",
+      "count": 7,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -55,23 +63,23 @@
       "bk": "BK0655",
       "name": "网络安全",
       "type": "concept",
-      "count": 18,
-      "addedCount": 2,
+      "count": 22,
+      "addedCount": 4,
       "firstIgnite": true
     },
     {
       "bk": "BK0953",
       "name": "鸿蒙概念",
       "type": "concept",
-      "count": 16,
-      "addedCount": 2,
+      "count": 19,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1189",
       "name": "腾讯概念",
       "type": "concept",
-      "count": 5,
+      "count": 6,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -79,79 +87,79 @@
       "bk": "BK0696",
       "name": "国产软件",
       "type": "concept",
-      "count": 27,
-      "addedCount": 2,
+      "count": 31,
+      "addedCount": 4,
       "firstIgnite": true
     },
     {
       "bk": "BK0628",
       "name": "智慧城市",
       "type": "concept",
-      "count": 23,
-      "addedCount": 4,
+      "count": 25,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0634",
       "name": "大数据",
       "type": "concept",
-      "count": 28,
-      "addedCount": 2,
+      "count": 32,
+      "addedCount": 4,
       "firstIgnite": true
     },
     {
       "bk": "BK1794",
       "name": "智算中心（AIDC）",
       "type": "concept",
-      "count": 27,
-      "addedCount": 3,
+      "count": 29,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0854",
       "name": "华为概念",
       "type": "concept",
-      "count": 56,
-      "addedCount": 6,
+      "count": 66,
+      "addedCount": 10,
       "firstIgnite": false
     },
     {
       "bk": "BK0830",
       "name": "区块链",
       "type": "concept",
-      "count": 23,
-      "addedCount": 1,
+      "count": 25,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0922",
       "name": "数据中心",
       "type": "concept",
-      "count": 30,
-      "addedCount": 6,
+      "count": 33,
+      "addedCount": 3,
       "firstIgnite": false
     },
     {
       "bk": "BK1629",
       "name": "AI应用",
       "type": "concept",
-      "count": 21,
-      "addedCount": 1,
+      "count": 24,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK0920",
       "name": "车联网(车路云)",
       "type": "concept",
-      "count": 11,
-      "addedCount": 3,
+      "count": 13,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0800",
       "name": "人工智能",
       "type": "concept",
-      "count": 47,
+      "count": 54,
       "addedCount": 7,
       "firstIgnite": false
     },
@@ -159,7 +167,7 @@
       "bk": "BK0845",
       "name": "百度概念",
       "type": "concept",
-      "count": 13,
+      "count": 15,
       "addedCount": 2,
       "firstIgnite": true
     },
@@ -167,15 +175,15 @@
       "bk": "BK0506",
       "name": "创投",
       "type": "concept",
-      "count": 16,
-      "addedCount": 2,
+      "count": 21,
+      "addedCount": 5,
       "firstIgnite": true
     },
     {
-      "bk": "BK0813",
-      "name": "雄安新区",
+      "bk": "BK0852",
+      "name": "冷链物流",
       "type": "concept",
-      "count": 7,
+      "count": 5,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -183,15 +191,31 @@
       "bk": "HY:计算机设",
       "name": "计算机设",
       "type": "industry",
-      "count": 8,
-      "addedCount": 3,
+      "count": 10,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1064",
+      "name": "东数西算",
+      "type": "concept",
+      "count": 16,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0883",
       "name": "数字货币",
       "type": "concept",
-      "count": 12,
+      "count": 16,
+      "addedCount": 4,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1129",
+      "name": "数字水印",
+      "type": "concept",
+      "count": 5,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -199,23 +223,31 @@
       "bk": "BK1134",
       "name": "算力概念",
       "type": "concept",
-      "count": 30,
-      "addedCount": 3,
+      "count": 31,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1047",
+      "name": "数据安全",
+      "type": "concept",
+      "count": 10,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0860",
       "name": "边缘计算",
       "type": "concept",
-      "count": 15,
-      "addedCount": 2,
+      "count": 18,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1135",
       "name": "数据要素",
       "type": "concept",
-      "count": 17,
+      "count": 18,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -223,15 +255,15 @@
       "bk": "BK0556",
       "name": "移动支付",
       "type": "concept",
-      "count": 7,
-      "addedCount": 1,
+      "count": 10,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1061",
       "name": "数字经济",
       "type": "concept",
-      "count": 20,
+      "count": 21,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -239,47 +271,47 @@
       "bk": "BK1188",
       "name": "DeepSeek概念",
       "type": "concept",
-      "count": 22,
-      "addedCount": 3,
+      "count": 29,
+      "addedCount": 7,
       "firstIgnite": true
     },
     {
       "bk": "BK0689",
       "name": "阿里概念",
       "type": "concept",
-      "count": 19,
-      "addedCount": 1,
+      "count": 21,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0891",
       "name": "芯片概念",
       "type": "concept",
-      "count": 32,
-      "addedCount": 9,
+      "count": 36,
+      "addedCount": 4,
       "firstIgnite": false
     },
     {
       "bk": "BK1069",
       "name": "智慧灯杆",
       "type": "concept",
-      "count": 5,
-      "addedCount": 2,
+      "count": 6,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0923",
       "name": "抖音概念(字节概念)",
       "type": "concept",
-      "count": 6,
-      "addedCount": 2,
+      "count": 7,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0700",
       "name": "充电桩",
       "type": "concept",
-      "count": 10,
+      "count": 12,
       "addedCount": 2,
       "firstIgnite": true
     },
@@ -287,23 +319,31 @@
       "bk": "BK1090",
       "name": "机器人概念",
       "type": "concept",
-      "count": 31,
-      "addedCount": 3,
+      "count": 37,
+      "addedCount": 6,
       "firstIgnite": true
     },
     {
       "bk": "BK0637",
       "name": "互联网金融",
       "type": "concept",
-      "count": 15,
-      "addedCount": 2,
+      "count": 20,
+      "addedCount": 5,
       "firstIgnite": true
     },
     {
-      "bk": "BK0721",
-      "name": "PPP模式",
+      "bk": "BK0677",
+      "name": "粤港自贸",
       "type": "concept",
-      "count": 8,
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0482",
+      "name": "一般零售",
+      "type": "industry",
+      "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -311,47 +351,31 @@
       "bk": "BK0588",
       "name": "光伏概念",
       "type": "concept",
-      "count": 15,
+      "count": 17,
       "addedCount": 2,
       "firstIgnite": true
     },
     {
-      "bk": "BK0653",
-      "name": "养老概念",
+      "bk": "BK0665",
+      "name": "电商概念",
       "type": "concept",
-      "count": 3,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0712",
-      "name": "一带一路",
-      "type": "concept",
-      "count": 10,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0940",
-      "name": "网红经济",
-      "type": "concept",
-      "count": 3,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0422",
-      "name": "物流",
-      "type": "industry",
-      "count": 3,
+      "count": 11,
       "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0567",
+      "name": "股权激励",
+      "type": "concept",
+      "count": 6,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK1733",
       "name": "增持计划",
       "type": "concept",
-      "count": 9,
+      "count": 12,
       "addedCount": 3,
       "firstIgnite": true
     },
@@ -359,63 +383,63 @@
       "bk": "BK0538",
       "name": "化学制品",
       "type": "industry",
+      "count": 9,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1160",
+      "name": "柔性屏(折叠屏)",
+      "type": "concept",
       "count": 6,
-      "addedCount": 4,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0905",
+      "name": "传感器",
+      "type": "concept",
+      "count": 6,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0963",
       "name": "商业航天",
       "type": "concept",
-      "count": 12,
-      "addedCount": 1,
+      "count": 15,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1184",
       "name": "人形机器人",
       "type": "concept",
-      "count": 17,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0908",
-      "name": "HJT电池",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
+      "count": 19,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0574",
       "name": "锂电池概念",
       "type": "concept",
-      "count": 12,
-      "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1148",
-      "name": "BC电池",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
+      "count": 15,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK0523",
       "name": "新材料",
       "type": "concept",
-      "count": 9,
-      "addedCount": 4,
+      "count": 12,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK0968",
       "name": "固态电池",
       "type": "concept",
-      "count": 6,
+      "count": 7,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -423,7 +447,15 @@
       "bk": "BK1648",
       "name": "电池技术",
       "type": "concept",
-      "count": 13,
+      "count": 16,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0864",
+      "name": "氢能源",
+      "type": "concept",
+      "count": 6,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -431,7 +463,7 @@
       "bk": "BK0494",
       "name": "节能环保",
       "type": "concept",
-      "count": 7,
+      "count": 8,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -439,15 +471,15 @@
       "bk": "BK1019",
       "name": "化学原料",
       "type": "industry",
-      "count": 5,
-      "addedCount": 3,
+      "count": 6,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0528",
       "name": "转债标的",
       "type": "concept",
-      "count": 7,
+      "count": 8,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -455,15 +487,23 @@
       "bk": "BK0802",
       "name": "智能驾驶",
       "type": "concept",
-      "count": 14,
-      "addedCount": 3,
+      "count": 16,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0833",
       "name": "小米概念",
       "type": "concept",
-      "count": 11,
+      "count": 13,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0990",
+      "name": "快递概念",
+      "type": "concept",
+      "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -471,23 +511,23 @@
       "bk": "BK0459",
       "name": "元件",
       "type": "industry",
-      "count": 13,
-      "addedCount": 6,
+      "count": 20,
+      "addedCount": 7,
       "firstIgnite": true
     },
     {
       "bk": "BK0917",
       "name": "半导体概念",
       "type": "concept",
-      "count": 35,
-      "addedCount": 13,
+      "count": 42,
+      "addedCount": 7,
       "firstIgnite": true
     },
     {
       "bk": "BK0877",
       "name": "PCB",
       "type": "concept",
-      "count": 12,
+      "count": 13,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -495,7 +535,55 @@
       "bk": "BK1783",
       "name": "汽车电子",
       "type": "concept",
-      "count": 12,
+      "count": 16,
+      "addedCount": 4,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0668",
+      "name": "医疗器械概念",
+      "type": "concept",
+      "count": 8,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0976",
+      "name": "被动元件概念",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1716",
+      "name": "反转股",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1001",
+      "name": "内贸流通",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0825",
+      "name": "新零售",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0490",
+      "name": "军工",
+      "type": "concept",
+      "count": 16,
       "addedCount": 3,
       "firstIgnite": true
     },
@@ -503,23 +591,31 @@
       "bk": "BK1762",
       "name": "高端装备",
       "type": "concept",
-      "count": 9,
-      "addedCount": 1,
+      "count": 11,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK1166",
       "name": "低空经济",
       "type": "concept",
-      "count": 10,
+      "count": 12,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0814",
+      "name": "大飞机",
+      "type": "concept",
+      "count": 4,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK0736",
-      "name": "通信服务",
-      "type": "industry",
-      "count": 5,
+      "bk": "BK0590",
+      "name": "西部大开发",
+      "type": "concept",
+      "count": 12,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -527,7 +623,7 @@
       "bk": "BK1650",
       "name": "通信技术",
       "type": "concept",
-      "count": 29,
+      "count": 34,
       "addedCount": 5,
       "firstIgnite": true
     },
@@ -535,79 +631,71 @@
       "bk": "BK0714",
       "name": "5G概念",
       "type": "concept",
-      "count": 22,
+      "count": 26,
       "addedCount": 4,
       "firstIgnite": true
     },
     {
-      "bk": "BK1657",
-      "name": "病原体防治",
+      "bk": "BK1690",
+      "name": "基金增仓",
       "type": "concept",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0615",
-      "name": "中药概念",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "HY:装修装饰",
-      "name": "装修装饰",
-      "type": "industry",
-      "count": 4,
+      "count": 17,
       "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1225",
+      "name": "服装家纺",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0554",
       "name": "物联网",
       "type": "concept",
-      "count": 26,
-      "addedCount": 4,
+      "count": 32,
+      "addedCount": 6,
       "firstIgnite": true
     },
     {
       "bk": "BK1695",
       "name": "私募重仓",
       "type": "concept",
-      "count": 8,
-      "addedCount": 3,
+      "count": 10,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0680",
       "name": "智能家居",
       "type": "concept",
-      "count": 6,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0945",
-      "name": "装配建筑",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
+      "count": 9,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK0886",
       "name": "智慧政务",
       "type": "concept",
-      "count": 15,
-      "addedCount": 2,
+      "count": 16,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0447",
+      "name": "互联网服务",
+      "type": "concept",
+      "count": 17,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1126",
       "name": "ChatGPT概念",
       "type": "concept",
-      "count": 11,
+      "count": 12,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -615,31 +703,55 @@
       "bk": "BK0809",
       "name": "AI智能体",
       "type": "concept",
-      "count": 12,
+      "count": 14,
       "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0958",
+      "name": "虚拟电厂",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK1647",
       "name": "电网概念",
       "type": "concept",
-      "count": 9,
-      "addedCount": 1,
+      "count": 11,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
-      "bk": "BK0837",
-      "name": "互联网医疗",
+      "bk": "BK1699",
+      "name": "股权分散",
       "type": "concept",
-      "count": 3,
-      "addedCount": 1,
+      "count": 13,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0457",
       "name": "电网设备",
       "type": "industry",
-      "count": 3,
+      "count": 4,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0667",
+      "name": "安防概念",
+      "type": "concept",
+      "count": 7,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0880",
+      "name": "UWB概念",
+      "type": "concept",
+      "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -647,7 +759,15 @@
       "bk": "BK0581",
       "name": "智能电网",
       "type": "concept",
-      "count": 11,
+      "count": 12,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0704",
+      "name": "无人机",
+      "type": "concept",
+      "count": 8,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -655,7 +775,7 @@
       "bk": "BK0989",
       "name": "储能概念",
       "type": "concept",
-      "count": 11,
+      "count": 12,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -663,15 +783,47 @@
       "bk": "BK1689",
       "name": "基金减仓",
       "type": "concept",
-      "count": 46,
-      "addedCount": 13,
+      "count": 60,
+      "addedCount": 14,
       "firstIgnite": true
     },
     {
-      "bk": "BK0597",
-      "name": "水利建设",
+      "bk": "BK0966",
+      "name": "碳交易",
       "type": "concept",
       "count": 5,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1043",
+      "name": "专业服务",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1696",
+      "name": "私募新进",
+      "type": "concept",
+      "count": 6,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0881",
+      "name": "3D玻璃",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0674",
+      "name": "蓝宝石",
+      "type": "concept",
+      "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -679,7 +831,7 @@
       "bk": "BK1127",
       "name": "AI芯片",
       "type": "concept",
-      "count": 3,
+      "count": 4,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -687,39 +839,23 @@
       "bk": "BK1137",
       "name": "存储芯片",
       "type": "concept",
-      "count": 19,
-      "addedCount": 7,
+      "count": 20,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK1136",
       "name": "光通信模块",
       "type": "concept",
-      "count": 12,
+      "count": 15,
       "addedCount": 3,
       "firstIgnite": true
     },
     {
-      "bk": "BK0921",
-      "name": "卫星互联网",
-      "type": "concept",
-      "count": 7,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0808",
-      "name": "军民融合",
+      "bk": "BK1161",
+      "name": "英伟达概念",
       "type": "concept",
       "count": 6,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1153",
-      "name": "多模态AI",
-      "type": "concept",
-      "count": 10,
       "addedCount": 2,
       "firstIgnite": true
     },
@@ -727,23 +863,23 @@
       "bk": "BK1111",
       "name": "AIGC概念",
       "type": "concept",
-      "count": 10,
-      "addedCount": 2,
+      "count": 11,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0737",
       "name": "软件开发",
       "type": "industry",
-      "count": 12,
-      "addedCount": 3,
+      "count": 14,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK1176",
       "name": "财税数字化",
       "type": "concept",
-      "count": 12,
+      "count": 13,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -751,15 +887,15 @@
       "bk": "BK1071",
       "name": "跨境支付",
       "type": "concept",
-      "count": 9,
-      "addedCount": 1,
+      "count": 13,
+      "addedCount": 4,
       "firstIgnite": true
     },
     {
       "bk": "BK0662",
       "name": "在线教育",
       "type": "concept",
-      "count": 6,
+      "count": 7,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -767,7 +903,7 @@
       "bk": "BK0722",
       "name": "虚拟现实",
       "type": "concept",
-      "count": 12,
+      "count": 14,
       "addedCount": 2,
       "firstIgnite": true
     },
@@ -775,47 +911,39 @@
       "bk": "BK1138",
       "name": "液冷服务器",
       "type": "concept",
-      "count": 15,
-      "addedCount": 3,
+      "count": 19,
+      "addedCount": 4,
       "firstIgnite": true
     },
     {
       "bk": "BK0568",
       "name": "深成500",
       "type": "concept",
-      "count": 22,
-      "addedCount": 5,
+      "count": 25,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1036",
       "name": "半导体",
       "type": "industry",
-      "count": 45,
-      "addedCount": 26,
+      "count": 60,
+      "addedCount": 15,
       "firstIgnite": false
-    },
-    {
-      "bk": "BK1101",
-      "name": "先进封装",
-      "type": "concept",
-      "count": 14,
-      "addedCount": 4,
-      "firstIgnite": true
     },
     {
       "bk": "HY:其他电子",
       "name": "其他电子",
       "type": "industry",
-      "count": 2,
-      "addedCount": 1,
+      "count": 4,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
-      "bk": "BK1180",
-      "name": "华为海思",
+      "bk": "BK0890",
+      "name": "MLCC",
       "type": "concept",
-      "count": 6,
+      "count": 3,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -823,7 +951,7 @@
       "bk": "BK0952",
       "name": "第三代半导体",
       "type": "concept",
-      "count": 7,
+      "count": 8,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -831,15 +959,23 @@
       "bk": "BK0900",
       "name": "新能源车",
       "type": "concept",
-      "count": 22,
-      "addedCount": 3,
+      "count": 28,
+      "addedCount": 6,
       "firstIgnite": true
     },
     {
       "bk": "BK0425",
       "name": "工程建设",
       "type": "concept",
-      "count": 3,
+      "count": 4,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1110",
+      "name": "Web3.0",
+      "type": "concept",
+      "count": 4,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -847,7 +983,7 @@
       "bk": "BK1009",
       "name": "元宇宙概念",
       "type": "concept",
-      "count": 7,
+      "count": 8,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -855,103 +991,79 @@
       "bk": "BK1128",
       "name": "CPO概念",
       "type": "concept",
-      "count": 13,
-      "addedCount": 5,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1002",
-      "name": "激光雷达",
-      "type": "concept",
-      "count": 8,
-      "addedCount": 2,
+      "count": 16,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1088",
       "name": "F5G概念",
       "type": "concept",
-      "count": 3,
+      "count": 5,
       "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0964",
-      "name": "6G概念",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0832",
       "name": "工业互联网",
       "type": "concept",
-      "count": 7,
-      "addedCount": 1,
+      "count": 11,
+      "addedCount": 4,
       "firstIgnite": true
     },
     {
       "bk": "BK0454",
       "name": "塑料",
       "type": "industry",
-      "count": 4,
-      "addedCount": 3,
+      "count": 5,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0840",
       "name": "OLED",
       "type": "concept",
-      "count": 6,
-      "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1753",
-      "name": "光刻胶",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 2,
+      "count": 7,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0448",
       "name": "通信设备",
       "type": "industry",
-      "count": 12,
-      "addedCount": 5,
+      "count": 16,
+      "addedCount": 4,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1075",
+      "name": "电子身份证",
+      "type": "concept",
+      "count": 6,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0875",
+      "name": "ETC",
+      "type": "concept",
+      "count": 4,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0710",
       "name": "量子科技",
       "type": "concept",
+      "count": 8,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1793",
+      "name": "物理AI",
+      "type": "concept",
       "count": 5,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1224",
-      "name": "纺织制造",
-      "type": "industry",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0985",
-      "name": "换电概念",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0632",
-      "name": "土地流转",
-      "type": "concept",
-      "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -959,31 +1071,55 @@
       "bk": "HY:汽车零部",
       "name": "汽车零部",
       "type": "industry",
-      "count": 18,
-      "addedCount": 7,
+      "count": 24,
+      "addedCount": 6,
       "firstIgnite": true
     },
     {
       "bk": "BK1178",
       "name": "AI眼镜",
       "type": "concept",
-      "count": 4,
+      "count": 6,
       "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1157",
+      "name": "飞行汽车(eVTOL)",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0984",
+      "name": "华为汽车",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK1037",
       "name": "消费电子",
       "type": "industry",
-      "count": 9,
-      "addedCount": 6,
+      "count": 10,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK1646",
       "name": "消费电子概念",
       "type": "concept",
-      "count": 10,
+      "count": 12,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0893",
+      "name": "无线耳机",
+      "type": "concept",
+      "count": 6,
       "addedCount": 2,
       "firstIgnite": true
     },
@@ -991,63 +1127,71 @@
       "bk": "BK0641",
       "name": "智能穿戴",
       "type": "concept",
-      "count": 6,
-      "addedCount": 2,
+      "count": 7,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK1718",
       "name": "外资背景",
       "type": "concept",
-      "count": 4,
-      "addedCount": 2,
+      "count": 7,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0644",
+      "name": "特斯拉概念",
+      "type": "concept",
+      "count": 7,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0545",
       "name": "通用设备",
       "type": "industry",
-      "count": 16,
-      "addedCount": 6,
+      "count": 25,
+      "addedCount": 9,
       "firstIgnite": true
     },
     {
-      "bk": "BK0638",
-      "name": "创业成份",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1773",
-      "name": "智能医疗",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1190",
-      "name": "虚拟机器人",
+      "bk": "BK1004",
+      "name": "工业母机",
       "type": "concept",
       "count": 5,
-      "addedCount": 1,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
-      "bk": "BK0733",
-      "name": "包装材料",
+      "bk": "BK1150",
+      "name": "新型工业化",
+      "type": "concept",
+      "count": 8,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1145",
+      "name": "机器人执行器",
       "type": "concept",
       "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK1193",
-      "name": "海南自贸",
-      "type": "concept",
+      "bk": "BK1265",
+      "name": "包装印刷",
+      "type": "industry",
       "count": 4,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1190",
+      "name": "虚拟机器人",
+      "type": "concept",
+      "count": 6,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1055,31 +1199,23 @@
       "bk": "HY:光学光电",
       "name": "光学光电",
       "type": "industry",
-      "count": 9,
-      "addedCount": 4,
+      "count": 12,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK1651",
       "name": "显示技术",
       "type": "concept",
-      "count": 3,
+      "count": 4,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK1054",
-      "name": "DRG/DIP",
+      "bk": "BK1139",
+      "name": "中特估",
       "type": "concept",
       "count": 3,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1658",
-      "name": "创新医疗服务",
-      "type": "concept",
-      "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1087,55 +1223,55 @@
       "bk": "BK1248",
       "name": "专业工程",
       "type": "industry",
-      "count": 5,
-      "addedCount": 4,
+      "count": 6,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK0884",
       "name": "光刻机",
       "type": "concept",
-      "count": 7,
-      "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1089",
-      "name": "汽车热管理",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1721",
-      "name": "高成长股",
-      "type": "concept",
-      "count": 3,
-      "addedCount": 1,
+      "count": 10,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "BK0823",
       "name": "养老金",
       "type": "concept",
-      "count": 5,
-      "addedCount": 2,
+      "count": 6,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK0695",
-      "name": "小金属概念",
+      "bk": "BK1168",
+      "name": "铜缆高速连接",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0865",
+      "name": "电子烟",
       "type": "concept",
       "count": 3,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK0577",
-      "name": "核能核电",
+      "bk": "BK0476",
+      "name": "装修建材",
+      "type": "industry",
+      "count": 4,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0695",
+      "name": "小金属概念",
       "type": "concept",
-      "count": 3,
+      "count": 4,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1143,7 +1279,7 @@
       "bk": "BK1660",
       "name": "光纤概念",
       "type": "concept",
-      "count": 5,
+      "count": 6,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1151,79 +1287,47 @@
       "bk": "BK0998",
       "name": "机器视觉",
       "type": "concept",
-      "count": 6,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0801",
-      "name": "增强现实",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 2,
+      "count": 9,
+      "addedCount": 3,
       "firstIgnite": true
     },
     {
       "bk": "HY:房地产开",
       "name": "房地产开",
       "type": "industry",
-      "count": 4,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1152",
-      "name": "高带宽内存",
-      "type": "concept",
-      "count": 8,
+      "count": 6,
       "addedCount": 2,
       "firstIgnite": true
     },
     {
-      "bk": "HY:轨交设备",
-      "name": "轨交设备",
-      "type": "industry",
+      "bk": "BK1760",
+      "name": "农机",
+      "type": "concept",
+      "count": 5,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0711",
+      "name": "券商概念",
+      "type": "concept",
       "count": 3,
       "addedCount": 1,
       "firstIgnite": true
     },
     {
-      "bk": "BK0969",
-      "name": "汽车芯片",
+      "bk": "BK1714",
+      "name": "金融地产风格",
       "type": "concept",
-      "count": 4,
-      "addedCount": 4,
+      "count": 3,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "BK1175",
       "name": "玻璃基板",
       "type": "concept",
-      "count": 3,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1713",
-      "name": "科技风格",
-      "type": "concept",
-      "count": 8,
-      "addedCount": 4,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0935",
-      "name": "中芯概念",
-      "type": "concept",
-      "count": 7,
-      "addedCount": 4,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0843",
-      "name": "天然气",
-      "type": "concept",
-      "count": 3,
+      "count": 4,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1231,7 +1335,7 @@
       "bk": "BK0705",
       "name": "上证380",
       "type": "concept",
-      "count": 11,
+      "count": 13,
       "addedCount": 2,
       "firstIgnite": true
     },
@@ -1239,39 +1343,31 @@
       "bk": "BK0910",
       "name": "专用设备",
       "type": "industry",
-      "count": 11,
-      "addedCount": 6,
+      "count": 19,
+      "addedCount": 8,
       "firstIgnite": true
     },
     {
       "bk": "BK0666",
       "name": "苹果概念",
       "type": "concept",
-      "count": 7,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0859",
-      "name": "超清视频",
-      "type": "concept",
-      "count": 4,
-      "addedCount": 1,
+      "count": 11,
+      "addedCount": 4,
       "firstIgnite": true
     },
     {
       "bk": "BK0926",
       "name": "湖北自贸",
       "type": "concept",
-      "count": 2,
-      "addedCount": 1,
+      "count": 4,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "BK0915",
       "name": "WiFi",
       "type": "concept",
-      "count": 2,
+      "count": 3,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1279,7 +1375,15 @@
       "bk": "BK0500",
       "name": "HS300_",
       "type": "concept",
-      "count": 5,
+      "count": 7,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0580",
+      "name": "LED概念",
+      "type": "concept",
+      "count": 3,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1287,7 +1391,15 @@
       "bk": "BK1164",
       "name": "AIPC",
       "type": "concept",
-      "count": 3,
+      "count": 4,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1686",
+      "name": "保险新进",
+      "type": "concept",
+      "count": 4,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1295,55 +1407,39 @@
       "bk": "HY:军工电子",
       "name": "军工电子",
       "type": "industry",
-      "count": 5,
-      "addedCount": 3,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0480",
-      "name": "航天航空",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1124",
-      "name": "毫米波概念",
-      "type": "concept",
-      "count": 2,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1048",
-      "name": "IGBT概念",
-      "type": "concept",
-      "count": 3,
+      "count": 7,
       "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1780",
+      "name": "两轮车",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1144",
+      "name": "高压快充",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0838",
+      "name": "东北振兴",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
       "bk": "HY:自动化设",
       "name": "自动化设",
       "type": "industry",
-      "count": 8,
-      "addedCount": 7,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1688",
-      "name": "大基金持股",
-      "type": "concept",
-      "count": 3,
-      "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0916",
-      "name": "氮化镓",
-      "type": "concept",
-      "count": 2,
+      "count": 9,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1351,87 +1447,47 @@
       "bk": "BK0994",
       "name": "空间站概念",
       "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1170",
+      "name": "AI制药（医疗）",
+      "type": "concept",
       "count": 2,
       "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1710",
+      "name": "先进制造风格",
+      "type": "concept",
+      "count": 3,
+      "addedCount": 2,
       "firstIgnite": true
     },
     {
       "bk": "HY:电子化学",
       "name": "电子化学",
       "type": "industry",
-      "count": 4,
-      "addedCount": 3,
+      "count": 9,
+      "addedCount": 5,
       "firstIgnite": true
     },
     {
       "bk": "BK0970",
       "name": "生物识别",
       "type": "concept",
+      "count": 3,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1018",
+      "name": "橡胶",
+      "type": "industry",
       "count": 2,
-      "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0981",
-      "name": "工业气体",
-      "type": "concept",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0690",
-      "name": "氟化工概念",
-      "type": "concept",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1010",
-      "name": "磷化工",
-      "type": "concept",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0899",
-      "name": "CRO",
-      "type": "concept",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1106",
-      "name": "创新药",
-      "type": "concept",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1078",
-      "name": "肝炎概念",
-      "type": "concept",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1186",
-      "name": "首发经济",
-      "type": "concept",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1097",
-      "name": "TOPCon电池",
-      "type": "concept",
-      "count": 1,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1439,15 +1495,7 @@
       "bk": "BK0617",
       "name": "石墨烯",
       "type": "concept",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0909",
-      "name": "降解塑料",
-      "type": "concept",
-      "count": 1,
+      "count": 2,
       "addedCount": 1,
       "firstIgnite": true
     },
@@ -1455,8 +1503,136 @@
       "bk": "BK1778",
       "name": "硅能源",
       "type": "concept",
+      "count": 4,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0697",
+      "name": "IPO受益",
+      "type": "concept",
       "count": 2,
       "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "HY:金属新材",
+      "name": "金属新材",
+      "type": "industry",
+      "count": 4,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0619",
+      "name": "3D打印",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0703",
+      "name": "超级电容",
+      "type": "concept",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1772",
+      "name": "金属镍",
+      "type": "concept",
+      "count": 1,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1007",
+      "name": "植物照明",
+      "type": "concept",
+      "count": 1,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0932",
+      "name": "尾气治理",
+      "type": "concept",
+      "count": 1,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0699",
+      "name": "全息技术",
+      "type": "concept",
+      "count": 1,
+      "addedCount": 1,
+      "firstIgnite": true
+    },
+    {
+      "bk": "HY:其他电源",
+      "name": "其他电源",
+      "type": "industry",
+      "count": 6,
+      "addedCount": 4,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0727",
+      "name": "医疗服务",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0546",
+      "name": "玻璃玻纤",
+      "type": "industry",
+      "count": 3,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1027",
+      "name": "小金属",
+      "type": "industry",
+      "count": 3,
+      "addedCount": 3,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0440",
+      "name": "家居用品",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK0732",
+      "name": "贵金属",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1033",
+      "name": "电池",
+      "type": "industry",
+      "count": 2,
+      "addedCount": 2,
+      "firstIgnite": true
+    },
+    {
+      "bk": "BK1032",
+      "name": "风电设备",
+      "type": "industry",
+      "count": 1,
+      "addedCount": 1,
       "firstIgnite": true
     },
     {
@@ -1484,40 +1660,8 @@
       "firstIgnite": true
     },
     {
-      "bk": "HY:金属新材",
-      "name": "金属新材",
-      "type": "industry",
-      "count": 3,
-      "addedCount": 3,
-      "firstIgnite": true
-    },
-    {
-      "bk": "HY:照明设备",
-      "name": "照明设备",
-      "type": "industry",
-      "count": 3,
-      "addedCount": 3,
-      "firstIgnite": true
-    },
-    {
       "bk": "BK1241",
       "name": "黑色家电",
-      "type": "industry",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "HY:其他电源",
-      "name": "其他电源",
-      "type": "industry",
-      "count": 2,
-      "addedCount": 2,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0727",
-      "name": "医疗服务",
       "type": "industry",
       "count": 1,
       "addedCount": 1,
@@ -1534,22 +1678,6 @@
     {
       "bk": "BK1030",
       "name": "电机Ⅱ",
-      "type": "industry",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK0546",
-      "name": "玻璃玻纤",
-      "type": "industry",
-      "count": 1,
-      "addedCount": 1,
-      "firstIgnite": true
-    },
-    {
-      "bk": "BK1027",
-      "name": "小金属",
       "type": "industry",
       "count": 1,
       "addedCount": 1,
